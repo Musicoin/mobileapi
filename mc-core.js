@@ -26,6 +26,10 @@ app.get('/media/:address', function(req, res) {
   mediaProvider.handleRequest(req, res);
 });
 
+app.get('/artist/:address', function(req, res) {
+  mediaProvider.handleRequest(req, res);
+});
+
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!')
 });
