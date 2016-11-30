@@ -33,8 +33,10 @@ function MediaProvider(licenseProvider, ipfsHost) {
   };
 
   this._createIpfsProxyOptions = function(url, protocol) {
+    const hash = url.substring(protocol.length);
     return {
-      ipfsUrl: this.getIpfsUrl(url.substring(protocol.length)),
+      hash: hash,
+      ipfsUrl: this.getIpfsUrl(hash),
       decrypt: protocol == ENCRYPTED || protocol == ZIP_ENCRYPTED,
       unzip: protocol == ZIP_ENCRYPTED
     }
@@ -44,7 +46,7 @@ function MediaProvider(licenseProvider, ipfsHost) {
 MediaProvider.prototype.resolveIpfsUrl = function(url) {
   const parsed = this._parseIpfsUrl(url);
   if (parsed.err) throw new Error("Could not parse URL: " + url);
-  return parsed.ipfsUrl;
+  return "/ipfs/" + parsed.hash;
 };
 
 MediaProvider.prototype.readJsonFromIpfs = function(url) {
