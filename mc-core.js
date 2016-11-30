@@ -9,25 +9,47 @@ const config = ConfigUtils.loadConfig(process.argv);
 const web3Reader = new Web3Reader(config.web3Host);
 const mediaProvider = new MediaProvider(web3Reader, config.ipfsHost);
 
-app.get('/getLicense/:address', function(req, res) {
+app.get('/license/detail/:address', function(req, res) {
   web3Reader.loadLicense(req.params.address)
     .then(function(result) {
-      console.log("Got result");
       res.json(result);
     })
     .catch(function(err) {
-      console.log("Got err: " + JSON.stringify(err));
       res.status(500)
       res.send(err);
     })
 });
 
-app.get('/media/:address', function(req, res) {
-  mediaProvider.handleRequest(req, res);
+app.get('/license/resource/:address', function(req, res) {
+  mediaProvider.getLicenseResource(req.params.address)
+    .then(function (result) {
+      res.writeHead(200, result.headers);
+      result.stream.pipe(res);
+    })
+    .catch(function (err) {
+      res.status(500)
+      res.send(err);
+    });
 });
 
-app.get('/artist/:address', function(req, res) {
-  mediaProvider.handleRequest(req, res);
+app.get('/artist/detail/:address', function(req, res) {
+  res.json({
+    address: req.params.address,
+    name: "Test artist",
+  });
+});
+
+app.get('/ipfs/:hash', function(req, res) {
+  mediaProvider.getRawIpfsResource(req.params.hash)
+    .then(function(result) {
+      res.writeHead(200, result.headers);
+      result.stream.pipe(res);
+    })
+    .catch(function(err) {
+      console.error(err.stack);
+      res.status(500);
+      res.send(err);
+    });
 });
 
 app.listen(3000, function () {

@@ -29,7 +29,6 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
     royaltyPromise,
 
     function(workAddress, weiPerPlay, tipCount, totalEarned, owner, resourceUrl, metadataUrl, contributors, royalties) {
-      console.log("Promises resolved");
       return {
         address: licenseAddress,
         contract_id: licenseAddress,
@@ -46,7 +45,6 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
     }.bind(this))
     .bind(this)
     .then(function(license) {
-      console.log("Loading work for: " + JSON.stringify(license));
       return this.loadWork(license.workAddress)
         .then(function(work) {
           license.title = work.title;
@@ -60,7 +58,6 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
         });
     })
     .then(function(license) {
-      console.log("Loaded license: " + JSON.stringify(license));
       return license;
     });
 };
