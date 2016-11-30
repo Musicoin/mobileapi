@@ -4,6 +4,7 @@ const ArrayUtils = require('./array-utils');
 const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync('solidity/mvp2/PayPerPlay.sol.abi'));
 const workAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Work.sol.abi'));
+const artistAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Artist.sol.abi'));
 
 function Web3Reader(rpcServer) {
   this.web3 = new Web3();
@@ -12,73 +13,67 @@ function Web3Reader(rpcServer) {
 
 Web3Reader.prototype.loadLicense = function(licenseAddress) {
   console.log("Loading license: " + licenseAddress);
-  const c = Promise.promisifyAll(this.web3.eth.contract(pppMvp2Abi).at(licenseAddress));
+  const licensePromise = this.loadContract(licenseAddress, pppMvp2Abi);
 
+  // extracting the arrays takes some extra work
+  const c = Promise.promisifyAll(this.web3.eth.contract(pppMvp2Abi).at(licenseAddress));
   const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
   const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
 
-  return Promise.join(
-    c.workAddressAsync(),
-    c.weiPerPlayAsync(),
-    c.tipCountAsync(),
-    c.totalEarnedAsync(),
-    c.ownerAsync(),
-    c.resourceUrlAsync(),
-    c.metadataUrlAsync(),
-    contributorPromise,
-    royaltyPromise,
+  return Promise.join(licensePromise, contributorPromise, royaltyPromise,
+    function(licenseObject, contributors, royalties) {
+      licenseObject.contributors = contributors;
+      licenseObject.royalties = royalties;
 
-    function(workAddress, weiPerPlay, tipCount, totalEarned, owner, resourceUrl, metadataUrl, contributors, royalties) {
-      return {
-        address: licenseAddress,
-        contract_id: licenseAddress,
-        workAddress: workAddress,
-        weiPerPlay: weiPerPlay,
-        coinsPerPlay: this.web3.fromWei(weiPerPlay, 'ether'),
-        tipCount: tipCount,
-        totalEarned: totalEarned,
-        owner: owner,
-        resourceUrl: resourceUrl,
-        contributors: contributors,
-        royalties: royalties
-      }
-    }.bind(this))
-    .bind(this)
-    .then(function(license) {
-      return this.loadWork(license.workAddress)
-        .then(function(work) {
-          license.title = work.title;
-          license.artist = work.artist;
-          license.imageUrl = work.imageUrl;
-          license.metadataUrl = work.metadataUrl;
-          return license;
-        })
-        .catch(function(err) {
-          throw err;
-        });
-    })
-    .then(function(license) {
-      return license;
+      // for convenience, do the conversion to "coins" from wei
+      licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
+      licenseObject.address = licenseAddress;
+
+      // load details from the associated "work" directly into the licenseObject
+      return this.loadWork(licenseObject.workAddress, licenseObject);
+    }.bind(this));
+};
+
+Web3Reader.prototype.loadArtist = function(artistAddress, output) {
+  return this.loadContract(artistAddress, artistAbi, output);
+};
+
+Web3Reader.prototype.loadWork = function(workAddress, output) {
+  return this.loadContract(workAddress, workAbi, output);
+};
+
+Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
+  return this.loadContractAndFields(address, abi, this.getConstantFields(abi), outputObject);
+};
+
+/*
+ * Loads the given fields into a JSON object asynchronously
+ */
+Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outputObject) {
+  const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
+  var promises = fields.map(function (f) {
+    if (c[f + "Async"]) return c[f + "Async"]();
+    return Promise.resolve(f + " not found");
+  });
+
+  return Promise.all(promises)
+    .then(function (results) {
+      var output = outputObject || {};
+      fields.forEach(function (f, idx) {
+        output[f] = results[idx];
+      });
+      return output;
     });
 };
 
-Web3Reader.prototype.loadWork = function(workAddress) {
-  const c = Promise.promisifyAll(this.web3.eth.contract(workAbi).at(workAddress));
-  return Promise.join(
-    c.titleAsync(),
-    c.artistAsync(),
-    c.imageUrlAsync(),
-    c.metadataUrlAsync(),
-    function(title, artist, imageUrl, metadataUrl) {
-      return {
-        address: workAddress,
-        title: title,
-        artist: artist,
-        imageUrl: imageUrl,
-        metadataUrl: metadataUrl,
-      }
-    }
-  )
+Web3Reader.prototype.getConstantFields = function(abi) {
+  return abi
+    .filter(function(field) {
+      return field.constant && field.type == "function" && field.inputs && field.inputs.length == 0
+    })
+    .map(function(field) {
+      return field.name;
+    })
 };
 
 module.exports = Web3Reader;

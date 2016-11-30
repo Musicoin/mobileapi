@@ -33,10 +33,24 @@ app.get('/license/resource/:address', function(req, res) {
 });
 
 app.get('/artist/detail/:address', function(req, res) {
-  res.json({
-    address: req.params.address,
-    name: "Test artist",
-  });
+  web3Reader.loadArtist(req.params.address)
+    .then(function(result) {
+      var d = mediaProvider.readTextFromIpfs(result.descriptionUrl);
+      var s = mediaProvider.readJsonFromIpfs(result.socialUrl);
+      return Promise.join(d, s, function(description, social) {
+        result.description = description;
+        result.social = social;
+        result.image = mediaProvider.resolveIpfsUrl(result.imageUrl);
+        return result;
+      })
+    })
+    .then(function(output) {
+      res.json(output);
+    })
+    .catch(function(err) {
+      res.status(500)
+      res.send(err);
+    })
 });
 
 app.get('/ipfs/:hash', function(req, res) {

@@ -41,6 +41,37 @@ function MediaProvider(licenseProvider, ipfsHost) {
   };
 }
 
+MediaProvider.prototype.resolveIpfsUrl = function(url) {
+  const parsed = this._parseIpfsUrl(url);
+  if (parsed.err) throw new Error("Could not parse URL: " + url);
+  return parsed.ipfsUrl;
+};
+
+MediaProvider.prototype.readJsonFromIpfs = function(url) {
+  return this.readTextFromIpfs(url)
+    .then(function(text) {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return {error: "Could not parse JSON: '" + e + "'"};
+      }
+    })
+};
+
+MediaProvider.prototype.readTextFromIpfs = function(url) {
+  return this.getIpfsResource(url)
+    .then(function(result) {
+      return new Promise(function(resolve, reject) {
+        var content = '';
+        result.stream.on('data', function(d){ content += d; });
+        result.stream.on('end', function() {
+          resolve(content);
+        });
+        result.stream.on('err', reject);
+      })
+    });
+};
+
 MediaProvider.prototype.getRawIpfsResource = function(hash) {
   return this.getIpfsResource(RAW + hash);
 };
