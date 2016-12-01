@@ -1,6 +1,5 @@
 const express  = require('express');
 const router = express.Router();
-const LicenseModule = require('../js-api/license');
 var licenseModule;
 
 router.get('/detail/:address', function(req, res) {
@@ -27,7 +26,7 @@ router.get('/resource/:address', function(req, res) {
 });
 
 
-module.exports.init = function(_web3Reader, _mediaProvider) {
-  licenseModule = new LicenseModule(_web3Reader, _mediaProvider);
+module.exports.init = function(_licenseModule) {
+  licenseModule = _licenseModule;
   return router;
 };

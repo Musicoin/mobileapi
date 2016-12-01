@@ -1,6 +1,5 @@
 var express  = require('express');
 var router = express.Router();
-const ArtistModule = require('../js-api/artist');
 var artistModule;
 
 router.get('/detail/:address', function(req, res) {
@@ -14,7 +13,7 @@ router.get('/detail/:address', function(req, res) {
     })
 });
 
-module.exports.init = function(_web3Reader, _mediaProvider) {
-  artistModule = new ArtistModule(_web3Reader, _mediaProvider);
+module.exports.init = function(_artistModule) {
+  artistModule = _artistModule;
   return router;
 };

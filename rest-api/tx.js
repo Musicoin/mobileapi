@@ -1,7 +1,5 @@
 var express  = require('express');
 var router = express.Router();
-const TransactionModule = require('../js-api/tx');
-const LicenseModule = require('../js-api/license');
 var txModule;
 
 router.get('/detail/:hash', function(req, res) {
@@ -15,7 +13,7 @@ router.get('/detail/:hash', function(req, res) {
     })
 });
 
-module.exports.init = function(_web3Reader, _mediaProvider) {
-  txModule = new TransactionModule(_web3Reader, _mediaProvider);
+module.exports.init = function(_txModule) {
+  txModule = _txModule;
   return router;
 };

@@ -1,23 +1,38 @@
-const express = require('express');
-const app = express();
 const Web3Reader = require('./components/blockchain/web3-reader');
 const MediaProvider = require('./components/media/media-provider');
-const ConfigUtils = require('./components/config/config-utils');
+const ArtistModule = require('./js-api/artist');
+const LicenseModule = require('./js-api/license');
+const TxModule = require('./js-api/tx');
 
-const config = ConfigUtils.loadConfig(process.argv);
-const web3Reader = new Web3Reader(config.web3Host);
-const mediaProvider = new MediaProvider(config.ipfsHost);
+function MusicoinCore(config) {
+  this.web3Reader = new Web3Reader(config.web3Host);
+  this.mediaProvider = new MediaProvider(config.ipfsHost);
 
-const licenseModule = require("./rest-api/license").init(web3Reader, mediaProvider);
-const artistModule = require("./rest-api/artist").init(web3Reader, mediaProvider);
-const ipfsModule = require("./rest-api/ipfs").init(mediaProvider);
-const txModule = require("./rest-api/tx").init(web3Reader, mediaProvider);
+  this.artistModule = new ArtistModule(this.web3Reader, this.mediaProvider);
+  this.licenseModule = new LicenseModule(this.web3Reader, this.mediaProvider);
+  this.txModule = new TxModule(this.web3Reader, this.mediaProvider);
+}
 
-app.use("/license", licenseModule);
-app.use('/artist', artistModule);
-app.use('/ipfs', ipfsModule);
-app.use("/tx", txModule);
+MusicoinCore.prototype.getArtistModule = function() { return this.artistModule };
+MusicoinCore.prototype.getLicenseModule = function() {  return this.licenseModule };
+MusicoinCore.prototype.getTxModule = function() {  return this.txModule };
+MusicoinCore.prototype.getMediaProvier = function() {  return this.mediaProvider };
+MusicoinCore.prototype.getWeb3Reader = function() {  return this.web3Reader };
 
-app.listen(config.port, function () {
-  console.log('Listening on port ' + config.port);
-});
+MusicoinCore.prototype.loadArtist = function(address) {
+  return this.artistModule.loadArtist(address);
+};
+
+MusicoinCore.prototype.getLicense = function(address) {
+  return this.licenseModule.getLicense(address);
+};
+
+MusicoinCore.prototype.getResource = function(address) {
+  return this.licenseModule.getResource(address);
+};
+
+MusicoinCore.prototype.loadTransactionDetails = function(hash) {
+  return this.txModule.loadTransactionDetails(hash);
+};
+
+module.exports = MusicoinCore;
