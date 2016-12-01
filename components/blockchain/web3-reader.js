@@ -39,7 +39,7 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
     }.bind(this));
 };
 
-Web3Reader.prototype.loadArtist = function(artistAddress, output) {
+Web3Reader.prototype.getArtist = function(artistAddress, output) {
   return this.loadContract(artistAddress, artistAbi, output);
 };
 

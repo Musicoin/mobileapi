@@ -6,7 +6,7 @@ function TransactionModule(web3Reader, mediaProvider) {
   this.licenseModule = new LicenseModule(web3Reader, mediaProvider);
 }
 
-TransactionModule.prototype.loadTransactionDetails = function(hash) {
+TransactionModule.prototype.getTransactionDetails = function(hash) {
   const context = {};
   return this.web3Reader.getTransaction(hash)
     .bind(this)

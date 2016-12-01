@@ -5,8 +5,8 @@ function ArtistModule(web3Reader, mediaProvider) {
   this.mediaProvider = mediaProvider;
 }
 
-ArtistModule.prototype.loadArtist = function(address) {
-  return this.web3Reader.loadArtist(address)
+ArtistModule.prototype.getArtist = function(address) {
+  return this.web3Reader.getArtist(address)
     .then(function(result) {
       var d = this.mediaProvider.readTextFromIpfs(result.descriptionUrl);
       var s = this.mediaProvider.readJsonFromIpfs(result.socialUrl);

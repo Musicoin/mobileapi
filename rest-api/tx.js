@@ -3,7 +3,7 @@ var router = express.Router();
 var txModule;
 
 router.get('/detail/:hash', function(req, res) {
-  txModule.loadTransactionDetails(req.params.hash)
+  txModule.getTransactionDetails(req.params.hash)
     .then(function(output) {
       res.json(output);
     })

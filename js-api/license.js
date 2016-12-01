@@ -15,7 +15,7 @@ LicenseModule.prototype.getLicense = function(address) {
     });
 };
 
-LicenseModule.prototype.getResource = function(address) {
+LicenseModule.prototype.getResourceStream = function(address) {
   return this.getLicense(address)
     .then(function(license) {
       return this.mediaProvider.getIpfsResource(license.resourceUrl, function () {

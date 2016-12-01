@@ -14,7 +14,7 @@ router.get('/detail/:address', function(req, res) {
 });
 
 router.get('/resource/:address', function(req, res) {
-  licenseModule.getResource(req.params.address)
+  licenseModule.getResourceStream(req.params.address)
     .then(function (result) {
       res.writeHead(200, result.headers);
       result.stream.pipe(res);

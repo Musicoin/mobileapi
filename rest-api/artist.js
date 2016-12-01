@@ -3,7 +3,7 @@ var router = express.Router();
 var artistModule;
 
 router.get('/detail/:address', function(req, res) {
-  artistModule.loadArtist(req.params.address)
+  artistModule.getArtist(req.params.address)
     .then(function(output) {
       res.json(output);
     })

@@ -19,20 +19,22 @@ MusicoinCore.prototype.getTxModule = function() {  return this.txModule };
 MusicoinCore.prototype.getMediaProvier = function() {  return this.mediaProvider };
 MusicoinCore.prototype.getWeb3Reader = function() {  return this.web3Reader };
 
-MusicoinCore.prototype.loadArtist = function(address) {
-  return this.artistModule.loadArtist(address);
+MusicoinCore.prototype.getArtist = function(address) {
+  return this.artistModule.getArtist(address);
 };
 
 MusicoinCore.prototype.getLicense = function(address) {
   return this.licenseModule.getLicense(address);
 };
 
-MusicoinCore.prototype.getResource = function(address) {
-  return this.licenseModule.getResource(address);
+MusicoinCore.prototype.getTransactionDetails = function(hash) {
+  return this.txModule.getTransactionDetails(hash);
 };
 
-MusicoinCore.prototype.loadTransactionDetails = function(hash) {
-  return this.txModule.loadTransactionDetails(hash);
+MusicoinCore.prototype.getLicenseResourceStream = function(address) {
+  return this.licenseModule.getResourceStream(address);
 };
 
 module.exports = MusicoinCore;
+
+
