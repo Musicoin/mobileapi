@@ -49,5 +49,5 @@ const extractAddressAndValues = function(addressArray, valueArray, valueName) {
 };
 
 module.exports.extractArray = extractArray;
-module.exports.extractAddressArray = extractAddressArray
+module.exports.extractAddressArray = extractAddressArray;
 module.exports.extractAddressAndValues = extractAddressAndValues;
