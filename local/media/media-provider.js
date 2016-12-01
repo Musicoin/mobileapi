@@ -6,7 +6,6 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const stream = require('stream');
 const algorithm = 'aes-256-ctr';
-const constant = '36e6f1d1cd2ff2cd7bb75a359';
 const tmp = require("tmp");
 
 // Supported formats
@@ -14,8 +13,7 @@ const RAW = "ipfs://";
 const ENCRYPTED = "eipfs://";
 const ZIP_ENCRYPTED = "zeipfs://";
 
-function MediaProvider(licenseProvider, ipfsHost) {
-  this.licenseProvider = licenseProvider;
+function MediaProvider(ipfsHost) {
   this.ipfsHost = ipfsHost;
 
   // private functions
@@ -96,23 +94,8 @@ MediaProvider.prototype.getIpfsResource = function(resourceUrl, keyProvider) {
   }.bind(this));
 };
 
-MediaProvider.prototype.getLicenseResource = function(address) {
-  return  this.licenseProvider.loadLicense(address)
-    .bind(this)
-    .then(function(license) {
-      return this.getIpfsResource(license.resourceUrl, function() {
-        return _computeKey(license.artist, license.title);
-      }.bind(this));
-    });
-};
-
 MediaProvider.prototype.getIpfsUrl = function(hash) {
   return this.ipfsHost + '/ipfs/' + hash;
-};
-
-const _computeKey = function(v1, v2) {
-  const seed = v1 + " " + v2 + " " + constant;
-  return crypto.createHash('md5').update(seed).digest("hex");
 };
 
 module.exports = MediaProvider;

@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const express = require('express');
 const app = express();
 const Web3Reader = require('./local/blockchain/web3-reader');
@@ -7,65 +6,16 @@ const ConfigUtils = require('./local/config/config-utils');
 
 const config = ConfigUtils.loadConfig(process.argv);
 const web3Reader = new Web3Reader(config.web3Host);
-const mediaProvider = new MediaProvider(web3Reader, config.ipfsHost);
+const mediaProvider = new MediaProvider(config.ipfsHost);
 
-app.get('/license/detail/:address', function(req, res) {
-  web3Reader.loadLicense(req.params.address)
-    .then(function(result) {
-      res.json(result);
-    })
-    .catch(function(err) {
-      res.status(500)
-      res.send(err);
-    })
-});
+const licenseModule = require("./modules/license").init(web3Reader, mediaProvider);
+const artistModule = require("./modules/artist").init(web3Reader, mediaProvider);
+const ipfsModule = require("./modules/ipfs").init(mediaProvider);
 
-app.get('/license/resource/:address', function(req, res) {
-  mediaProvider.getLicenseResource(req.params.address)
-    .then(function (result) {
-      res.writeHead(200, result.headers);
-      result.stream.pipe(res);
-    })
-    .catch(function (err) {
-      res.status(500)
-      res.send(err);
-    });
-});
+app.use("/license", licenseModule);
+app.use('/artist', artistModule);
+app.use('/ipfs', ipfsModule);
 
-app.get('/artist/detail/:address', function(req, res) {
-  web3Reader.loadArtist(req.params.address)
-    .then(function(result) {
-      var d = mediaProvider.readTextFromIpfs(result.descriptionUrl);
-      var s = mediaProvider.readJsonFromIpfs(result.socialUrl);
-      return Promise.join(d, s, function(description, social) {
-        result.description = description;
-        result.social = social;
-        result.image = mediaProvider.resolveIpfsUrl(result.imageUrl);
-        return result;
-      })
-    })
-    .then(function(output) {
-      res.json(output);
-    })
-    .catch(function(err) {
-      res.status(500)
-      res.send(err);
-    })
-});
-
-app.get('/ipfs/:hash', function(req, res) {
-  mediaProvider.getRawIpfsResource(req.params.hash)
-    .then(function(result) {
-      res.writeHead(200, result.headers);
-      result.stream.pipe(res);
-    })
-    .catch(function(err) {
-      console.error(err.stack);
-      res.status(500);
-      res.send(err);
-    });
-});
-
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
+app.listen(config.port, function () {
+  console.log('Listening on port ' + config.port);
 });
