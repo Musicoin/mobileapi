@@ -5,6 +5,14 @@ const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync('solidity/mvp2/PayPerPlay.sol.abi'));
 const workAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Work.sol.abi'));
 const artistAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Artist.sol.abi'));
+const knownContracts = [
+  {
+    codeLength: 20850,
+    codeHash: "0x2cbaccdf9ee4827a97b24bc8533b118ac01c83450906a77e75bdc1ad3b992b54",
+    type: "PPP",
+    version: "v0.2"
+  }
+]
 
 function Web3Reader(rpcServer) {
   this.web3 = new Web3();
@@ -87,8 +95,29 @@ Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
 };
 
 Web3Reader.prototype.getEventType = function(transaction) {
-  if (transaction.to == null) return "creation";
+  if (transaction.to == null) {
+    return "creation";
+  }
   return this.eventTypeMapping[transaction.input];
+};
+
+Web3Reader.prototype.getContractType = function(code) {
+  for (var i=0; i < knownContracts.length; i++) {
+    const template = knownContracts[i];
+    if (code.length >= template.codeLength) {
+      var codeHash = this.web3.sha3(code.substr(0, template.codeLength));
+      if (codeHash == template.codeHash) {
+        return {
+          type: template.type,
+          version: template.version
+        };
+      }
+    }
+  }
+  return {
+    type: "Unknown",
+    version: "Unknown"
+  };
 };
 
 Web3Reader.prototype.getTransaction = function(tx) {
@@ -96,6 +125,15 @@ Web3Reader.prototype.getTransaction = function(tx) {
     this.web3.eth.getTransaction(tx, function(error, transaction) {
       if (error) reject(error);
       else resolve(transaction);
+    })
+  }.bind(this));
+};
+
+Web3Reader.prototype.getTransactionReceipt = function(tx) {
+  return new Promise(function(resolve, reject) {
+    this.web3.eth.getTransactionReceipt(tx, function(error, receipt) {
+      if (error) reject(error);
+      else resolve(receipt);
     })
   }.bind(this));
 };
