@@ -3,7 +3,7 @@ var router = express.Router();
 var artistModule;
 
 router.get('/detail/:address', function(req, res) {
-  artistModule.getArtist(req.params.address)
+  artistModule.getArtistByOwner(req.params.address)
     .then(function(output) {
       res.json(output);
     })

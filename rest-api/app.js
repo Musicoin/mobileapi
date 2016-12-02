@@ -9,7 +9,7 @@ const musicoinCore = new MusicoinCore(config);
 
 const licenseModule = require("./license").init(musicoinCore.getLicenseModule());
 const artistModule = require("./artist").init(musicoinCore.getArtistModule());
-const ipfsModule = require("./ipfs").init(musicoinCore.getMediaProvier());
+const ipfsModule = require("./ipfs").init(musicoinCore.getMediaProvider());
 const txModule = require("./tx").init(musicoinCore.getTxModule());
 
 app.use("/license", licenseModule);

@@ -11,16 +11,22 @@ const knownContracts = [
     codeHash: "0x2cbaccdf9ee4827a97b24bc8533b118ac01c83450906a77e75bdc1ad3b992b54",
     type: "PPP",
     version: "v0.2"
+  },
+  {
+    codeLength: 7705,
+    codeHash: "0xe0e61252714ecac51d023f49502a3df25ba7e035e83364848f536b365bc46f8a",
+    type: "Artist",
+    version: "v0.1"
   }
 ]
 
 function Web3Reader(rpcServer) {
   this.web3 = new Web3();
   this.web3.setProvider(new this.web3.providers.HttpProvider(rpcServer));
-  this.eventTypeMapping = {};
-  this.eventTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = 'tip';
-  this.eventTypeMapping[this.web3.sha3('play()').substring(0, 10)] = 'play';
-  this.eventTypeMapping['0x'] = 'payment';
+  this.txTypeMapping = {};
+  this.txTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = 'tip';
+  this.txTypeMapping[this.web3.sha3('play()').substring(0, 10)] = 'play';
+  this.txTypeMapping['0x'] = 'exchange';
 
 }
 
@@ -47,7 +53,11 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
     }.bind(this));
 };
 
-Web3Reader.prototype.getArtist = function(artistAddress, output) {
+Web3Reader.prototype.getArtistByProfile = function(profileAddress, output) {
+  return this.loadContract(profileAddress, artistAbi, output);
+};
+
+Web3Reader.prototype.getArtistByOwner = function(artistAddress, output) {
   artistAddress = this.lookupProfileAddress(artistAddress);
   return this.loadContract(artistAddress, artistAbi, output);
 };
@@ -94,11 +104,11 @@ Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
   return this.loadContractAndFields(address, abi, this.getConstantFields(abi), outputObject);
 };
 
-Web3Reader.prototype.getEventType = function(transaction) {
+Web3Reader.prototype.getTransactionType = function(transaction) {
   if (transaction.to == null) {
     return "creation";
   }
-  return this.eventTypeMapping[transaction.input];
+  return this.txTypeMapping[transaction.input];
 };
 
 Web3Reader.prototype.getContractType = function(code) {

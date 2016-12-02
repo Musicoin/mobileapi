@@ -24,22 +24,39 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
       return this.web3Reader.getTransaction(hash);
     })
     .then(function(transaction) {
-      output.eventType = this.web3Reader.getEventType(transaction);
+      output.txType = this.web3Reader.getTransactionType(transaction);
       output.from = transaction.from;
       output.to = transaction.to;
-      if (output.eventType == "play" || output.eventType == "tip") {
+      if (output.txType == "play" || output.txType == "tip") {
+        output.eventType = output.txType;
         return this.licenseModule.getLicense(transaction.to);
       }
-      else if (output.eventType == "creation") {
+      else if (output.txType == "creation") {
         output.contractMetadata = this.web3Reader.getContractType(transaction.input);
-        return this.licenseModule.getLicense(context.receipt.contractAddress);
+        if (output.contractMetadata) {
+          if (output.contractMetadata.type == "PPP") {
+            output.eventType = "newrelease";
+            return this.licenseModule.getLicense(context.receipt.contractAddress);
+          }
+          else if (output.contractMetadata.type == "Artist") {
+            output.eventType = "newartist";
+            return this.artistModule.getArtistByProfile(context.receipt.contractAddress);
+          }
+        }
       }
       return Promise.resolve(null);
     })
-    .then(function(license) {
-      if (license) {
-        output.license = license;
-        return this.artistModule.getArtist(license.owner);
+    .then(function(data) {
+      // TODO: This is very messy.
+      if (data) {
+        if (output.eventType == "newartist") {
+          return Promise.resolve(data);
+        }
+        else if (output.eventType == "play" || output.eventType == "tip" || output.eventType == "newrelease") {
+          output.license = data;
+          return this.artistModule.getArtistByOwner(data.owner);
+        }
+        return Promise.resolve(null);
       }
       return Promise.resolve(null);
     })

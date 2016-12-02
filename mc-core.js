@@ -16,11 +16,11 @@ function MusicoinCore(config) {
 MusicoinCore.prototype.getArtistModule = function() { return this.artistModule };
 MusicoinCore.prototype.getLicenseModule = function() {  return this.licenseModule };
 MusicoinCore.prototype.getTxModule = function() {  return this.txModule };
-MusicoinCore.prototype.getMediaProvier = function() {  return this.mediaProvider };
+MusicoinCore.prototype.getMediaProvider = function() {  return this.mediaProvider };
 MusicoinCore.prototype.getWeb3Reader = function() {  return this.web3Reader };
 
 MusicoinCore.prototype.getArtist = function(address) {
-  return this.artistModule.getArtist(address);
+  return this.artistModule.getArtistByOwner(address);
 };
 
 MusicoinCore.prototype.getLicense = function(address) {
