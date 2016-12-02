@@ -2,6 +2,7 @@
   "name": "Musicoin-core",
   "version": "0.0.0",
   "private": true,
+  "main": "mc-core.js",
   "dependencies": {
     "bignumber.js": "^2.4.0",
     "bluebird": "^3.4.0",

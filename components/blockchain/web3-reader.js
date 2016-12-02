@@ -2,9 +2,9 @@ const Promise = require('bluebird');
 const Web3 = require('web3');
 const ArrayUtils = require('./array-utils');
 const fs = require('fs');
-const pppMvp2Abi = JSON.parse(fs.readFileSync('solidity/mvp2/PayPerPlay.sol.abi'));
-const workAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Work.sol.abi'));
-const artistAbi = JSON.parse(fs.readFileSync('solidity/mvp2/Artist.sol.abi'));
+const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
+const workAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Work.sol.abi'));
+const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Artist.sol.abi'));
 const knownContracts = [
   {
     codeLength: 20850,
