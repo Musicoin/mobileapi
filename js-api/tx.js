@@ -29,36 +29,36 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
       output.to = transaction.to;
       if (output.txType == "play" || output.txType == "tip") {
         output.eventType = output.txType;
-        return this.licenseModule.getLicense(transaction.to);
+        output.licenseAddress = transaction.to;
       }
       else if (output.txType == "creation") {
         output.contractMetadata = this.web3Reader.getContractType(transaction.input);
         if (output.contractMetadata) {
           if (output.contractMetadata.type == "PPP") {
             output.eventType = "newrelease";
-            return this.licenseModule.getLicense(context.receipt.contractAddress);
+            output.licenseAddress = context.receipt.contractAddress;
           }
           else if (output.contractMetadata.type == "Artist") {
             output.eventType = "newartist";
-            return this.artistModule.getArtistByProfile(context.receipt.contractAddress);
+            output.artistAddress = context.receipt.contractAddress;
           }
         }
       }
       return Promise.resolve(null);
     })
-    .then(function(data) {
-      // TODO: This is very messy.
-      if (data) {
-        if (output.eventType == "newartist") {
-          return Promise.resolve(data);
-        }
-        else if (output.eventType == "play" || output.eventType == "tip" || output.eventType == "newrelease") {
-          output.license = data;
-          return this.artistModule.getArtistByOwner(data.owner);
-        }
-        return Promise.resolve(null);
+    .then(function() {
+      return output.licenseAddress
+          ? this.licenseModule.getLicense(output.licenseAddress)
+          : Promise.resolve(null);
+    })
+    .then(function(license) {
+      if (license) {
+        output.license = license;
+        output.artistAddress = output.artistAddress || license.owner;
       }
-      return Promise.resolve(null);
+      return output.artistAddress
+        ? this.artistModule.getArtistByProfile(output.artistAddress)
+        : Promise.resolve(null);
     })
     .then(function(artist) {
       if (artist) {

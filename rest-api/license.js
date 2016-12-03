@@ -25,6 +25,18 @@ router.get('/resource/:address', function(req, res) {
     });
 });
 
+router.get('/sample/:address', function(req, res) {
+  licenseModule.sampleResourceStream(req.params.address, 50)
+    .then(function (result) {
+      res.writeHead(200, result.headers);
+      result.stream.pipe(res);
+    })
+    .catch(function (err) {
+      res.status(500)
+      res.send(err);
+    });
+});
+
 
 module.exports.init = function(_licenseModule) {
   licenseModule = _licenseModule;

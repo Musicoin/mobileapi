@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+var Limit = require('../components/media/limit-transform');
 const constant = '36e6f1d1cd2ff2cd7bb75a359';
 
 function LicenseModule(_web3Reader, _mediaProvider) {
@@ -13,6 +14,17 @@ LicenseModule.prototype.getLicense = function(address) {
       license.image = this.mediaProvider.resolveIpfsUrl(license.imageUrl);
       return license;
     });
+};
+
+LicenseModule.prototype.sampleResourceStream = function(address, percentage) {
+  return this.getResourceStream(address)
+    .then(function(result) {
+      const length = result.headers["content-length"];
+      const max = Math.floor(length * (percentage / 100.0));
+      result.headers["content-length"] = max;
+      result.stream = result.stream.pipe(new Limit(max));
+      return result;
+    })
 };
 
 LicenseModule.prototype.getResourceStream = function(address) {
