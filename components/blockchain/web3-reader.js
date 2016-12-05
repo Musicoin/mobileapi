@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const Web3 = require('web3');
 const ArrayUtils = require('./array-utils');
 const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
@@ -44,9 +43,8 @@ const knownContracts = [
   }
 ];
 
-function Web3Reader(rpcServer) {
-  this.web3 = new Web3();
-  this.web3.setProvider(new this.web3.providers.HttpProvider(rpcServer));
+function Web3Reader(web3) {
+  this.web3 = web3;
 
   this.txTypeMapping = {};
   this.txTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = TxTypes.FUNCTION;
@@ -113,7 +111,7 @@ Web3Reader.prototype.lookupProfileAddress = function(ownerAddress) {
     profileAddress: '0x9aBc7B43868161BF6f73f41DaE6854d2191a0A28'
   };
 
-  lookup['0xd9b87b28449de9a45560fadace31300fcc50e68b'] = {
+  lookup['0x008d4c913ca41f1f8d73b43d8fa536da423f1fb4'] = {
     name: 'Dan Phifer',
     profileAddress: '0xb4dbe3aF8E1d37963Cc782773bDC1dCcC120E7c6'
   };
@@ -178,6 +176,10 @@ Web3Reader.prototype.getTransactionReceipt = function(tx) {
       else resolve(receipt);
     })
   }.bind(this));
+};
+
+Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
+  return this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
 };
 
 /*
