@@ -8,37 +8,23 @@ function ArtistModule(web3Reader, mediaProvider) {
 }
 
 ArtistModule.prototype.getArtistByOwner = function(ownerAddress) {
-  return this._getArtistDetails(this.web3Reader.getArtistByOwner(ownerAddress), ownerAddress)
+  return this._getArtistDetails(this.web3Reader.getArtistByOwner(ownerAddress))
 };
 
 ArtistModule.prototype.getArtistByProfile = function(profileAddress) {
   return this._getArtistDetails(this.web3Reader.getArtistByProfile(profileAddress))
 };
 
-ArtistModule.prototype._getArtistDetails = function(profile, originalAddress) {
+ArtistModule.prototype._getArtistDetails = function(profile) {
   return profile
     .bind(this)
     .then(function(result) {
       var d = this.mediaProvider.readTextFromIpfs(result.descriptionUrl);
       var s = this.mediaProvider.readJsonFromIpfs(result.socialUrl);
-      var r = this.loadReleases(originalAddress)
-        .catch(function(err) {
-          console.log("Failed to load releases for artist: " + originalAddress + ", error: " + err);
-          return [];
-        });
-      return Promise.join(d, s, r, function(description, social, releases) {
+      return Promise.join(d, s, function(description, social) {
         result.description = description;
         result.social = social;
         result.image = this.mediaProvider.resolveIpfsUrl(result.imageUrl);
-        result.releases = releases.map(function(nr) {
-          return {
-            title: nr.song_name,
-            tips: nr.tip_count,
-            plays: nr.play_count,
-            licenseAddress: nr.contract_id,
-            image: nr.work.image_url
-          }
-        });
         return result;
       }.bind(this))
     })
@@ -58,7 +44,15 @@ ArtistModule.prototype.loadReleases = function(artist_address) {
       }
 
       if (!error && response.statusCode === 200) {
-        resolve(body.content.new_releases);
+        resolve(body.content.new_releases.map(function(nr) {
+          return {
+            title: nr.song_name,
+            tips: nr.tip_count,
+            plays: nr.play_count,
+            licenseAddress: nr.contract_id,
+            image: nr.work.image_url
+          }
+        }));
       }
       else {
         console.log("Unable to load artist: " + error);
