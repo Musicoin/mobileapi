@@ -5,29 +5,57 @@ const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
 const workAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Work.sol.abi'));
 const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Artist.sol.abi'));
+
+const TxTypes = Object.freeze({
+  FUNCTION: "function",
+  CREATION: "creation",
+  EXCHANGE: "exchange",
+  UNKNOWN: "unknown"
+});
+
+const FunctionTypes = Object.freeze({
+  PLAY: "play",
+  TIP: "tip",
+  UNKNOWN: "unknown"
+});
+
+const ContractTypes = Object.freeze({
+  PPP: "ppp",
+  ARTIST: "artist",
+  WORK: "work",
+  UNKNOWN: "unknown"
+});
+Web3Reader.TxTypes = TxTypes;
+Web3Reader.ContractTypes = ContractTypes;
+Web3Reader.FunctionTypes = FunctionTypes;
+
 const knownContracts = [
   {
     codeLength: 20850,
     codeHash: "0x2cbaccdf9ee4827a97b24bc8533b118ac01c83450906a77e75bdc1ad3b992b54",
-    type: "PPP",
+    type: ContractTypes.PPP,
     version: "v0.2"
   },
   {
     codeLength: 7705,
     codeHash: "0xe0e61252714ecac51d023f49502a3df25ba7e035e83364848f536b365bc46f8a",
-    type: "Artist",
+    type: ContractTypes.ARTIST,
     version: "v0.1"
   }
-]
+];
 
 function Web3Reader(rpcServer) {
   this.web3 = new Web3();
   this.web3.setProvider(new this.web3.providers.HttpProvider(rpcServer));
-  this.txTypeMapping = {};
-  this.txTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = 'tip';
-  this.txTypeMapping[this.web3.sha3('play()').substring(0, 10)] = 'play';
-  this.txTypeMapping['0x'] = 'exchange';
 
+  this.txTypeMapping = {};
+  this.txTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = TxTypes.FUNCTION;
+  this.txTypeMapping[this.web3.sha3('play()').substring(0, 10)] = TxTypes.FUNCTION;
+  this.txTypeMapping['0x'] = TxTypes.EXCHANGE;
+
+  this.functionTypeMapping = {};
+  this.functionTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = FunctionTypes.TIP;
+  this.functionTypeMapping[this.web3.sha3('play()').substring(0, 10)] = FunctionTypes.PLAY;
 }
 
 Web3Reader.prototype.loadLicense = function(licenseAddress) {
@@ -64,7 +92,7 @@ Web3Reader.prototype.getArtistByOwner = function(artistAddress, output) {
 
 Web3Reader.prototype.lookupProfileAddress = function(ownerAddress) {
   // TODO: Hack
-  var lookup = {};
+  const lookup = {};
   lookup['0x6cf4e1d23f69d9a7df1e3e8b3f7f674c7c93a1fd'] = {
     name: 'Lobo Loco',
     profileAddress: '0xe0288b127fbe0f5BfCa4254A6859F139fa06413E'
@@ -104,18 +132,22 @@ Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
   return this.loadContractAndFields(address, abi, this.getConstantFields(abi), outputObject);
 };
 
+Web3Reader.prototype.getFunctionType = function(transaction) {
+  return this.functionTypeMapping[transaction.input] || FunctionTypes.UNKNOWN;
+};
+
 Web3Reader.prototype.getTransactionType = function(transaction) {
   if (transaction.to == null) {
-    return "creation";
+    return TxTypes.CREATION;
   }
   return this.txTypeMapping[transaction.input];
 };
 
 Web3Reader.prototype.getContractType = function(code) {
-  for (var i=0; i < knownContracts.length; i++) {
+  for (let i=0; i < knownContracts.length; i++) {
     const template = knownContracts[i];
     if (code.length >= template.codeLength) {
-      var codeHash = this.web3.sha3(code.substr(0, template.codeLength));
+      const codeHash = this.web3.sha3(code.substr(0, template.codeLength));
       if (codeHash == template.codeHash) {
         return {
           type: template.type,
@@ -125,8 +157,8 @@ Web3Reader.prototype.getContractType = function(code) {
     }
   }
   return {
-    type: "Unknown",
-    version: "Unknown"
+    type: ContractTypes.UNKNOWN,
+    version: "unknown"
   };
 };
 
@@ -153,14 +185,14 @@ Web3Reader.prototype.getTransactionReceipt = function(tx) {
  */
 Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outputObject) {
   const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
-  var promises = fields.map(function (f) {
+  const promises = fields.map(function (f) {
     if (c[f + "Async"]) return c[f + "Async"]();
     return Promise.resolve(f + " not found");
   });
 
   return Promise.all(promises)
     .then(function (results) {
-      var output = outputObject || {};
+      const output = outputObject || {};
       fields.forEach(function (f, idx) {
         output[f] = results[idx];
       });

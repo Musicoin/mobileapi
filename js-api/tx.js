@@ -1,6 +1,7 @@
-var Promise = require('bluebird');
+const Promise = require('bluebird');
 const LicenseModule = require('./license');
 const ArtistModule = require('./artist');
+const Web3Reader = require('../components/blockchain/web3-reader');
 
 function TransactionModule(web3Reader, mediaProvider) {
   this.web3Reader = web3Reader;
@@ -27,18 +28,22 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
       output.txType = this.web3Reader.getTransactionType(transaction);
       output.from = transaction.from;
       output.to = transaction.to;
-      if (output.txType == "play" || output.txType == "tip") {
-        output.eventType = output.txType;
+      if (output.txType == Web3Reader.TxTypes.FUNCTION) {
+        output.eventType = this.web3Reader.getFunctionType(transaction);
         output.licenseAddress = transaction.to;
       }
-      else if (output.txType == "creation") {
+      else if (output.txType == Web3Reader.TxTypes.CREATION) {
         output.contractMetadata = this.web3Reader.getContractType(transaction.input);
         if (output.contractMetadata) {
-          if (output.contractMetadata.type == "PPP") {
+          if (output.contractMetadata.type == Web3Reader.ContractTypes.PPP) {
             output.eventType = "newrelease";
             output.licenseAddress = context.receipt.contractAddress;
           }
-          else if (output.contractMetadata.type == "Artist") {
+          else if (output.contractMetadata.type == Web3Reader.ContractTypes.WORK) {
+            output.eventType = "newwork";
+            output.workAddress = context.receipt.contractAddress;
+          }
+          else if (output.contractMetadata.type == Web3Reader.ContractTypes.ARTIST) {
             output.eventType = "newartist";
             output.artistAddress = context.receipt.contractAddress;
           }
@@ -54,10 +59,12 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
     .then(function(license) {
       if (license) {
         output.license = license;
-        output.artistAddress = output.artistAddress || license.owner;
+        output.ownerAddress = license.owner;
       }
       return output.artistAddress
         ? this.artistModule.getArtistByProfile(output.artistAddress)
+        : output.ownerAddress
+        ? this.artistModule.getArtistByOwner(output.ownerAddress)
         : Promise.resolve(null);
     })
     .then(function(artist) {
