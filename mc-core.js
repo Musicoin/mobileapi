@@ -10,7 +10,7 @@ function MusicoinCore(config) {
   this.web3 = new Web3();
   this.web3.setProvider(new this.web3.providers.HttpProvider(config.web3Host));
   this.web3Reader = new Web3Reader(this.web3);
-  this.web3Writer = new Web3Writer(this.web3);
+  this.web3Writer = new Web3Writer(this.web3, this.web3Reader);
   this.mediaProvider = new MediaProvider(config.ipfsHost);
 
   this.artistModule = new ArtistModule(this.web3Reader, this.mediaProvider);

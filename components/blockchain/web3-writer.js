@@ -1,3 +1,5 @@
+const Promise = require("bluebird");
+
 function Web3Writer(web3, web3Reader) {
   this.web3 = web3;
   this.web3Reader = web3Reader;
@@ -64,17 +66,18 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
 
 Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
   return Promise.join(
-    this.loadLicense(licenseAddress),
+    this.web3Reader.loadLicense(licenseAddress),
     this.unlockAccount(credentialsProvider),
     function(license, sender) {
+      const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
       const params = {from: sender, value: license.weiPerPlay, gas: 940000};
       return new Promise(function(resolve, reject) {
-        contract.ppp(params, function (err, tx) {
+        contract.play(params, function (err, tx) {
           if (err) reject(err);
           else resolve(tx);
         });
       })
-    })
+    }.bind(this))
     .then(function(tx) {
       console.log("Sending ppp, tx: " + tx);
       return tx;
