@@ -12,7 +12,7 @@ function ComponentRegistry(config) {
   this.web3Reader = new Web3Reader(this.web3);
   this.web3Writer = new Web3Writer(this.web3Reader);
   this.mediaProvider = new MediaProvider(config.ipfsHost, config.ipfsAddUrl);
-  this.artistModule = new ArtistModule(this.web3Reader, this.mediaProvider, this.musicoinMusicianURL);
+  this.artistModule = new ArtistModule(this.web3Reader, this.mediaProvider, config.musicoinMusicianURL);
   this.licenseModule = new LicenseModule(this.web3Reader, this.web3Writer, this.mediaProvider);
   this.txModule = new TxModule(this.web3Reader, this.licenseModule, this.artistModule);
   this.isRegistry = true;
