@@ -4,6 +4,7 @@ const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
 const workAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Work.sol.abi'));
 const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Artist.sol.abi'));
+const SolidityUtils = require("./solidity-utils");
 
 const TxTypes = Object.freeze({
   FUNCTION: "function",
@@ -33,13 +34,15 @@ const knownContracts = [
     codeLength: 20850,
     codeHash: "0x2cbaccdf9ee4827a97b24bc8533b118ac01c83450906a77e75bdc1ad3b992b54",
     type: ContractTypes.PPP,
-    version: "v0.2"
+    version: "v0.2",
+    abi: pppMvp2Abi
   },
   {
     codeLength: 7705,
     codeHash: "0xe0e61252714ecac51d023f49502a3df25ba7e035e83364848f536b365bc46f8a",
     type: ContractTypes.ARTIST,
-    version: "v0.1"
+    version: "v0.1",
+    abi: artistAbi
   }
 ];
 
@@ -54,29 +57,52 @@ function Web3Reader(web3) {
   this.functionTypeMapping = {};
   this.functionTypeMapping[this.web3.sha3('tip()').substring(0, 10)] = FunctionTypes.TIP;
   this.functionTypeMapping[this.web3.sha3('play()').substring(0, 10)] = FunctionTypes.PLAY;
-}
+
+  this.pppV5 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/PayPerPlay.json');
+
+  knownContracts.push(this.pppV5);
+};
+
+Web3Reader.getDependencies = function() {
+  return {web3: null};
+};
+
+Web3Reader.prototype.getContractDefinition = function(type, version) {
+  return knownContracts.filter(function(d) { return d.type == type && d.version == version})[0];
+};
 
 Web3Reader.prototype.loadLicense = function(licenseAddress) {
   console.log("Loading license: " + licenseAddress);
-  const licensePromise = this.loadContract(licenseAddress, pppMvp2Abi);
 
-  // extracting the arrays takes some extra work
-  const c = Promise.promisifyAll(this.web3.eth.contract(pppMvp2Abi).at(licenseAddress));
-  const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
-  const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
+  // load the oldest supported version and extract the actual version from the contract
+  const tempContract = this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
+  return Promise.promisify(tempContract.contractVersion)()
+    .bind(this)
+    .then(function(version) {
+      return this.getContractDefinition(ContractTypes.PPP, version);
+    })
+    .then(function(definition) {
+      const licensePromise = this.loadContract(licenseAddress, definition.abi);
+      // extracting the arrays takes some extra work
+      const c = Promise.promisifyAll(this.web3.eth.contract(definition.abi).at(licenseAddress));
+      const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
+      const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
+      return Promise.join(licensePromise, contributorPromise, royaltyPromise,
+        function(licenseObject, contributors, royalties) {
+          licenseObject.contributors = contributors;
+          licenseObject.royalties = royalties;
 
-  return Promise.join(licensePromise, contributorPromise, royaltyPromise,
-    function(licenseObject, contributors, royalties) {
-      licenseObject.contributors = contributors;
-      licenseObject.royalties = royalties;
+          // for convenience, do the conversion to "coins" from wei
+          licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
+          licenseObject.address = licenseAddress;
 
-      // for convenience, do the conversion to "coins" from wei
-      licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
-      licenseObject.address = licenseAddress;
-
-      // load details from the associated "work" directly into the licenseObject
-      return this.loadWork(licenseObject.workAddress, licenseObject);
-    }.bind(this));
+          // load details from the associated "work" directly into the licenseObject
+          // TODO: remove "loadWork" call, since we are moving to a single license model
+          return licenseObject.workAddress
+            ? this.loadWork(licenseObject.workAddress, licenseObject)
+            : licenseObject;
+        }.bind(this));
+    });
 };
 
 Web3Reader.prototype.getArtistByProfile = function(profileAddress, output) {
@@ -187,7 +213,7 @@ Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
  */
 Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outputObject) {
   const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
-  const promises = fields.map(function (f) {
+  const promises = fields.map(f => {
     if (c[f + "Async"]) return c[f + "Async"]();
     return Promise.resolve(f + " not found");
   });
@@ -195,21 +221,19 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
   return Promise.all(promises)
     .then(function (results) {
       const output = outputObject || {};
-      fields.forEach(function (f, idx) {
-        output[f] = results[idx];
-      });
+      fields.forEach((f, idx) => output[f] = results[idx]);
       return output;
     });
 };
 
 Web3Reader.prototype.getConstantFields = function(abi) {
   return abi
-    .filter(function(field) {
-      return field.constant && field.type == "function" && field.inputs && field.inputs.length == 0
-    })
-    .map(function(field) {
-      return field.name;
-    })
+    .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
+    .map(field => field.name)
+};
+
+Web3Reader.prototype.getWeb3 = function() {
+  return this.web3;
 };
 
 module.exports = Web3Reader;

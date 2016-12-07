@@ -6,8 +6,8 @@ const Promise = require('bluebird');
  */
 
 const extractArray = function(provider, length) {
-  var promises = [];
-  for (var idx=0; idx < length; idx++) {
+  const promises = [];
+  for (let idx=0; idx < length; idx++) {
     promises.push(provider(idx));
   }
   return Promise.all(promises);
@@ -15,8 +15,8 @@ const extractArray = function(provider, length) {
 
 const extractAddressArray = function(provider, startIdx, result) {
   return new Promise(function(resolve, reject) {
-    var output = result || [];
-    var idx = startIdx || 0;
+    const output = result || [];
+    const idx = startIdx || 0;
     provider(idx)
       .bind(this)
       .then(function(value) {

@@ -1,6 +1,6 @@
-var express  = require('express');
-var router = express.Router();
-var artistModule;
+const express = require('express');
+const router = express.Router();
+let artistModule;
 
 router.get('/detail/:address', function(req, res) {
   artistModule.getArtistByOwner(req.params.address)

@@ -17,6 +17,7 @@ app.use('/artist', artistModule);
 app.use('/ipfs', ipfsModule);
 app.use("/tx", txModule);
 
+//  Just for easy testing for now.  will switch to unit testing
 app.get('/ppp/:address', function(req, res) {
   musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
   musicoinCore.sendPPP(req.params.address)
@@ -46,6 +47,33 @@ app.get('/tip/:address', function(req, res) {
       res.end();
     });
 });
+
+app.get('/release/', function(req, res) {
+  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
+  const releaseRequest = {
+      title: "Title",
+      profileAddress: "0xb4dbe3aF8E1d37963Cc782773bDC1dCcC120E7c6",
+      coinsPerPlay: 1,
+      audioResource: "C:/tmp/example.mp3",
+      imageResource: "C:/tmp/piano.jpg",
+      metadata: {test: "ing"},
+      royalties: [],
+      contributors: [{address: "0x008d4c913ca41f1f8d73b43d8fa536da423f1fb4", shares: 1}]
+  };
+
+  musicoinCore.releaseLicense(releaseRequest)
+    .then(function (result) {
+      res.writeHead(200);
+      res.write(result);
+      res.end();
+    })
+    .catch(function (err) {
+      res.status(500)
+      res.write(err);
+      res.end();
+    });
+});
+
 
 app.listen(config.port, function () {
   console.log('Listening on port ' + config.port);

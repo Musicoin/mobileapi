@@ -1,7 +1,7 @@
-var Promise = require('bluebird');
-var express  = require('express');
-var router = express.Router();
-var mediaProvider;
+const Promise = require('bluebird');
+const express = require('express');
+const router = express.Router();
+let mediaProvider;
 
 router.get('/:address', function(req, res) {
   mediaProvider.getRawIpfsResource(req.params.hash)

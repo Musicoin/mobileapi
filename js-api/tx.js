@@ -1,14 +1,11 @@
 const Promise = require('bluebird');
-const LicenseModule = require('./license');
-const ArtistModule = require('./artist');
 const Web3Reader = require('../components/blockchain/web3-reader');
 
-function TransactionModule(web3Reader, mediaProvider) {
+function TransactionModule(web3Reader, licenseModule, artistModule) {
   this.web3Reader = web3Reader;
-  this.mediaProvider = mediaProvider;
-  this.licenseModule = new LicenseModule(web3Reader, mediaProvider);
-  this.artistModule = new ArtistModule(web3Reader, mediaProvider);
-}
+  this.licenseModule = licenseModule;
+  this.artistModule = artistModule;
+};
 
 // 0x0ca5827720ca163b177d838087029d705574a29c0652c6c6a8e528f6de4b2101
 // 0x5ee69c60fbd37a0cfc036ba14a85088cf2cc2c0e539e53adc1617052a1a16823
@@ -45,7 +42,7 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
           }
           else if (output.contractMetadata.type == Web3Reader.ContractTypes.ARTIST) {
             output.eventType = "newartist";
-            output.artistAddress = context.receipt.contractAddress;
+            output.artistProfileAddress = context.receipt.contractAddress;
           }
         }
       }
@@ -59,10 +56,13 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
     .then(function(license) {
       if (license) {
         output.license = license;
+        if (license.artistProfileAddress) {
+          output.artistProfileAddress = license.artistProfileAddress;
+        }
         output.ownerAddress = license.owner;
       }
-      return output.artistAddress
-        ? this.artistModule.getArtistByProfile(output.artistAddress)
+      return output.artistProfileAddress
+        ? this.artistModule.getArtistByProfile(output.artistProfileAddress)
         : output.ownerAddress
         ? this.artistModule.getArtistByOwner(output.ownerAddress)
         : Promise.resolve(null);

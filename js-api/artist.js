@@ -1,11 +1,11 @@
-var Promise = require('bluebird');
-var request = require('request');
+const Promise = require('bluebird');
+const request = require('request');
 
-function ArtistModule(web3Reader, mediaProvider) {
+function ArtistModule(web3Reader, mediaProvider, musicoinMusicianURL) {
   this.web3Reader = web3Reader;
   this.mediaProvider = mediaProvider;
-  this.musicoinMusicianURL = "http://catalog.musicoin.org/api/musician/content";
-}
+  this.musicoinMusicianURL = musicoinMusicianURL;
+};
 
 ArtistModule.prototype.getArtistByOwner = function(ownerAddress) {
   return this._getArtistDetails(this.web3Reader.getArtistByOwner(ownerAddress))
@@ -19,8 +19,8 @@ ArtistModule.prototype._getArtistDetails = function(profile) {
   return profile
     .bind(this)
     .then(function(result) {
-      var d = this.mediaProvider.readTextFromIpfs(result.descriptionUrl);
-      var s = this.mediaProvider.readJsonFromIpfs(result.socialUrl);
+      const d = this.mediaProvider.readTextFromIpfs(result.descriptionUrl);
+      const s = this.mediaProvider.readJsonFromIpfs(result.socialUrl);
       return Promise.join(d, s, function(description, social) {
         result.description = description;
         result.social = social;
@@ -32,7 +32,7 @@ ArtistModule.prototype._getArtistDetails = function(profile) {
 
 // TODO: This should come from a database, since the musicoin.org API may be deprecated
 ArtistModule.prototype.loadReleases = function(artist_address) {
-  var propertiesObject = {address: artist_address};
+  const propertiesObject = {address: artist_address};
   return new Promise(function (resolve, reject){
     return request({
       url: this.musicoinMusicianURL,

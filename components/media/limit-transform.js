@@ -1,5 +1,5 @@
-var Transform = require('stream').Transform;
-var util = require('util');
+const Transform = require('stream').Transform;
+const util = require('util');
 
 function Limit(max, options) {
   // allow use without new

@@ -1,6 +1,6 @@
 const express  = require('express');
 const router = express.Router();
-var licenseModule;
+let licenseModule;
 
 router.get('/detail/:address', function(req, res) {
   licenseModule.getLicense(req.params.address)

@@ -1,64 +1,125 @@
-const Web3Reader = require('./components/blockchain/web3-reader');
-const Web3Writer = require('./components/blockchain/web3-writer');
-const MediaProvider = require('./components/media/media-provider');
-const ArtistModule = require('./js-api/artist');
-const LicenseModule = require('./js-api/license');
-const TxModule = require('./js-api/tx');
-const Web3 = require('web3');
+const ComponentRegistry = require("./components/config/component-registry");
+const Web3Writer = require("./components/blockchain/web3-writer.js");
 
-function MusicoinCore(config) {
-  this.web3 = new Web3();
-  this.web3.setProvider(new this.web3.providers.HttpProvider(config.web3Host));
-  this.web3Reader = new Web3Reader(this.web3);
-  this.web3Writer = new Web3Writer(this.web3, this.web3Reader);
-  this.mediaProvider = new MediaProvider(config.ipfsHost);
-
-  this.artistModule = new ArtistModule(this.web3Reader, this.mediaProvider);
-  this.licenseModule = new LicenseModule(this.web3Reader, this.mediaProvider);
-  this.txModule = new TxModule(this.web3Reader, this.mediaProvider);
+function MusicoinCore(configOrProvider) {
+  this.provider = configOrProvider.isRegistry
+    ? configOrProvider
+    : new ComponentRegistry(configOrProvider);
 }
 
-MusicoinCore.prototype.getArtistModule = function() { return this.artistModule };
-MusicoinCore.prototype.getLicenseModule = function() {  return this.licenseModule };
-MusicoinCore.prototype.getTxModule = function() {  return this.txModule };
-MusicoinCore.prototype.getMediaProvider = function() {  return this.mediaProvider };
-MusicoinCore.prototype.getWeb3Reader = function() {  return this.web3Reader };
-MusicoinCore.prototype.getWeb3Writer = function() {  return this.web3Writer };
+MusicoinCore.prototype.getArtistModule = function() { return this.provider.getArtistModule()};
+MusicoinCore.prototype.getLicenseModule = function() {return this.provider.getLicenseModule()};
+MusicoinCore.prototype.getTxModule = function() { return this.provider.getTxModule()};
+MusicoinCore.prototype.getMediaProvider = function() { return this.provider.getMediaProvider()};
+MusicoinCore.prototype.getWeb3Reader = function() { return this.provider.getWeb3Reader()};
+MusicoinCore.prototype.getWeb3Writer = function() { return this.provider.getWeb3Writer()};
 
 MusicoinCore.prototype.getArtist = function(address) {
-  return this.artistModule.getArtistByOwner(address);
+  return this.getArtistModule().getArtistByOwner(address);
 };
 
 MusicoinCore.prototype.getArtistReleases = function(address) {
-  return this.artistModule.loadReleases(address);
+  return this.getArtistModule().loadReleases(address);
 };
 
 MusicoinCore.prototype.getLicense = function(address) {
-  return this.licenseModule.getLicense(address);
+  return this.getLicenseModule().getLicense(address);
 };
 
 MusicoinCore.prototype.getTransactionDetails = function(hash) {
-  return this.txModule.getTransactionDetails(hash);
+  return this.getTxModule().getTransactionDetails(hash);
 };
 
+/**
+ * Retrieves a stream for a given PPP license.
+ *
+ * @address: The address of a PPP license
+ * @returns: A promise that resolves to a playable stream
+ */
 MusicoinCore.prototype.getLicenseResourceStream = function(address) {
-  return this.licenseModule.getResourceStream(address);
+  return this.getLicenseModule().getResourceStream(address);
 };
 
+/**
+ * Sends a tip to PPP contract located at the given address for the given amount
+ *
+ * @licenseAddress: The contract address
+ * @amountInWei: The amount to be sent, in units of wei
+ * @credentialProvider: (optional) a object that implements the getCredentials() method, returning a
+ *                      Promise that resolves to JSON object:
+ *      {
+ *        account: <account address>,
+ *        password: <account password>
+ *      }
+ *      the credentials provider can be omitted if the default provider has been set by a call to
+ *      MusicoinCore#setCredentials or MusicoinCore#setCredentialsProvider.
+ */
 MusicoinCore.prototype.sendTip = function(licenseAddress, amountInWei, credentialProvider) {
-  return this.web3Writer.tipLicense(licenseAddress, amountInWei, credentialProvider);
+  return this.getWeb3Writer().tipLicense(licenseAddress, amountInWei, credentialProvider);
 };
 
+/**
+ * Sends a payment to the PPP contract located at the given address.
+ *
+ * NOTE: The amount sent is equal to the price defined by the contract, so be careful.
+ *
+ * @licenseAddress: The contract address
+ * @credentialProvider: (optional) a object that implements the getCredentials() method, returning a
+ *                      Promise that resolves to JSON object:
+ *      {
+ *        account: <account address>,
+ *        password: <account password>
+ *      }
+ *      the credentials provider can be omitted if the default provider has been set by a call to
+ *      MusicoinCore#setCredentials or MusicoinCore#setCredentialsProvider.
+ */
 MusicoinCore.prototype.sendPPP = function(licenseAddress, credentialProvider) {
-  return this.web3Writer.ppp(licenseAddress, credentialProvider);
+  return this.getWeb3Writer().ppp(licenseAddress, credentialProvider);
 };
 
+/**
+ * Sets the default credential provider
+ *
+ * @credentialProvider: (optional) a object that implements the getCredentials() method, returning a
+ *                      Promise that resolves to JSON object:
+ *      {
+ *        account: <account address>,
+ *        password: <account password>
+ *      }
+ */
 MusicoinCore.prototype.setCredentialsProvider = function(provider) {
-  this.web3Writer.setCredentialsProvider(provider);
+  this.getWeb3Writer().setCredentialsProvider(provider);
 };
 
+/**
+ * Sets the default credentials to be used
+ *
+ * @account: The account address
+ * @pwd: The password to unlock the account
+ */
 MusicoinCore.prototype.setCredentials = function(account, pwd) {
-  this.web3Writer.setCredentialsProvider(Web3Writer.createInMemoryCredentialsProvider(account, pwd));
+  this.getWeb3Writer().setCredentialsProvider(Web3Writer.createInMemoryCredentialsProvider(account, pwd));
+};
+
+/**
+ *
+ * @param releaseRequest: A JSON object with the following properties
+ * {
+ *    title: "My Song Title",
+ *    profileAddress: <address of the Artist profile contract>,
+ *    coinsPerPlay: The number of Musicoins to charge for each stream (e.g. 1)
+ *    audioResource: A stream or a path to a local audio file
+ *    imageResource: A stream or a path to a local image file
+ *    metadata: A JSON Array with key value pairs (duplicate keys are ok): [{"key": "myKey", "value": "someValue"}, ...]
+ *    royalties: A JSON Array of the fixed amount royalty payments to be paid for each play, where each item has an address and an
+ *       amount defined Musicoin, e.g. [{address: 0x111111, amount: 0.5}, {address: 0x222222, amount: 0.1}]
+ *    contributors: A JSON array of the proportional amount to be paid for each play and tip, where each item
+ *       has an address and an integer number of shares, e.g. [{address: 0x111111, shares: 5}, {address: 0x222222, shares: 3}].
+ * }
+ * @param credentialsProvider:
+ */
+MusicoinCore.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
+  return this.getLicenseModule().releaseLicense(releaseRequest, credentialsProvider);
 };
 
 module.exports = MusicoinCore;

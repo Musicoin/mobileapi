@@ -1,12 +1,17 @@
-const crypto = require('crypto');
-var Limit = require('../components/media/limit-transform');
-const constant = '36e6f1d1cd2ff2cd7bb75a359';
+const Promise = require('bluebird');
+const Limit = require('../components/media/limit-transform');
+const Lock = require('../components/media/media-lock');
 
-function LicenseModule(_web3Reader, _mediaProvider) {
-  this.web3Reader = _web3Reader;
-  this.mediaProvider = _mediaProvider;
-}
+function LicenseModule(web3Reader, web3Writer, mediaProvider) {
+  this.web3Reader = web3Reader;
+  this.web3Writer = web3Writer;
+  this.mediaProvider = mediaProvider;
+};
 
+/**
+ * @param {string} address
+ * @returns {*|Promise.<TResult>}
+ */
 LicenseModule.prototype.getLicense = function(address) {
   return this.web3Reader.loadLicense(address)
     .bind(this)
@@ -31,14 +36,24 @@ LicenseModule.prototype.getResourceStream = function(address) {
   return this.getLicense(address)
     .then(function(license) {
       return this.mediaProvider.getIpfsResource(license.resourceUrl, function () {
-        return _computeKey(license.artist, license.title);
+        const resourceSeed = license.resourceSeed ? license.resourceSeed : license.artist + " " + license.title;
+        return Lock.computeKey(resourceSeed);
       })
     }.bind(this))
 };
 
-const _computeKey = function(v1, v2) {
-  const seed = v1 + " " + v2 + " " + constant;
-  return crypto.createHash('md5').update(seed).digest("hex");
+LicenseModule.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
+  const keyParts = Lock.makeKey(releaseRequest.title);
+  releaseRequest.resourceSeed = keyParts.seed;
+  const audioPromise = this.mediaProvider.upload(releaseRequest.audioResource, () => keyParts.key);
+  const imagePromise = this.mediaProvider.upload(releaseRequest.imageResource);
+  const metadataPromise = this.mediaProvider.uploadText(JSON.stringify(releaseRequest.metadata));
+  return Promise.join(audioPromise, imagePromise, metadataPromise, function(resourceUrl, imageUrl, metadataUrl) {
+    releaseRequest.resourceUrl = resourceUrl;
+    releaseRequest.imageUrl = imageUrl;
+    releaseRequest.metadataUrl = metadataUrl;
+    return this.web3Writer.releaseLicenseV5(releaseRequest, credentialsProvider);
+  }.bind(this));
 };
 
 module.exports = LicenseModule;

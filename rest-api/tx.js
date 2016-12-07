@@ -1,6 +1,6 @@
-var express  = require('express');
-var router = express.Router();
-var txModule;
+const express = require('express');
+const router = express.Router();
+let txModule;
 
 router.get('/detail/:hash', function(req, res) {
   txModule.getTransactionDetails(req.params.hash)

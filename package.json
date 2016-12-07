@@ -17,5 +17,11 @@
     "serve-favicon": "~2.3.0",
     "tmp": "0.0.29",
     "web3": "^0.17.0-beta"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha test"
   }
 }
