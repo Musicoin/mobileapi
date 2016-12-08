@@ -171,11 +171,9 @@ const _uploadRaw = function(ipfsAddUrl, pathOrStream) {
 };
 
 /**
- * NOTE: This method creates and returns a temp file.  The caller is responsible for cleaning up!
- *
  * @param pathOrStream A path to a local file or a readable stream
  * @param encryptionKeyProvider A function that can provider the key for encryption
- * @return {Promise<File>} a promise resolves to an encrypted temp file
+ * @return {Promise<Stream>} a promise resolves to an encrypted stream
  */
 const _encrypt = function(pathOrStream, encryptionKeyProvider) {
   return new Promise(function(resolve, reject) {
