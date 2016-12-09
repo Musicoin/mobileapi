@@ -18,7 +18,7 @@ app.use('/ipfs', ipfsModule);
 app.use("/tx", txModule);
 
 //  Just for easy testing for now.  will switch to unit testing
-app.get('/ppp/:address', function(req, res) {
+app.get('/test/ppp/:address', function(req, res) {
   musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
   musicoinCore.sendPPP(req.params.address)
     .then(function (result) {
@@ -33,7 +33,7 @@ app.get('/ppp/:address', function(req, res) {
     });
 });
 
-app.get('/tip/:address', function(req, res) {
+app.get('/test/tip/:address', function(req, res) {
   musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
   musicoinCore.sendTip(req.params.address, 1000000)
     .then(function (result) {
@@ -48,7 +48,38 @@ app.get('/tip/:address', function(req, res) {
     });
 });
 
-app.get('/release/', function(req, res) {
+app.get('/test/account/create', function(req, res) {
+  // musicoinCore.createAccount("myPassword")
+  //   .then(function(account) {
+  //     res.writeHead(200);
+  //     res.write("Created account: " + account);
+  //     res.end();
+  //   })
+  //   .catch(function (err) {
+  //     res.status(500)
+  //     res.write(JSON.stringify(err));
+  //     res.end();
+  //   });
+});
+
+app.get('/test/profile/release', function(req, res, next) {
+  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
+  const releaseRequest = {
+    artistName: "Some Name",
+    imageResource: "C:/tmp/piano.jpg",
+    social: {test: "ing"},
+    description: "Hello, there",
+  };
+  musicoinCore.releaseArtistProfile(releaseRequest)
+    .then(function(account) {
+      res.writeHead(200);
+      res.write("Created profile: " + account);
+      res.end();
+    })
+    .catch(next);
+});
+
+app.get('/test/license/release/', function(req, res) {
   musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
   const releaseRequest = {
       title: "Title",

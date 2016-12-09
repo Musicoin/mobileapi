@@ -108,49 +108,85 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
 Web3Writer.prototype.releaseLicenseV5 = function (releaseRequest, credentialsProvider) {
   const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.5");
 
-  const royaltyAddresses = releaseRequest.royalties.map(r => r.address);
-  const royaltyAmounts = releaseRequest.royalties.map(r => r.amount).map(this.toIndivisibleUnits);
-  const contributorAddresses = releaseRequest.contributors.map(r => r.address);
-  const contributorShares = releaseRequest.contributors.map(r => r.shares);
-  const weiPerPlay = this.toIndivisibleUnits(releaseRequest.coinsPerPlay);
+  // copy all params from releaseRequest and then add some computed params
+  // the names should stay close to the contract constructor args
+  const params = Object.assign({}, releaseRequest, {
+    artistProfileAddress: releaseRequest.profileAddress,
+    royalties: releaseRequest.royalties.map(r => r.address),
+    royaltyAmounts: releaseRequest.royalties.map(r => r.amount).map(this.toIndivisibleUnits),
+    contributors: releaseRequest.contributors.map(r => r.address),
+    contributorShares: releaseRequest.contributors.map(r => r.shares),
+    weiPerPlay: this.toIndivisibleUnits(releaseRequest.coinsPerPlay),
+  });
+
+  return this.releaseContract(contractDefinition, params, credentialsProvider);
+};
+
+Web3Writer.prototype.releaseArtistProfileV2 = function(releaseRequest, credentialsProvider) {
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.2");
+  return this.releaseContract(contractDefinition, releaseRequest, credentialsProvider);
+};
+
+Web3Writer.prototype.releaseContract = function(contractDefinition, releaseRequest, credentialsProvider) {
   return this.unlockAccount(credentialsProvider)
     .then(function (account) {
       return new Promise(function (resolve, reject) {
+        const constructorArgs = _extractRequiredProperties(releaseRequest, contractDefinition.constructorArgs);
         this.web3.eth.contract(contractDefinition.abi).new(
-          releaseRequest.title,
-          releaseRequest.profileAddress,
-          weiPerPlay,
-          releaseRequest.resourceSeed,
-          releaseRequest.resourceUrl,
-          releaseRequest.imageUrl,
-          releaseRequest.metadataUrl,
-          royaltyAddresses,
-          royaltyAmounts,
-          contributorAddresses,
-          contributorShares,
-          {
-            from: account,
-            data: contractDefinition.code,
-            gas: contractDefinition.deploymentGas
-          }, function (e, contract) {
-            if (e) {
-              console.log("Failed to deploy PPPv5 : " + e);
-              reject(e);
-            }
-            else if (contract.address) {
-              console.log("Deployed PPPv5 contract at : " + contract.address);
-              resolve(contract.address);
-            }
-            else {
-              console.log("Got license transaction hash: " + contract.transactionHash);
-            }
-          }.bind(this));
+          ...constructorArgs,
+          _createNewContractProperties(account, contractDefinition),
+          _createNewContractListener(resolve, reject, account, contractDefinition));
       }.bind(this))
     }.bind(this))
 };
 
+Web3Writer.prototype.createAccount = function(pwd) {
+  return new Promise(function(resolve, reject) {
+    try {
+      const newAccount = this.web3.personal.newAccount(pwd);
+      return resolve(newAccount);
+    } catch (e) {
+      reject(e);
+    }
+  }.bind(this));
+};
+
 Web3Writer.prototype.toIndivisibleUnits = function (musicCoins) {
   return this.web3.toWei(musicCoins, 'ether');
+};
+
+const _extractRequiredProperties = function(sourceObject, names) {
+  return names.map(f => {
+    if (!sourceObject.hasOwnProperty(f)) {
+      throw Error("Could not find required property: " + f);
+    }
+    return sourceObject[f];
+  })
+};
+
+const _createNewContractListener = function(resolve, reject, account, contractDefinition) {
+  return function (e, contract) {
+    const label = contractDefinition.type + ", version " + contractDefinition.version;
+    if (e) {
+      console.log("Failed to deploy " + label + ": " + e);
+      reject(e);
+    }
+    else if (contract.address) {
+      console.log("Successfully deployed " + label + ": " + contract.address);
+      resolve(contract.address);
+    }
+    else {
+      console.log("Deploying " + label + ", transactionHash: " + contract.transactionHash);
+    }
+  }
+};
+
+const _createNewContractProperties = function(account, contractDefinition) {
+  return {
+    from: account,
+    data: contractDefinition.code,
+    gas: contractDefinition.deploymentGas
+  };
 };
 
 module.exports = Web3Writer;

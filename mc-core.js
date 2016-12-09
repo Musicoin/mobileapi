@@ -102,6 +102,15 @@ MusicoinCore.prototype.setCredentials = function(account, pwd) {
 };
 
 /**
+ * Creates a new account
+ * @param pwd The password for the account
+ * @returns {Promise<string>} A promise that will resolve to the new account number
+ */
+MusicoinCore.prototype.createAccount = function(pwd) {
+  return this.getWeb3Writer().createAccount(pwd);
+};
+
+/**
  *
  * @param releaseRequest: A JSON object with the following properties
  * {
@@ -120,6 +129,10 @@ MusicoinCore.prototype.setCredentials = function(account, pwd) {
  */
 MusicoinCore.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
   return this.getLicenseModule().releaseLicense(releaseRequest, credentialsProvider);
+};
+
+MusicoinCore.prototype.releaseArtistProfile = function(releaseRequest, credentialsProvider) {
+  return this.getArtistModule().releaseProfile(releaseRequest, credentialsProvider);
 };
 
 module.exports = MusicoinCore;

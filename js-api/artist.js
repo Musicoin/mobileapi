@@ -1,8 +1,9 @@
 const Promise = require('bluebird');
 const request = require('request');
 
-function ArtistModule(web3Reader, mediaProvider, musicoinMusicianURL) {
+function ArtistModule(web3Reader, web3Writer, mediaProvider, musicoinMusicianURL) {
   this.web3Reader = web3Reader;
+  this.web3Writer = web3Writer;
   this.mediaProvider = mediaProvider;
   this.musicoinMusicianURL = musicoinMusicianURL;
 };
@@ -32,6 +33,29 @@ ArtistModule.prototype._getArtistDetails = function(profile) {
         return result;
       }.bind(this))
     })
+};
+
+/**
+ * @param releaseRequest A JSON object with the following properties:
+ * {
+ *    artistName: "Some Artist",
+ *    description: "Some description about the artist",
+ *    social: A JSON object properties like {linkedIn: "http://linkedin.com/theArsist", ...},
+ *    imageResource: A file or stream referencing the artists profile
+ * }
+ * @param credentialsProvider: The credentials provider that will unlock the web3 account
+ * @returns {Promise<string>} A Promise that will resolve to the address of the newly created profile contract
+ */
+ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProvider) {
+  const d = this.mediaProvider.uploadText(releaseRequest.description);
+  const s = this.mediaProvider.uploadText(JSON.stringify(releaseRequest.social));
+  const i = this.mediaProvider.upload(releaseRequest.imageResource);
+  return Promise.join(d, s, i, function(descriptionUrl, socialUrl, imageUrl) {
+    releaseRequest.descriptionUrl = descriptionUrl;
+    releaseRequest.socialUrl = socialUrl;
+    releaseRequest.imageUrl = imageUrl;
+    return this.web3Writer.releaseArtistProfileV2(releaseRequest, credentialsProvider);
+  }.bind(this));
 };
 
 const _capture = function(errors, defaultValue, p) {

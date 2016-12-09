@@ -59,8 +59,10 @@ function Web3Reader(web3) {
   this.functionTypeMapping[this.web3.sha3('play()').substring(0, 10)] = FunctionTypes.PLAY;
 
   this.pppV5 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/PayPerPlay.json');
+  this.artistV2 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/Artist.json');
 
   knownContracts.push(this.pppV5);
+  knownContracts.push(this.artistV2);
 };
 
 Web3Reader.getDependencies = function() {

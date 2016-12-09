@@ -3,6 +3,7 @@ contract PayPerPlay {
     string public constant contractVersion = "v0.5";
 
     address public owner;
+    string public title;
     address public artistProfileAddress;
     string public resourceSeed;
     string public resourceUrl; // e.g. ipfs://<hash>
@@ -42,7 +43,7 @@ contract PayPerPlay {
 
     // "Title", "0x11111", 1000000, "ipfs://resource", "ipfs://metadata", [], [], ["0x11111"], [1]
     function PayPerPlay(
-            string title,
+            string _title,
             address _artistProfileAddress,
             uint _weiPerPlay,
             string _resourceSeed,
@@ -53,6 +54,7 @@ contract PayPerPlay {
             uint[] _royaltyAmounts,
             address[] _contributors,
             uint[] _contributorShares) {
+        title = _title;
         artistProfileAddress = _artistProfileAddress;
         owner = msg.sender;
         resourceSeed = _resourceSeed;

@@ -1,7 +1,7 @@
 const registry = require('../../components/config/component-registry');
 const Promise = require("bluebird");
 const http = require('http');
-const request = registry.request;
+const request = require('request');
 const fs = require('fs');
 const crypto = require('crypto');
 const zlib = require('zlib');
@@ -109,7 +109,28 @@ MediaProvider.prototype.getIpfsUrl = function(hash) {
  * @returns {Promise.<String>} a Promise that resolves to an IPFS URL (ipfs://HASH or eipfs://HASH)
  */
 MediaProvider.prototype.uploadText = function(text, encryptionKeyProvider) {
-  return this.upload(StreamUtils.stringToStream(text), encryptionKeyProvider);
+  // this sucks -- the IPFS upload step doesn't seem to work correctly with a stringToStream object
+  // So, forcing it to go through a temp file.  However, that means any encryption should happen
+  // before writing to a temp file...
+  //
+  // DOESN'T WORK
+  // return this.upload(StreamUtils.stringToStream(text), encryptionKeyProvider);
+
+  // So, do this instead.
+  const pathOrStream = StreamUtils.stringToStream(text);
+  const context = {};
+  const streamToUpload = !encryptionKeyProvider
+    ? Promise.resolve(pathOrStream)
+    : _encrypt(pathOrStream, encryptionKeyProvider);
+
+  return streamToUpload
+    .then(stream => StreamUtils.writeToTempFile(stream))
+    .then(tmpFile => context.tempFile = tmpFile)
+    .then(() => StreamUtils.asStream(context.tempFile))
+    .then(stream => _uploadRaw(this.ipfsAddUrl, stream))
+    .then(hash => context.hash = hash)
+    .then(() => maybeDeleteTmpFile(context.tempFile))
+    .then(() => encryptionKeyProvider ? ENCRYPTED + context.hash : RAW + context.hash)
 };
 
 /**
