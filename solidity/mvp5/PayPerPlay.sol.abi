@@ -30,6 +30,19 @@
     "inputs": [],
     "name": "tip",
     "outputs": [],
+    "payable": true,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "createdBy",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
     "payable": false,
     "type": "function"
   },
@@ -233,7 +246,7 @@
     "inputs": [],
     "name": "play",
     "outputs": [],
-    "payable": false,
+    "payable": true,
     "type": "function"
   },
   {
@@ -464,6 +477,10 @@
   },
   {
     "inputs": [
+      {
+        "name": "_owner",
+        "type": "address"
+      },
       {
         "name": "_title",
         "type": "string"

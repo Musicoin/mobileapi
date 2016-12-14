@@ -3,6 +3,7 @@ contract PayPerPlay {
     string public constant contractVersion = "v0.5";
 
     address public owner;
+    address public createdBy;
     string public title;
     address public artistProfileAddress;
     string public resourceSeed;
@@ -43,6 +44,7 @@ contract PayPerPlay {
 
     // "Title", "0x11111", 1000000, "ipfs://resource", "ipfs://metadata", [], [], ["0x11111"], [1]
     function PayPerPlay(
+            address _owner,
             string _title,
             address _artistProfileAddress,
             uint _weiPerPlay,
@@ -56,7 +58,8 @@ contract PayPerPlay {
             uint[] _contributorShares) {
         title = _title;
         artistProfileAddress = _artistProfileAddress;
-        owner = msg.sender;
+        owner = _owner;
+        createdBy = msg.sender;
         resourceSeed = _resourceSeed;
         resourceUrl = _resourceUrl;
         metadataUrl = _metadataUrl;
@@ -78,7 +81,7 @@ contract PayPerPlay {
         _;
     }
 
-    function tip() {
+    function tip() payable {
         // fixed royalty payments are
         // (1) contractual obligations for a *play* event
         // (2) sized accodingly to a single play
@@ -102,7 +105,7 @@ contract PayPerPlay {
         return royalties.length;
     }
 
-    function play() {
+    function play() payable {
         if (msg.value < weiPerPlay) throw;
 
         // users can only purchase one play at a time.  don't steal their money

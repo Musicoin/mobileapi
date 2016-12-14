@@ -38,6 +38,7 @@ ArtistModule.prototype._getArtistDetails = function(profile) {
 /**
  * @param releaseRequest A JSON object with the following properties:
  * {
+ *    owner: The address of the profile owner, which has administrative rights over the account
  *    artistName: "Some Artist",
  *    description: "Some description about the artist",
  *    social: A JSON object properties like {linkedIn: "http://linkedin.com/theArsist", ...},

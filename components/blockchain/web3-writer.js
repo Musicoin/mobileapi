@@ -24,7 +24,7 @@ Web3Writer.createInMemoryCredentialsProvider = function(account, password) {
 Web3Writer.prototype.unlockAccount = function (provider) {
   provider = provider || this.credentialsProvider;
   if (!provider)
-    throw new Error("You must provider a credentials provider or call setCredentialsProvider sending transactions");
+    throw new Error("You must provide a credentials provider or call setCredentialsProvider before sending transactions");
 
   return provider.getCredentials()
     .bind(this)
@@ -53,6 +53,7 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
       const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
       const params = {from: account, value: weiTipAmount, gas: 940000};
       return new Promise(function(resolve, reject) {
+        //noinspection JSUnresolvedFunction
         contract.tip(params, function (err, tx) {
           if (err) reject(err);
           else resolve(tx);
@@ -90,6 +91,7 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
  *
  * @param releaseRequest: A JSON object with the following structure
  * {
+ *    owner: The address of the contract owner, which will have administrative rights
  *    title: "My Song Title",
  *    profileAddress: <address of the Artist profile contract>,
  *    coinsPerPlay: The number of Musicoins to charge for each stream (e.g. 1)

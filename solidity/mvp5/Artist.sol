@@ -2,6 +2,7 @@ pragma solidity ^0.4.2;
 contract Artist {
     string public contractVersion = "v0.2";
     address public owner;
+    address public createdBy;
     string public artistName;
     string public imageUrl;
     string public descriptionUrl;
@@ -19,15 +20,21 @@ contract Artist {
     }
 
     function Artist(
+        address _owner,
         string _artistName,
         string _imageUrl,
         string _descriptionUrl,
         string _socialUrl) {
-        owner = msg.sender;
+        owner = _owner;
+        createdBy = msg.sender;
         artistName = _artistName;
         imageUrl = _imageUrl;
         descriptionUrl = _descriptionUrl;
         socialUrl = _socialUrl;
+    }
+
+    function () payable {
+        // accept payments
     }
 
     function tip() payable {
@@ -49,6 +56,18 @@ contract Artist {
         if (following[msg.sender]) {
             following[msg.sender] = false;
             followers--;
+        }
+    }
+
+    function payOut(address recipient, uint amount) onlyOwner {
+        if (!recipient.send(amount)) {
+            throw;
+        }
+    }
+
+    function payOutBalance(address recipient) onlyOwner {
+        if (!recipient.send(this.balance)) {
+            throw;
         }
     }
 

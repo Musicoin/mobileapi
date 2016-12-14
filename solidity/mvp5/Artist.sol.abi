@@ -3,6 +3,23 @@
     "constant": false,
     "inputs": [
       {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "payOut",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_owner",
         "type": "address"
       }
@@ -43,6 +60,19 @@
     ],
     "name": "setDescriptionUrl",
     "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "createdBy",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
     "payable": false,
     "type": "function"
   },
@@ -239,6 +269,19 @@
     "constant": false,
     "inputs": [
       {
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "payOutBalance",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_socialUrl",
         "type": "string"
       }
@@ -250,6 +293,10 @@
   },
   {
     "inputs": [
+      {
+        "name": "_owner",
+        "type": "address"
+      },
       {
         "name": "_artistName",
         "type": "string"
@@ -269,5 +316,9 @@
     ],
     "type": "constructor",
     "payable": true
+  },
+  {
+    "payable": true,
+    "type": "fallback"
   }
 ]
