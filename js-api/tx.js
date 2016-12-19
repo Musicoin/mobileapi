@@ -7,6 +7,25 @@ function TransactionModule(web3Reader, licenseModule, artistModule) {
   this.artistModule = artistModule;
 };
 
+TransactionModule.prototype.getTransaction = function(hash) {
+  return this.web3Reader.getTransaction(hash);
+};
+
+TransactionModule.prototype.getTransactionReceipt = function(hash) {
+  return this.web3Reader.getTransactionReceipt(hash);
+};
+
+TransactionModule.prototype.getTransactionStatus = function(hash) {
+  return Promise.join(
+    this.web3Reader.getTransaction(hash),
+    this.web3Reader.getTransactionReceipt(hash),
+    function(raw, receipt) {
+      if (!raw) return {status: "unknown"};
+      if (raw && !receipt) return {status: "pending"};
+      return {status: "complete", receipt: receipt};
+    });
+};
+
 // 0x0ca5827720ca163b177d838087029d705574a29c0652c6c6a8e528f6de4b2101
 // 0x5ee69c60fbd37a0cfc036ba14a85088cf2cc2c0e539e53adc1617052a1a16823
 // 0xb63faac108e69f2072d3e91565b171abf43662decfcd74dc26e2bada87c98241

@@ -450,19 +450,6 @@
     "type": "function"
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "resourceSeed",
-    "outputs": [
-      {
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
     "constant": false,
     "inputs": [
       {
@@ -492,10 +479,6 @@
       {
         "name": "_weiPerPlay",
         "type": "uint256"
-      },
-      {
-        "name": "_resourceSeed",
-        "type": "string"
       },
       {
         "name": "_resourceUrl",

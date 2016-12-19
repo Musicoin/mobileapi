@@ -45,12 +45,20 @@ ArtistModule.prototype._getArtistDetails = function(profile) {
  *    imageResource: A file or stream referencing the artists profile
  * }
  * @param credentialsProvider: The credentials provider that will unlock the web3 account
- * @returns {Promise<string>} A Promise that will resolve to the address of the newly created profile contract
+ * @returns {Promise<string>} A Promise that will resolve to transaction hash
  */
 ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProvider) {
-  const d = this.mediaProvider.uploadText(releaseRequest.description);
-  const s = this.mediaProvider.uploadText(JSON.stringify(releaseRequest.social));
-  const i = this.mediaProvider.upload(releaseRequest.imageResource);
+  const d = releaseRequest.descriptionUrl
+    ? Promise.resolve(releaseRequest.descriptionUrl)
+    : this.mediaProvider.uploadText(releaseRequest.description);
+
+  const s = releaseRequest.socialUrl
+    ? Promise.resolve(releaseRequest.socialUrl)
+    : this.mediaProvider.uploadText(JSON.stringify(releaseRequest.social));
+
+  const i = releaseRequest.imageUrl
+    ? Promise.resolve(releaseRequest.imageUrl)
+    : this.mediaProvider.upload(releaseRequest.imageResource);
   return Promise.join(d, s, i, function(descriptionUrl, socialUrl, imageUrl) {
     releaseRequest.descriptionUrl = descriptionUrl;
     releaseRequest.socialUrl = socialUrl;

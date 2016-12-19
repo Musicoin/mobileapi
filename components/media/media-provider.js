@@ -1,4 +1,3 @@
-const registry = require('../../components/config/component-registry');
 const Promise = require("bluebird");
 const http = require('http');
 const request = require('request');

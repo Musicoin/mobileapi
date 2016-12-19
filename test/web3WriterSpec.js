@@ -6,6 +6,7 @@ describe('Web3Writer', function() {
   const sender = "0x00000";
   const code = "0x123456"
   const contractAddress = "0x99999";
+  const transactionHash = "txHash";
   const constructorArgs = ["x", "z", "y"];
   const expectedAbi = {};
   const releaseRequest = { x: "1", y: "2", z: "3"};
@@ -30,7 +31,7 @@ describe('Web3Writer', function() {
           assert.equal(arguments[3].data, code);
 
           const listener = arguments[4];
-          listener(null, {transactionHash: "txHash"});
+          listener(null, {transactionHash: transactionHash});
           listener(null, {address: "0x99999"});
         };
         return builder;
@@ -62,8 +63,8 @@ describe('Web3Writer', function() {
     const web3Writer = new Web3Writer(web3Reader);
 
     return web3Writer.releaseArtistProfileV2(releaseRequest, credsProvider)
-      .then(function(address) {
-        assert.equal(address, contractAddress);
+      .then(function(tx) {
+        assert.equal(tx, transactionHash);
       });
   })
 });

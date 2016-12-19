@@ -6,7 +6,6 @@ contract PayPerPlay {
     address public createdBy;
     string public title;
     address public artistProfileAddress;
-    string public resourceSeed;
     string public resourceUrl; // e.g. ipfs://<hash>
     string public metadataUrl;
     string public imageUrl;
@@ -48,7 +47,6 @@ contract PayPerPlay {
             string _title,
             address _artistProfileAddress,
             uint _weiPerPlay,
-            string _resourceSeed,
             string _resourceUrl,
             string _imageUrl,
             string _metadataUrl,
@@ -60,7 +58,6 @@ contract PayPerPlay {
         artistProfileAddress = _artistProfileAddress;
         owner = _owner;
         createdBy = msg.sender;
-        resourceSeed = _resourceSeed;
         resourceUrl = _resourceUrl;
         metadataUrl = _metadataUrl;
         imageUrl = _imageUrl;

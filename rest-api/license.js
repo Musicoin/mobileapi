@@ -1,6 +1,9 @@
 const express  = require('express');
 const router = express.Router();
+var jsonParser = require('body-parser').json();
 let licenseModule;
+let publishCredentialsProvider;
+const LicenseKey = require('../components/models/key');
 
 router.get('/detail/:address', function(req, res) {
   licenseModule.getLicense(req.params.address)
@@ -25,6 +28,49 @@ router.get('/resource/:address', function(req, res) {
     });
 });
 
+router.post('/', jsonParser, function(req, res) {
+  console.log("Received request: " + req);
+  publishCredentialsProvider.getCredentials()
+    .then(function(credentials) {
+      return licenseModule.releaseLicense({
+        owner: credentials.account,
+        profileAddress: req.body.profileAddress,
+        title: req.body.title,
+        resourceUrl: req.body.audioUrl,
+        imageUrl: req.body.imageUrl,
+        metadataUrl: req.body.metadataUrl,
+        coinsPerPlay: 1,
+        royalties: [],
+        contributors: [{address: req.body.profileAddress, shares: 1}]
+      }, publishCredentialsProvider)
+    })
+    .then(function(tx) {
+      res.json({tx: tx});
+      const newKey = new LicenseKey();
+      newKey.tx = tx;
+      newKey.key = req.body.encryptionKey;
+      newKey.save(err => console.log(`Failed to save key: ${err}`));
+      licenseModule.getWeb3Reader().waitForTransaction(tx)
+        .then(function(receipt) {
+          newKey.licenseAddress = receipt.contractAddress;
+          newKey.save(function(err) {
+            if (err) {
+              console.log("Failed to save license key!");
+              throw err;
+            }
+            else {
+              console.log("Saved key!");
+            }
+          });
+        })
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500);
+      res.send(err);
+    });
+});
+
 router.get('/sample/:address', function(req, res) {
   licenseModule.sampleResourceStream(req.params.address, 50)
     .then(function (result) {
@@ -38,7 +84,8 @@ router.get('/sample/:address', function(req, res) {
 });
 
 
-module.exports.init = function(_licenseModule) {
+module.exports.init = function(_licenseModule, _publishCredentialsProvider) {
   licenseModule = _licenseModule;
+  publishCredentialsProvider = _publishCredentialsProvider;
   return router;
 };

@@ -210,6 +210,10 @@ Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
   return this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
 };
 
+Web3Reader.prototype.getContractAt = function(abi, address) {
+  return Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
+};
+
 /*
  * Loads the given fields into a JSON object asynchronously
  */
@@ -232,6 +236,47 @@ Web3Reader.prototype.getConstantFields = function(abi) {
   return abi
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
     .map(field => field.name)
+};
+
+Web3Reader.prototype.waitForTransaction = function (expectedTx) {
+  return new Promise(function(resolve, reject) {
+    let count = 0;
+    const filter = this.web3.eth.filter('latest');
+    filter.watch(function (error, result) {
+      if (error) console.log("Error: " + error);
+      if (result) console.log("Result: " + result);
+      count++;
+
+      if (count > 10) {
+        console.log("Giving up on tx " + expectedTx);
+        reject(new Error("Transaction was not confirmed"));
+        filter.stopWatching();
+      }
+
+      // each time a new block comes in, see if our tx is in it
+      this.web3.eth.getTransactionReceipt(expectedTx, function(error, receipt) {
+        if (receipt && receipt.transactionHash == expectedTx) {
+          console.log("Got receipt: " + expectedTx + ", blockHash: " + receipt.blockHash);
+          this.web3.eth.getTransaction(expectedTx, function (error, transaction) {
+            if (transaction.gas == receipt.gasUsed) {
+              // wtf?! This is the only way to check for an error??
+              filter.stopWatching();
+              reject(new Error("Out of gas (or an error was thrown)"));
+            }
+            else if (receipt.blockHash) {
+              console.log("Confirmed " + expectedTx);
+              console.log("Block hash " + receipt.blockHash);
+              filter.stopWatching();
+              resolve(receipt);
+            }
+            else {
+              console.log("Waiting for confirmation of " + expectedTx);
+            }
+          }.bind(this));
+        }
+      }.bind(this));
+    }.bind(this));
+  }.bind(this));
 };
 
 Web3Reader.prototype.getWeb3 = function() {

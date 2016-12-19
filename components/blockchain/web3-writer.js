@@ -104,11 +104,15 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
  * }
  * @param credentialsProvider: (optional) The credentials provider.  If this is not provided, the default provider will be used.
  *        Web3Writer#setCredentialsProvider
- * @returns {*|Promise.<address>}
+ * @returns {*|Promise.<tx>} a Promise that resolves to the transaction hash
  */
 // example: 0xc03cfa7500b44f238f8324651df9a3c383bca36e
 Web3Writer.prototype.releaseLicenseV5 = function (releaseRequest, credentialsProvider) {
   const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.5");
+
+  if (!releaseRequest.owner && credentialsProvider) {
+    releaseRequest.owner = credentialsProvider.getCredentials().account;
+  }
 
   // copy all params from releaseRequest and then add some computed params
   // the names should stay close to the contract constructor args
@@ -126,7 +130,33 @@ Web3Writer.prototype.releaseLicenseV5 = function (releaseRequest, credentialsPro
 
 Web3Writer.prototype.releaseArtistProfileV2 = function(releaseRequest, credentialsProvider) {
   const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.2");
-  return this.releaseContract(contractDefinition, releaseRequest, credentialsProvider);
+  if (releaseRequest.profileAddress) {
+    return this.updateArtistProfile(releaseRequest, credentialsProvider);
+  }
+  else {
+    if (!releaseRequest.owner && credentialsProvider) {
+      releaseRequest.owner = credentialsProvider.getCredentials().account;
+    }
+    return this.releaseContract(contractDefinition, releaseRequest, credentialsProvider);
+  }
+};
+
+Web3Writer.prototype.updateArtistProfile = function(releaseRequest, credentialsProvider) {
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.2");
+  const contract = this.web3Reader.getContractAt(contractDefinition.abi, releaseRequest.profileAddress);
+
+  return this.unlockAccount(credentialsProvider)
+    .bind(this)
+    .then((account) => {
+      const params = {from: account};
+      return contract.updateDetailsAsync(
+          releaseRequest.artistName,
+          releaseRequest.imageUrl,
+          releaseRequest.descriptionUrl,
+          releaseRequest.socialUrl,
+          params)
+      }
+    )
 };
 
 Web3Writer.prototype.releaseContract = function(contractDefinition, releaseRequest, credentialsProvider) {
@@ -173,12 +203,9 @@ const _createNewContractListener = function(resolve, reject, account, contractDe
       console.log("Failed to deploy " + label + ": " + e);
       reject(e);
     }
-    else if (contract.address) {
-      console.log("Successfully deployed " + label + ": " + contract.address);
-      resolve(contract.address);
-    }
     else {
-      console.log("Deploying " + label + ", transactionHash: " + contract.transactionHash);
+      console.log("Deploying " + label + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address);
+      resolve(contract.transactionHash);
     }
   }
 };

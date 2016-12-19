@@ -37,8 +37,9 @@ describe('License', function() {
     it('should release a license', function () {
       const input = {
         title: "Title",
-        audioResource: "audioResource",
-        imageResource: "imageResource",
+        resourceUrl: "resourceUrl",
+        imageUrl: "imageUrl",
+        metadataUrl: "textUrl"
       };
       const expectedRequest = {
         title: "Title",

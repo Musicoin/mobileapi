@@ -43,17 +43,12 @@ LicenseModule.prototype.getResourceStream = function(address) {
 };
 
 LicenseModule.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
-  const keyParts = Lock.makeKey(releaseRequest.title);
-  releaseRequest.resourceSeed = keyParts.seed;
-  const audioPromise = this.mediaProvider.upload(releaseRequest.audioResource, () => keyParts.key);
-  const imagePromise = this.mediaProvider.upload(releaseRequest.imageResource);
-  const metadataPromise = this.mediaProvider.uploadText(JSON.stringify(releaseRequest.metadata));
-  return Promise.join(audioPromise, imagePromise, metadataPromise, function(resourceUrl, imageUrl, metadataUrl) {
-    releaseRequest.resourceUrl = resourceUrl;
-    releaseRequest.imageUrl = imageUrl;
-    releaseRequest.metadataUrl = metadataUrl;
-    return this.web3Writer.releaseLicenseV5(releaseRequest, credentialsProvider);
-  }.bind(this));
+  return this.web3Writer.releaseLicenseV5(releaseRequest, credentialsProvider);
 };
+
+LicenseModule.prototype.getWeb3Reader = function() {
+  return this.web3Reader;
+};
+
 
 module.exports = LicenseModule;

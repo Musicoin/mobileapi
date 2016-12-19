@@ -1,16 +1,22 @@
 const express = require('express');
 const app = express();
 const ConfigUtils = require('../components/config/config-utils');
-
+const Web3Writer = require('../components/blockchain/web3-writer');
+const mongoose = require('mongoose');
 const config = ConfigUtils.loadConfig(process.argv);
 
 const MusicoinCore = require("../mc-core");
 const musicoinCore = new MusicoinCore(config);
 
-const licenseModule = require("./license").init(musicoinCore.getLicenseModule());
+const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
+const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), publishCredentialsProvider);
 const artistModule = require("./artist").init(musicoinCore.getArtistModule());
 const ipfsModule = require("./ipfs").init(musicoinCore.getMediaProvider());
 const txModule = require("./tx").init(musicoinCore.getTxModule());
+
+// TODO: Load credentials from env variables
+musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
+mongoose.connect(config.keyDatabaseUrl);
 
 app.use("/license", licenseModule);
 app.use('/artist', artistModule);
@@ -60,23 +66,6 @@ app.get('/test/account/create', function(req, res) {
   //     res.write(JSON.stringify(err));
   //     res.end();
   //   });
-});
-
-app.get('/test/profile/release', function(req, res, next) {
-  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
-  const releaseRequest = {
-    artistName: "Some Name",
-    imageResource: "C:/tmp/piano.jpg",
-    social: {test: "ing"},
-    description: "Hello, there",
-  };
-  musicoinCore.releaseArtistProfile(releaseRequest)
-    .then(function(account) {
-      res.writeHead(200);
-      res.write("Created profile: " + account);
-      res.end();
-    })
-    .catch(next);
 });
 
 app.get('/test/license/release/', function(req, res) {
