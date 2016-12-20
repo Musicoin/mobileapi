@@ -1,7 +1,7 @@
 const express = require('express');
 const JsonPromiseRouter = require('./json-promise-router');
 const expressRouter = express.Router();
-const router = new JsonPromiseRouter(expressRouter);
+const router = new JsonPromiseRouter(expressRouter, "tx");
 let txModule;
 
 router.get('/detail/:hash', req => txModule.getTransactionDetails(req.params.hash));

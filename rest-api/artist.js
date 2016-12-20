@@ -1,7 +1,7 @@
 const express = require('express');
 const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
-const jsonRouter = new JsonPromiseRouter(router);
+const jsonRouter = new JsonPromiseRouter(router, "artist");
 const jsonParser = require('body-parser').json();
 let artistModule;
 let publishCredentialsProvider;

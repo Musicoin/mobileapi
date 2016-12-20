@@ -29,7 +29,7 @@ router.get('/resource/:address', function(req, res) {
 });
 
 router.post('/', jsonParser, function(req, res) {
-  console.log("Received request: " + req);
+  console.log("Received license release request: " + JSON.stringify(req.body));
   publishCredentialsProvider.getCredentials()
     .then(function(credentials) {
       return licenseModule.releaseLicense({
@@ -45,6 +45,7 @@ router.post('/', jsonParser, function(req, res) {
       }, publishCredentialsProvider)
     })
     .then(function(tx) {
+      console.log("Got transaction hash for release request: " + tx);
       res.json({tx: tx});
       const newKey = new LicenseKey();
       newKey.tx = tx;
@@ -52,8 +53,11 @@ router.post('/', jsonParser, function(req, res) {
       newKey.save(err => {
         if (err) console.log(`Failed to save key: ${err}`)
       });
+
+      console.log("Waiting for tx: " + tx);
       licenseModule.getWeb3Reader().waitForTransaction(tx)
         .then(function(receipt) {
+          console.log("Got receipt: " + JSON.stringify(receipt));
           newKey.licenseAddress = receipt.contractAddress;
           newKey.save(function(err) {
             if (err) {
