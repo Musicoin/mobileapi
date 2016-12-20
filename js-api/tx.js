@@ -16,6 +16,7 @@ TransactionModule.prototype.getTransactionReceipt = function(hash) {
 };
 
 TransactionModule.prototype.getTransactionStatus = function(hash) {
+  console.log(`Getting status of tx: "${hash}"`);
   return Promise.join(
     this.web3Reader.getTransaction(hash),
     this.web3Reader.getTransactionReceipt(hash),

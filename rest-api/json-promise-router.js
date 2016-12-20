@@ -25,7 +25,7 @@ JsonPromiseRouter.prototype.get = function() {
   const routeArgs = [...arguments].slice(0, arguments.length-1);
   const promiseProvider = arguments[arguments.length-1];
   this.router.get(...routeArgs, function(req, res, next) {
-    console.log(`Calling route: ${routeArgs[0]} in ${this.name}`);
+    console.log(`Calling route: ${routeArgs[0]} in ${this.name} with params: ${JSON.stringify(req.params)}`);
     this.promiseHandler(promiseProvider(req, res, next), res, next);
   }.bind(this))
 };
