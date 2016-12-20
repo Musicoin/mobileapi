@@ -18,10 +18,6 @@ MusicoinCore.prototype.getArtist = function(address) {
   return this.getArtistModule().getArtistByOwner(address);
 };
 
-MusicoinCore.prototype.getArtistReleases = function(address) {
-  return this.getArtistModule().loadReleases(address);
-};
-
 MusicoinCore.prototype.getLicense = function(address) {
   return this.getLicenseModule().getLicense(address);
 };

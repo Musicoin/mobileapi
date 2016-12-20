@@ -1,31 +1,53 @@
-
 const loadConfig = function(argsv) {
-  const config = {
-    web3Host: 'http://localhost:8545',
-    ipfsHost: 'http://localhost:8080',
-    ipfsAddUrl: 'http://localhost:5001/api/v0/add',
-    musicoinMusicianURL: "http://catalog.musicoin.org/api/musician/content",
-    port: 3000,
-    publishingAccount: "0xe5233d15f4993c83f066575accde2ce10e369188",
-    publishingAccountPassword: "dummy1",
-    keyDatabaseUrl: "mongodb://localhost/key-store"
-  };
-  argsv.forEach(function (val, index, array) {
-    if (val == "--ipfs") {
-      config.ipfsHost = array[index+1];
-    }
-    else if (val == "--web3") {
-      config.web3Host = array[index+1];
-    }
-    else if (val == "--port") {
-      config.port = parseInt(array[index+1]);
-    }
-    else if (val == "--publishingAccount") config.publishingAccount = array[index+1];
-    else if (val == "--publishingAccountPassword") config.publishingAccountPassword = array[index+1];
-  });
-  console.log("Loaded config: " + JSON.stringify(config));
-  return config;
+  let config = getDefaultKeyValueConfig();
+
+  const cmdLineOverrides = convertArgsToKeyValuePairs(argsv);
+
+  // Override defaults
+  Object.assign(config, cmdLineOverrides);
+
+  // computed values (N.B. make sure this is *after* defaults have been overridden)
+  Object.assign(config, getComputedKeyValuePairs(config));
+
+  // Allow computed values to be overridden directly from the command line
+  Object.assign(config, cmdLineOverrides);
+  return getStructuredConfig(config);
 };
+
+function getStructuredConfig(keyValuePairs) {
+  return keyValuePairs;
+}
+
+function convertArgsToKeyValuePairs(argsv) {
+  const config = {};
+  argsv.forEach(function (val, index, array) {
+    if (val.startsWith("--")) {
+      config[val.substr(2)] = array[index+1];
+    }
+  });
+  return config;
+}
+
+function getComputedKeyValuePairs(config) {
+  return {
+    web3Url: config.web3Endpoint,
+    ipfsReadUrl: config.ipfsReadEndpoint,
+    ipfsAddUrl: `${config.ipfsAddEndpoint}/api/v0/add`,
+    keyDatabaseUrl: `${config.mongoEndpoint}/key-store`
+  };
+}
+
+function getDefaultKeyValueConfig() {
+  return {
+    web3Endpoint: process.env.WEB3_ENDPOINT || 'http://localhost:8545',
+    ipfsReadEndpoint: process.env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
+    ipfsAddEndpoint: process.env.IPFS_ADD_ENDPOINT || 'http://localhost:5001',
+    mongoEndpoint: process.env.MONGO_ENDPOINT || "mongodb://localhost",
+    port: process.env.MUSICOIN_API_PORT || 3000,
+    publishingAccount: process.env.PUBLISHING_ACCOUNT || "0xe5233d15f4993c83f066575accde2ce10e369188",
+    publishingAccountPassword: process.env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1"
+  };
+}
 
 module.exports.loadConfig = loadConfig;
 

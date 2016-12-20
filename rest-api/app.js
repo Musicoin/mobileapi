@@ -10,7 +10,7 @@ const musicoinCore = new MusicoinCore(config);
 
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
 const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), publishCredentialsProvider);
-const artistModule = require("./artist").init(musicoinCore.getArtistModule());
+const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider);
 const ipfsModule = require("./ipfs").init(musicoinCore.getMediaProvider());
 const txModule = require("./tx").init(musicoinCore.getTxModule());
 
@@ -53,47 +53,6 @@ app.get('/test/tip/:address', function(req, res) {
       res.end();
     });
 });
-
-app.get('/test/account/create', function(req, res) {
-  // musicoinCore.createAccount("myPassword")
-  //   .then(function(account) {
-  //     res.writeHead(200);
-  //     res.write("Created account: " + account);
-  //     res.end();
-  //   })
-  //   .catch(function (err) {
-  //     res.status(500)
-  //     res.write(JSON.stringify(err));
-  //     res.end();
-  //   });
-});
-
-app.get('/test/license/release/', function(req, res) {
-  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
-  const releaseRequest = {
-      title: "Title",
-      profileAddress: "0xb4dbe3aF8E1d37963Cc782773bDC1dCcC120E7c6",
-      coinsPerPlay: 1,
-      audioResource: "C:/tmp/example.mp3",
-      imageResource: "C:/tmp/piano.jpg",
-      metadata: {test: "ing"},
-      royalties: [],
-      contributors: [{address: "0x008d4c913ca41f1f8d73b43d8fa536da423f1fb4", shares: 1}]
-  };
-
-  musicoinCore.releaseLicense(releaseRequest)
-    .then(function (result) {
-      res.writeHead(200);
-      res.write(result);
-      res.end();
-    })
-    .catch(function (err) {
-      res.status(500)
-      res.write(err);
-      res.end();
-    });
-});
-
 
 app.listen(config.port, function () {
   console.log('Listening on port ' + config.port);

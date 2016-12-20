@@ -8,11 +8,11 @@ const Web3 = require('web3');
 
 function ComponentRegistry(config) {
   this.web3 = new Web3();
-  this.web3.setProvider(new this.web3.providers.HttpProvider(config.web3Host));
+  this.web3.setProvider(new this.web3.providers.HttpProvider(config.web3Url));
   this.web3Reader = new Web3Reader(this.web3);
   this.web3Writer = new Web3Writer(this.web3Reader);
-  this.mediaProvider = new MediaProvider(config.ipfsHost, config.ipfsAddUrl);
-  this.artistModule = new ArtistModule(this.web3Reader, this.web3Writer, this.mediaProvider, config.musicoinMusicianURL);
+  this.mediaProvider = new MediaProvider(config.ipfsReadUrl, config.ipfsAddUrl);
+  this.artistModule = new ArtistModule(this.web3Reader, this.web3Writer, this.mediaProvider);
   this.licenseModule = new LicenseModule(this.web3Reader, this.web3Writer, this.mediaProvider);
   this.txModule = new TxModule(this.web3Reader, this.licenseModule, this.artistModule);
   this.isRegistry = true;

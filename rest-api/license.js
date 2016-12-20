@@ -49,7 +49,9 @@ router.post('/', jsonParser, function(req, res) {
       const newKey = new LicenseKey();
       newKey.tx = tx;
       newKey.key = req.body.encryptionKey;
-      newKey.save(err => console.log(`Failed to save key: ${err}`));
+      newKey.save(err => {
+        if (err) console.log(`Failed to save key: ${err}`)
+      });
       licenseModule.getWeb3Reader().waitForTransaction(tx)
         .then(function(receipt) {
           newKey.licenseAddress = receipt.contractAddress;

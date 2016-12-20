@@ -1,11 +1,10 @@
 const Promise = require('bluebird');
 const request = require('request');
 
-function ArtistModule(web3Reader, web3Writer, mediaProvider, musicoinMusicianURL) {
+function ArtistModule(web3Reader, web3Writer, mediaProvider) {
   this.web3Reader = web3Reader;
   this.web3Writer = web3Writer;
   this.mediaProvider = mediaProvider;
-  this.musicoinMusicianURL = musicoinMusicianURL;
 };
 
 ArtistModule.prototype.getArtistByOwner = function(ownerAddress) {
@@ -72,38 +71,6 @@ const _capture = function(errors, defaultValue, p) {
     errors.push(err);
     return defaultValue;
   });
-};
-
-// TODO: This should come from a database, since the musicoin.org API may be deprecated
-ArtistModule.prototype.loadReleases = function(artist_address) {
-  const propertiesObject = {address: artist_address};
-  return new Promise(function (resolve, reject){
-    return request({
-      url: this.musicoinMusicianURL,
-      qs: propertiesObject,
-      json: true
-    }, function (error, response, body) {
-      if (!error && !body.success) {
-        error = new Error(body.message);
-      }
-
-      if (!error && response.statusCode === 200) {
-        resolve(body.content.new_releases.map(function(nr) {
-          return {
-            title: nr.song_name,
-            tips: nr.tip_count,
-            plays: nr.play_count,
-            licenseAddress: nr.contract_id,
-            image: nr.work.image_url
-          }
-        }));
-      }
-      else {
-        console.log("Unable to load artist: " + error);
-        reject(error);
-      }
-    }.bind(this))
-  }.bind(this));
 };
 
 module.exports = ArtistModule;

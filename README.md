@@ -3,9 +3,11 @@ Musicoin core
 
 To get setup, run `npm install`
 
-Currently, this package assumes IPFS and Geth/Parity are already running.  You can start it like this:
+Currently, this package assumes IPFS, Geth/Parity, and MongoDB are already running.  
 
-`node mc-core.js --ipfs http://localhost:8080 --web3 http://localhost:8545`
+You can start it like this:
+
+`node mc-core.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
 
 You can get license details like this:
 

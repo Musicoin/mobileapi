@@ -1,48 +1,34 @@
 const express = require('express');
+const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
-var jsonParser = require('body-parser').json();
+const jsonRouter = new JsonPromiseRouter(router);
+const jsonParser = require('body-parser').json();
 let artistModule;
+let publishCredentialsProvider;
 
-router.get('/detail/:address', function(req, res) {
-  artistModule.getArtistByOwner(req.params.address)
-    .then(function(output) {
-      res.json(output);
+jsonRouter.get('/profile/:address', req => artistModule.getArtistByProfile(req.params.address));
+jsonRouter.post('/profile/', jsonParser, function(req, res, next) {
+  return publishCredentialsProvider.getCredentials()
+    .then(function(credentials) {
+      const releaseRequest = {
+        profileAddress: req.body.profileAddress,
+        owner: credentials.account,
+        artistName: req.body.artistName,
+        imageUrl: req.body.imageUrl,
+        socialUrl: req.body.socialUrl,
+        descriptionUrl: req.body.descriptionUrl
+      };
+      console.log("Got profile POST request: " + JSON.stringify(releaseRequest));
+      return artistModule.releaseProfile(releaseRequest)
     })
-    .catch(function(err) {
-      res.status(500)
-      res.send(err);
-    })
+    .then(function(tx) {
+      return {tx: tx};
+    });
 });
 
-router.post('/profile/', jsonParser, function(req, res, next) {
-  const releaseRequest = {
-    profileAddress: req.body.profileAddress,
-    owner: "0xd194c585c559684939a1bf1d31cddc40017ac9d4",
-    artistName: req.body.artistName,
-    imageUrl: req.body.imageUrl,
-    socialUrl: req.body.socialUrl,
-    descriptionUrl: req.body.descriptionUrl
-  };
-  console.log("Got profile POST request: " + JSON.stringify(releaseRequest));
-  artistModule.releaseProfile(releaseRequest)
-    .then(function(account) {
-      res.json({profileAddress: account})
-    })
-    .catch(next);
-});
 
-router.get('/profile/:address', function(req, res) {
-  artistModule.getArtistByProfile(req.params.address)
-    .then(function(output) {
-      res.json(output);
-    })
-    .catch(function(err) {
-      res.status(500)
-      res.send(err);
-    })
-});
-
-module.exports.init = function(_artistModule) {
+module.exports.init = function(_artistModule, _publishCredentialsProvider) {
   artistModule = _artistModule;
+  publishCredentialsProvider = _publishCredentialsProvider;
   return router;
 };
