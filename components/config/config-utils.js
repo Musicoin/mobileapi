@@ -45,7 +45,10 @@ function getDefaultKeyValueConfig() {
     mongoEndpoint: process.env.MONGO_ENDPOINT || "mongodb://localhost",
     port: process.env.MUSICOIN_API_PORT || 3000,
     publishingAccount: process.env.PUBLISHING_ACCOUNT || "0xe5233d15f4993c83f066575accde2ce10e369188",
-    publishingAccountPassword: process.env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1"
+    publishingAccountPassword: process.env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1",
+    paymentAccount: process.env.PAYMENT_ACCOUNT || "0xe5233d15f4993c83f066575accde2ce10e369188",
+    paymentAccountPassword: process.env.PAYMENT_ACCOUNT_PASSWORD || "dummy1",
+    contractOwnerAccount: process.env.CONTRACT_OWNER_ACCOUNT || "0xe5233d15f4993c83f066575accde2ce10e369188"
   };
 }
 

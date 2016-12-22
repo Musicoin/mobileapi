@@ -1,19 +1,35 @@
 const express  = require('express');
+const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
+const jsonRouter = new JsonPromiseRouter(router, "artist");
 var jsonParser = require('body-parser').json();
 let licenseModule;
 let publishCredentialsProvider;
+let paymentAccountCredentialsProvider;
+let contractOwnerAccount;
 const LicenseKey = require('../components/models/key');
 
-router.get('/detail/:address', function(req, res) {
-  licenseModule.getLicense(req.params.address)
-    .then(function(result) {
-      res.json(result);
+jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
+jsonRouter.get('/ppp/:address', (req, res) => {
+  const context = {};
+  return new Promise(function(resolve, reject) {
+    LicenseKey.findOne({licenseAddress: req.params.address}, function(err, licenseKey) {
+      if (!licenseKey) return reject({err: "License not found: " + req.params.address});
+      return resolve({key: licenseKey.key});
     })
-    .catch(function (err) {
-      res.status(500)
-      res.send(err);
-    });
+  })
+    .then(function(output) {
+      context.output = output;
+      return licenseModule.ppp(req.params.address, paymentAccountCredentialsProvider);
+    })
+    .then(function(tx) {
+      console.log(`Initiated payment, tx: ${tx}`);
+      return context.output;
+    })
+    .catch(function(err) {
+      console.log(err);
+      return {err: "Failed to acquire key or payment was rejected"};
+    })
 });
 
 router.get('/resource/:address', function(req, res) {
@@ -33,7 +49,7 @@ router.post('/', jsonParser, function(req, res) {
   publishCredentialsProvider.getCredentials()
     .then(function(credentials) {
       return licenseModule.releaseLicense({
-        owner: credentials.account,
+        owner: contractOwnerAccount,
         profileAddress: req.body.profileAddress,
         title: req.body.title,
         resourceUrl: req.body.audioUrl,
@@ -77,21 +93,10 @@ router.post('/', jsonParser, function(req, res) {
     });
 });
 
-router.get('/sample/:address', function(req, res) {
-  licenseModule.sampleResourceStream(req.params.address, 50)
-    .then(function (result) {
-      res.writeHead(200, result.headers);
-      result.stream.pipe(res);
-    })
-    .catch(function (err) {
-      res.status(500)
-      res.send(err);
-    });
-});
-
-
-module.exports.init = function(_licenseModule, _publishCredentialsProvider) {
+module.exports.init = function(_licenseModule, _publishCredentialsProvider, _paymentAccountCredentialsProvider, _contractOwnerAccount) {
   licenseModule = _licenseModule;
   publishCredentialsProvider = _publishCredentialsProvider;
+  paymentAccountCredentialsProvider = _paymentAccountCredentialsProvider;
+  contractOwnerAccount = _contractOwnerAccount;
   return router;
 };

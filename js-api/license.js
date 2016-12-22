@@ -15,6 +15,10 @@ LicenseModule.prototype.releaseLicense = function(releaseRequest, credentialsPro
   return this.web3Writer.releaseLicenseV5(releaseRequest, credentialsProvider);
 };
 
+LicenseModule.prototype.ppp = function(licenseAddress, credentialsProvider) {
+  return this.web3Writer.ppp(licenseAddress, credentialsProvider);
+};
+
 LicenseModule.prototype.getWeb3Reader = function() {
   return this.web3Reader;
 };

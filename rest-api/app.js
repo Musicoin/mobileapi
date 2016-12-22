@@ -8,8 +8,11 @@ const config = ConfigUtils.loadConfig(process.argv);
 const MusicoinCore = require("../mc-core");
 const musicoinCore = new MusicoinCore(config);
 
+const contractOwnerAccount = config.contractOwnerAddress;
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
-const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), publishCredentialsProvider);
+const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
+
+const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
 const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider);
 const txModule = require("./tx").init(musicoinCore.getTxModule());
 
