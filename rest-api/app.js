@@ -11,7 +11,6 @@ const musicoinCore = new MusicoinCore(config);
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
 const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), publishCredentialsProvider);
 const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider);
-const ipfsModule = require("./ipfs").init(musicoinCore.getMediaProvider());
 const txModule = require("./tx").init(musicoinCore.getTxModule());
 
 // TODO: Load credentials from env variables
@@ -20,7 +19,6 @@ mongoose.connect(config.keyDatabaseUrl);
 
 app.use("/license", licenseModule);
 app.use('/artist', artistModule);
-app.use('/ipfs', ipfsModule);
 app.use("/tx", txModule);
 
 //  Just for easy testing for now.  will switch to unit testing

@@ -23,6 +23,7 @@ TransactionModule.prototype.getTransactionStatus = function(hash) {
     function(raw, receipt) {
       if (!raw) return {status: "unknown"};
       if (raw && !receipt) return {status: "pending"};
+      if (raw.gas == receipt.gasUsed) return {status: "error"};
       return {status: "complete", receipt: receipt};
     });
 };

@@ -148,7 +148,7 @@ Web3Writer.prototype.updateArtistProfile = function(releaseRequest, credentialsP
   return this.unlockAccount(credentialsProvider)
     .bind(this)
     .then((account) => {
-      const params = {from: account};
+      const params = {from: account, gas:120000};
       return contract.updateDetailsAsync(
           releaseRequest.artistName,
           releaseRequest.imageUrl,
