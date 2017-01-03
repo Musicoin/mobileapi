@@ -12,6 +12,14 @@ const LicenseKey = require('../components/models/key');
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};
+
+  // lookup clientId (verify clientSecret), return clientAccount
+  // verify clientAccount has balance (no-op for now)
+  // find license key, k
+  // initiate payment to blockchain
+  // deduct 1 coin from client account (log tx)
+  // return {key: k}
+
   return new Promise(function(resolve, reject) {
     LicenseKey.findOne({licenseAddress: req.params.address}, function(err, licenseKey) {
       if (!licenseKey) return reject({err: "License not found: " + req.params.address});

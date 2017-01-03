@@ -20,41 +20,29 @@ const txModule = require("./tx").init(musicoinCore.getTxModule());
 musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
 mongoose.connect(config.keyDatabaseUrl);
 
+// app.use("/", isMashape);
+
 app.use("/license", licenseModule);
 app.use('/artist', artistModule);
 app.use("/tx", txModule);
 
-//  Just for easy testing for now.  will switch to unit testing
-app.get('/test/ppp/:address', function(req, res) {
-  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
-  musicoinCore.sendPPP(req.params.address)
-    .then(function (result) {
-      res.writeHead(200);
-      res.write("Sending payment: " + result);
-      res.end();
-    })
-    .catch(function (err) {
-      res.status(500)
-      res.write(JSON.stringify(err));
-      res.end();
-    });
+app.get("/sample/:address", isMashape, function(req, res) {
+  res.json({address: req.params.address});
 });
 
-app.get('/test/tip/:address', function(req, res) {
-  musicoinCore.setCredentials("0xd194c585c559684939a1bf1d31cddc40017ac9d4", "dummy1");
-  musicoinCore.sendTip(req.params.address, 1000000)
-    .then(function (result) {
-      res.writeHead(200);
-      res.write("Sending payment: " + result);
-      res.end();
-    })
-    .catch(function (err) {
-      res.status(500)
-      res.write(JSON.stringify(err));
-      res.end();
-    });
-});
+function isMashape(req, res, next) {
+  // allow all requests when running in dev mode
+  if (config.isDev) return next();
+
+  const secret = req.headers['x-mashape-proxy-secret'] || req.headers['X-Mashape-Proxy-Secret'];
+  if (secret == config.mashapeSecret) {
+    next();
+    return;
+  }
+  res.status(401).send({ error: 'Unauthorized request' });
+}
 
 app.listen(config.port, function () {
   console.log('Listening on port ' + config.port);
+  console.log(JSON.stringify(config, null, 2));
 });
