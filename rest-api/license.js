@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const express  = require('express');
 const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
@@ -7,27 +8,26 @@ let licenseModule;
 let publishCredentialsProvider;
 let paymentAccountCredentialsProvider;
 let contractOwnerAccount;
+let accountManager;
 const LicenseKey = require('../components/models/key');
 
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};
 
-  // lookup clientId (verify clientSecret), return clientAccount
-  // verify clientAccount has balance (no-op for now)
-  // find license key, k
-  // initiate payment to blockchain
-  // deduct 1 coin from client account (log tx)
-  // return {key: k}
-
-  return new Promise(function(resolve, reject) {
+  const l = licenseModule.getLicense(req.params.address);
+  const k = new Promise(function(resolve, reject) {
     LicenseKey.findOne({licenseAddress: req.params.address}, function(err, licenseKey) {
       if (!licenseKey) return reject({err: "License not found: " + req.params.address});
       return resolve({key: licenseKey.key});
     })
+  });
+
+  return Promise.join(l, k, function(license, keyResult) {
+    context.output = keyResult;
+    return accountManager.pay(req.user.clientID, license.weiPerPlay);
   })
-    .then(function(output) {
-      context.output = output;
+    .then(function() {
       return licenseModule.ppp(req.params.address, paymentAccountCredentialsProvider);
     })
     .then(function(tx) {
@@ -101,7 +101,8 @@ router.post('/', jsonParser, function(req, res) {
     });
 });
 
-module.exports.init = function(_licenseModule, _publishCredentialsProvider, _paymentAccountCredentialsProvider, _contractOwnerAccount) {
+module.exports.init = function(_licenseModule, _accountManager, _publishCredentialsProvider, _paymentAccountCredentialsProvider, _contractOwnerAccount) {
+  accountManager = _accountManager;
   licenseModule = _licenseModule;
   publishCredentialsProvider = _publishCredentialsProvider;
   paymentAccountCredentialsProvider = _paymentAccountCredentialsProvider;
