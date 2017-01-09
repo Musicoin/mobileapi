@@ -26,6 +26,13 @@ jsonRouter.post('/profile/', jsonParser, function(req, res, next) {
     });
 });
 
+jsonRouter.post('/send/', jsonParser, function(req, res, next) {
+  return artistModule.sendFromProfile(req.body.profileAddress, req.body.recipientAddress, req.body.musicoins)
+    .then(function(tx) {
+      return {tx: tx};
+    });
+});
+
 
 module.exports.init = function(_artistModule, _publishCredentialsProvider) {
   artistModule = _artistModule;

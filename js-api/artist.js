@@ -10,6 +10,10 @@ ArtistModule.prototype.getArtistByProfile = function(profileAddress) {
   return this.web3Reader.getArtistByProfile(profileAddress);
 };
 
+ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, musicoins) {
+  return this.web3Writer.sendFromProfile(profileAddress, recipient, musicoins);
+};
+
 /**
  * @param releaseRequest A JSON object with the following properties:
  * {

@@ -165,6 +165,10 @@ Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
   return this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
 };
 
+Web3Reader.prototype.getArtistContractInstance = function(profileAddress) {
+  return this.web3.eth.contract(this.artistV2.abi).at(profileAddress);
+};
+
 Web3Reader.prototype.getContractAt = function(abi, address) {
   return Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
 };

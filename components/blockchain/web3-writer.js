@@ -66,6 +66,27 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
     })
 };
 
+Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddress, musicoins, credentialsProvider) {
+  const weiAmount = this.toIndivisibleUnits(musicoins);
+  return this.unlockAccount(credentialsProvider)
+    .bind(this)
+    .then(function(sender) {
+      const contract = this.web3Reader.getArtistContractInstance(profileAddress);
+      const params = {from: sender, gas: 940000};
+      return new Promise(function(resolve, reject) {
+        //noinspection JSUnresolvedFunction
+        contract.payOut(recipientAddress, weiAmount, params, function (err, tx) {
+          if (err) reject(err);
+          else resolve(tx);
+        });
+      })
+    })
+    .then(function(tx) {
+      console.log("Sending payment from from profile, tx: " + tx);
+      return tx;
+    })
+};
+
 Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
   return Promise.join(
     this.web3Reader.loadLicense(licenseAddress),
