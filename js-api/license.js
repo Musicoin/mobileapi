@@ -12,7 +12,7 @@ LicenseModule.prototype.getLicense = function(address) {
 };
 
 LicenseModule.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
-  return this.web3Writer.releaseLicenseV5(releaseRequest, credentialsProvider);
+  return this.web3Writer.releaseLicense(releaseRequest, credentialsProvider);
 };
 
 LicenseModule.prototype.ppp = function(licenseAddress, credentialsProvider) {

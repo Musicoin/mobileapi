@@ -59,11 +59,13 @@ function Web3Reader(web3) {
   this.functionTypeMapping[this.web3.sha3('play()').substring(0, 10)] = FunctionTypes.PLAY;
 
   this.pppV5 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/PayPerPlay.json');
+  this.pppV6 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp6/PayPerPlay.json');
   this.artistV2 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/Artist.json');
 
   this.getBalanceAsync = Promise.promisify(this.web3.eth.getBalance);
 
   knownContracts.push(this.pppV5);
+  knownContracts.push(this.pppV6);
   knownContracts.push(this.artistV2);
 };
 
@@ -180,7 +182,10 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
   const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
   const promises = fields.map(f => {
     if (c[f + "Async"]) return c[f + "Async"]();
-    return Promise.resolve(f + " not found");
+    return Promise.resolve(f + " not found")
+      .catch(function(err) {
+        return f + " not found";
+      });
   });
 
   const fieldPromises = Promise.all(promises);
@@ -207,7 +212,7 @@ Web3Reader.prototype.waitForTransaction = function (expectedTx) {
       if (result) console.log("Result: " + result);
       count++;
 
-      if (count > 10) {
+      if (count > 30) {
         console.log("Giving up on tx " + expectedTx);
         reject(new Error("Transaction was not confirmed"));
         filter.stopWatching();

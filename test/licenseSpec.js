@@ -20,7 +20,7 @@ describe('License', function() {
       const web3Reader = {};
       const credentialsProvider = {};
       const web3Writer = {
-        releaseLicenseV5: (request, credsProvider) => {
+        releaseLicense: (request, credsProvider) => {
           assert.equal(expectedRequest.title, request.title);
           assert.equal(expectedRequest.resourceUrl, request.resourceUrl);
           assert.equal(expectedRequest.imageUrl, request.imageUrl);

@@ -128,8 +128,8 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
  * @returns {*|Promise.<tx>} a Promise that resolves to the transaction hash
  */
 // example: 0xc03cfa7500b44f238f8324651df9a3c383bca36e
-Web3Writer.prototype.releaseLicenseV5 = function (releaseRequest, credentialsProvider) {
-  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.5");
+Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvider) {
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.6");
 
   if (!releaseRequest.owner && credentialsProvider) {
     releaseRequest.owner = credentialsProvider.getCredentials().account;

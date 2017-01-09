@@ -61,6 +61,7 @@ router.post('/', jsonParser, function(req, res) {
         profileAddress: req.body.profileAddress,
         title: req.body.title,
         resourceUrl: req.body.audioUrl,
+        contentType: req.body.contentType,
         imageUrl: req.body.imageUrl,
         metadataUrl: req.body.metadataUrl,
         coinsPerPlay: 1,
