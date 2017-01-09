@@ -6,10 +6,6 @@ function ArtistModule(web3Reader, web3Writer) {
   this.web3Writer = web3Writer;
 };
 
-ArtistModule.prototype.getArtistByOwner = function(ownerAddress) {
-  return this.web3Reader.getArtistByOwner(ownerAddress);
-};
-
 ArtistModule.prototype.getArtistByProfile = function(profileAddress) {
   return this.web3Reader.getArtistByProfile(profileAddress);
 };

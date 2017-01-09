@@ -15,7 +15,7 @@ MusicoinCore.prototype.getWeb3Reader = function() { return this.provider.getWeb3
 MusicoinCore.prototype.getWeb3Writer = function() { return this.provider.getWeb3Writer()};
 
 MusicoinCore.prototype.getArtist = function(address) {
-  return this.getArtistModule().getArtistByOwner(address);
+  return this.getArtistModule().getArtistByProfile(address);
 };
 
 MusicoinCore.prototype.getLicense = function(address) {

@@ -61,6 +61,8 @@ function Web3Reader(web3) {
   this.pppV5 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/PayPerPlay.json');
   this.artistV2 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/Artist.json');
 
+  this.getBalanceAsync = Promise.promisify(this.web3.eth.getBalance);
+
   knownContracts.push(this.pppV5);
   knownContracts.push(this.artistV2);
 };
@@ -98,60 +100,13 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
           licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
           licenseObject.address = licenseAddress;
 
-          // load details from the associated "work" directly into the licenseObject
-          // TODO: remove "loadWork" call, since we are moving to a single license model
-          return licenseObject.workAddress
-            ? this.loadWork(licenseObject.workAddress, licenseObject)
-            : licenseObject;
+          return licenseObject;
         }.bind(this));
     });
 };
 
 Web3Reader.prototype.getArtistByProfile = function(profileAddress, output) {
   return this.loadContract(profileAddress, artistAbi, output);
-};
-
-Web3Reader.prototype.getArtistByOwner = function(artistAddress, output) {
-  artistAddress = this.lookupProfileAddress(artistAddress);
-  return this.loadContract(artistAddress, artistAbi, output);
-};
-
-Web3Reader.prototype.lookupProfileAddress = function(ownerAddress) {
-  // TODO: Hack
-  const lookup = {};
-  lookup['0x6cf4e1d23f69d9a7df1e3e8b3f7f674c7c93a1fd'] = {
-    name: 'Lobo Loco',
-    profileAddress: '0xe0288b127fbe0f5BfCa4254A6859F139fa06413E'
-  };
-
-  lookup['0x1269f9bd6aa7d3a4ab4db83dda2a439c1ef06ecd'] = {
-    name: 'Xenobia',
-    profileAddress: '0x85E505F358CD600126650128F8e6B6be52Ec9Fe4'
-  };
-
-  lookup['0xd9b87b28449de9a45560fadace31300fcc50e68b'] = {
-    name: 'Tofuku',
-    profileAddress: '0xb3B15E688844151C9C0aEb9Ea0647eFbf164546d'
-  };
-
-  lookup['0xd9b87b28449de9a45560fadace31300fcc50e68b'] = {
-    name: 'Porceline',
-    profileAddress: '0x9aBc7B43868161BF6f73f41DaE6854d2191a0A28'
-  };
-
-  lookup['0x008d4c913ca41f1f8d73b43d8fa536da423f1fb4'] = {
-    name: 'Dan Phifer',
-    profileAddress: '0xb4dbe3aF8E1d37963Cc782773bDC1dCcC120E7c6'
-  };
-
-  if (lookup[ownerAddress]) {
-    return lookup[ownerAddress].profileAddress;
-  }
-  return '0xb4dbe3aF8E1d37963Cc782773bDC1dCcC120E7c6';
-};
-
-Web3Reader.prototype.loadWork = function(workAddress, output) {
-  return this.loadContract(workAddress, workAbi, output);
 };
 
 Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
@@ -224,12 +179,13 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
     return Promise.resolve(f + " not found");
   });
 
-  return Promise.all(promises)
-    .then(function (results) {
-      const output = outputObject || {};
-      fields.forEach((f, idx) => output[f] = results[idx]);
-      return output;
-    });
+  const fieldPromises = Promise.all(promises);
+  return Promise.join(this.getBalanceAsync(address), fieldPromises, function(weiBalance, results) {
+    const output = outputObject || {};
+    fields.forEach((f, idx) => output[f] = results[idx]);
+    output.balance = this.web3.fromWei(weiBalance, 'ether');
+    return output;
+  }.bind(this))
 };
 
 Web3Reader.prototype.getConstantFields = function(abi) {

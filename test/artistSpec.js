@@ -23,7 +23,6 @@ describe('Artist', function() {
   profiles[artist1ProfileAddr] = mockProfile;
 
   const web3Reader = {
-    getArtistByOwner: (address) => Promise.resolve(profilesByArist[address]),
     getArtistByProfile: (address) => Promise.resolve(profiles[address]),
   };
 
@@ -31,14 +30,6 @@ describe('Artist', function() {
 
   const musicoinUrl = "http://something";
 
-
-  it('getArtistByOwner should return for artist 1', function() {
-    const artist = new ArtistModule(web3Reader, emptyWeb3Writer);
-    return artist.getArtistByOwner(artist1Addr)
-      .then(function(result) {
-        assert.deepEqual(result, expected, "Profile is not as expected");
-      })
-  });
 
   it('getArtistByProfile should return for profile 1', function() {
     const artist = new ArtistModule(web3Reader, emptyWeb3Writer);

@@ -84,8 +84,6 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
       }
       return output.artistProfileAddress
         ? this.artistModule.getArtistByProfile(output.artistProfileAddress)
-        : output.ownerAddress
-        ? this.artistModule.getArtistByOwner(output.ownerAddress)
         : Promise.resolve(null);
     })
     .then(function(artist) {
