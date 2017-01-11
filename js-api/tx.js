@@ -61,6 +61,9 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
         if (output.eventType == "newrelease") output.licenseAddress = receipt.contractAddress;
         if (output.eventType == "newartist") output.artistProfileAddress = receipt.contractAddress;
       }
+      if (output.licenseAddress) {
+        return this.web3Reader.loadContractAndFields(output.licenseAddress, this.web3Reader.pppV5.abi, ["title"], output)
+      }
       return output;
     })
 };
