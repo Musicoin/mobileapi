@@ -197,6 +197,11 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
   }.bind(this))
 };
 
+Web3Reader.prototype.getBalanceInMusicoins = function(address) {
+  return this.getBalanceAsync(address)
+    .then((weiBalance) => this.web3.fromWei(weiBalance, 'ether'));
+};
+
 Web3Reader.prototype.getConstantFields = function(abi) {
   return abi
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)

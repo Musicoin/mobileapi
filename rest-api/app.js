@@ -25,12 +25,27 @@ app.use("/", isKnownUser);
 app.use("/license", licenseModule);
 app.use('/artist', artistModule);
 app.use("/tx", txModule);
+app.use("/balance/:address", function(req, res) {
+  musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
+    .then(function (output) {
+      res.json({musicoins: output});
+    })
+    .catch(function (err) {
+      console.log(`Request failed in ${name}: ${err}`);
+      res.status(500);
+      res.send(err);
+    });
+});
 
 app.get("/sample/:address", isMashape, function(req, res) {
   res.json({address: req.params.address, key: req.headers});
 });
 
 function isKnownUser(req, res, next) {
+  if (config.isDev) {
+    req.user = { clientID: "clientID" };
+    return next();
+  }
   let clientID = req.headers["clientid"];
   if (clientID) {
     accountManager.validateClient(clientID)
