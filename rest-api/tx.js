@@ -12,7 +12,7 @@ router.get('/status/:hash', req => txModule.getTransactionStatus(req.params.hash
 router.get('/history/:address', req => {
   return getJson("http://orbiter.musicoin.org/addr", {
     addr: req.params.address,
-    length: req.query.length,
+    length: typeof req.query.length != "undefined" ? req.query.length : 10,
     start: req.query.start
   })
     .then(function(results) {
