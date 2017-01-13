@@ -65,8 +65,8 @@ router.post('/', jsonParser, function(req, res) {
         imageUrl: req.body.imageUrl,
         metadataUrl: req.body.metadataUrl,
         coinsPerPlay: 1,
-        royalties: [],
-        contributors: [{address: req.body.profileAddress, shares: 1}]
+        royalties: req.body.royalties || [],
+        contributors: req.body.contributors || [{address: req.body.profileAddress, shares: 1}]
       }, publishCredentialsProvider)
     })
     .then(function(tx) {

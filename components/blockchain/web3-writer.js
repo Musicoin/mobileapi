@@ -140,7 +140,7 @@ Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvi
   const params = Object.assign({}, releaseRequest, {
     artistProfileAddress: releaseRequest.profileAddress,
     royalties: releaseRequest.royalties.map(r => r.address),
-    royaltyAmounts: releaseRequest.royalties.map(r => r.amount).map(this.toIndivisibleUnits),
+    royaltyAmounts: releaseRequest.royalties.map(r => r.amount).map(a => this.toIndivisibleUnits(a)),
     contributors: releaseRequest.contributors.map(r => r.address),
     contributorShares: releaseRequest.contributors.map(r => r.shares),
     weiPerPlay: this.toIndivisibleUnits(releaseRequest.coinsPerPlay),
