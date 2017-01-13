@@ -26,6 +26,9 @@ router.get('/history/:address', req => {
             };
             details.musicoins = r[4];
             details.timestamp = r[6];
+
+            // TODO: HACK: Figure out how to handle this for other clients
+            if (details.eventType) details.source = "musicoin.org";
             return details;
           });
       })

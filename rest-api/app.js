@@ -28,7 +28,20 @@ app.use("/tx", txModule);
 app.use("/balance/:address", function(req, res) {
   musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
     .then(function (output) {
-      res.json({musicoins: output});
+      res.json(output);
+    })
+    .catch(function (err) {
+      console.log(`Request failed in ${name}: ${err}`);
+      res.status(500);
+      res.send(err);
+    });
+});
+
+app.use("/client/balance", function(req, res) {
+  accountManager.getBalance(req.user.clientID)
+    .then(function (output) {
+      output.musicoins = musicoinCore.getWeb3Reader().convertWeiToMusicoins(output.balance);
+      res.json(output);
     })
     .catch(function (err) {
       console.log(`Request failed in ${name}: ${err}`);

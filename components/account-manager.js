@@ -30,6 +30,14 @@ AccountManager.prototype.pay = function(clientID, amount) {
   })
 };
 
+AccountManager.prototype.getBalance = function(clientID) {
+  return APIUser.findOne({clientID:clientID}).exec()
+    .then(function(record) {
+      if (!record) throw new Error(`Balance check failed: clientId not found`);
+      return {balance: record.balance}
+    });
+};
+
 AccountManager.prototype.validateClient = function(clientID) {
   return new Promise(function(resolve, reject) {
     APIUser.findOne({clientID:clientID},

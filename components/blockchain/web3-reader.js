@@ -202,6 +202,10 @@ Web3Reader.prototype.getBalanceInMusicoins = function(address) {
     .then((weiBalance) => this.web3.fromWei(weiBalance, 'ether'));
 };
 
+Web3Reader.prototype.convertWeiToMusicoins = function(weiAmount) {
+  return this.web3.fromWei(weiAmount, 'ether');
+};
+
 Web3Reader.prototype.getConstantFields = function(abi) {
   return abi
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
