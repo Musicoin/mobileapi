@@ -129,7 +129,7 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
  */
 // example: 0xc03cfa7500b44f238f8324651df9a3c383bca36e
 Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvider) {
-  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.6");
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.7");
 
   if (!releaseRequest.owner && credentialsProvider) {
     releaseRequest.owner = credentialsProvider.getCredentials().account;

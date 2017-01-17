@@ -59,6 +59,7 @@ router.post('/', jsonParser, function(req, res) {
       return licenseModule.releaseLicense({
         owner: contractOwnerAccount,
         profileAddress: req.body.profileAddress,
+        artistName: req.body.artistName,
         title: req.body.title,
         resourceUrl: req.body.audioUrl,
         contentType: req.body.contentType,

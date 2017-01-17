@@ -2,7 +2,6 @@ const Promise = require('bluebird');
 const ArrayUtils = require('./array-utils');
 const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
-const workAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Work.sol.abi'));
 const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Artist.sol.abi'));
 const SolidityUtils = require("./solidity-utils");
 
@@ -60,12 +59,14 @@ function Web3Reader(web3) {
 
   this.pppV5 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/PayPerPlay.json');
   this.pppV6 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp6/PayPerPlay.json');
+  this.pppV7 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp7/PayPerPlay.json');
   this.artistV2 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/Artist.json');
 
   this.getBalanceAsync = Promise.promisify(this.web3.eth.getBalance);
 
   knownContracts.push(this.pppV5);
   knownContracts.push(this.pppV6);
+  knownContracts.push(this.pppV7);
   knownContracts.push(this.artistV2);
 };
 

@@ -33,6 +33,8 @@ const extractAddressArray = function(provider, startIdx, result) {
 
 const extractAddressAndValues = function(addressArray, valueArray, valueName) {
   const ctx = {};
+  if (!addressArray) return Promise.resolve([]);
+
   return extractAddressArray(addressArray, 0)
     .then(function(addresses) {
       ctx.addresses = addresses;
