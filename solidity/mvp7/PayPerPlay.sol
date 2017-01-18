@@ -36,7 +36,7 @@ contract PayPerPlay {
     uint public totalPending;
     uint public licenseVersion;
     uint public metadataVersion;
-    uint public distrubtionGasEstimate;
+    uint distributionGasEstimate;
 
     // events
     event playEvent(uint plays);
@@ -95,7 +95,7 @@ contract PayPerPlay {
 
     function () payable {
         // if possible, forward the balance on to recipients
-        if (msg.gas > distrubtionGasEstimate) {
+        if (msg.gas > distributionGasEstimate) {
             distributePayment(msg.value);
         }
         else {
@@ -241,7 +241,7 @@ contract PayPerPlay {
         if (totalShares == 0 && contributors.length > 0)
             throw;
 
-        distrubtionGasEstimate = estimateGasRequired(contributors.length);
+        distributionGasEstimate = estimateGasRequired(contributors.length);
         licenseVersion++;
         licenseUpdateEvent(licenseVersion);
     }

@@ -101,6 +101,7 @@ Web3Reader.prototype.loadLicense = function(licenseAddress) {
 
           // for convenience, do the conversion to "coins" from wei
           licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
+          licenseObject.totalEarnedCoins = this.web3.fromWei(licenseObject.totalEarned, 'ether');
           licenseObject.address = licenseAddress;
 
           return licenseObject;
