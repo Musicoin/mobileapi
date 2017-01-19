@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const keySchema = mongoose.Schema({
   tx: String,
   key: String,
-  licenseAddress: String
+  licenseAddress: String,
+  failed: Boolean
 });
 
 // create the model for users and expose it to our app

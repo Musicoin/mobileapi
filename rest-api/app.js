@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const config = ConfigUtils.loadConfig(process.argv);
 const MusicoinCore = require("../mc-core");
 const musicoinCore = new MusicoinCore(config);
+const Timers = require('timers');
 
 const contractOwnerAccount = config.contractOwnerAccount;
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
@@ -19,6 +20,8 @@ const txModule = require("./tx").init(musicoinCore.getTxModule());
 
 musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
 mongoose.connect(config.keyDatabaseUrl);
+
+const LicenseKey = require('../components/models/key');
 
 app.use("/", isKnownUser);
 
@@ -93,3 +96,36 @@ app.listen(config.port, function () {
   console.log('Listening on port ' + config.port);
   console.log(JSON.stringify(config, null, 2));
 });
+
+Timers.setInterval(tryUpdatePendingReleases, 2*60*1000);
+function tryUpdatePendingReleases() {
+  console.log("Checking for pending releases...");
+  LicenseKey.find({licenseAddress: null, failed: {"$ne": true}}).exec()
+    .then(function(records) {
+      console.log(`Found ${records.length} records to check`);
+      records.forEach(r => {
+        console.log("Checking tx: " + r.tx);
+        musicoinCore.getTxModule().getTransactionStatus(r.tx)
+          .then(function(result) {
+            if (result.status == "complete" && result.receipt && result.receipt.contractAddress) {
+              r.licenseAddress = result.receipt.contractAddress;
+              r.save(function(err) {
+                if (err) return console.log("Failed to save key record");
+                console.log("Updated key record: " + r.tx);
+              })
+            }
+            else if (result.status == "failed") {
+              console.log("Contract release failed: " + r.tx);
+              r.failed = true;
+              r.save(function(err) {
+                if (err) return console.log("Failed to save key record");
+                console.log("Updated key record: " + r.tx);
+              })
+            }
+          })
+          .catch(function(err) {
+            console.log(err);
+          })
+      });
+    })
+}
