@@ -182,18 +182,40 @@ Web3Reader.prototype.getContractAt = function(abi, address) {
  */
 Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outputObject) {
   const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
+  fields = fields.map(f => {
+    if (typeof f == "string") {
+      const matches = abi.filter(k => k.name == f);
+      if (matches.length == 1) {
+        return matches[0];
+      }
+      else {
+        console.log(`Could not match field: ${f}, found ${matches.length} matches`);
+        return null;
+      }
+    }
+    return f;
+  }).filter(f => f != null);
+
   const promises = fields.map(f => {
-    if (c[f + "Async"]) return c[f + "Async"]();
-    return Promise.resolve(f + " not found")
+    const name = f.name;
+    if (c[name + "Async"]) return c[name + "Async"]();
+    return Promise.resolve(name + " not found")
       .catch(function(err) {
-        return f + " not found";
+        return name + " not found";
       });
   });
 
   const fieldPromises = Promise.all(promises);
   return Promise.join(this.getBalanceAsync(address), fieldPromises, function(weiBalance, results) {
     const output = outputObject || {};
-    fields.forEach((f, idx) => output[f] = results[idx]);
+    fields.forEach((f, idx) => {
+      const name = f.name;
+      let value = results[idx];
+      if (f.outputs.length == 1 && f.outputs[0].type.startsWith("bytes")) {
+        value = this.web3.toUtf8(value);
+      }
+      output[name] = value;
+    });
     output.balance = this.web3.fromWei(weiBalance, 'ether');
     return output;
   }.bind(this))
@@ -211,7 +233,6 @@ Web3Reader.prototype.convertWeiToMusicoins = function(weiAmount) {
 Web3Reader.prototype.getConstantFields = function(abi) {
   return abi
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
-    .map(field => field.name)
 };
 
 Web3Reader.prototype.waitForTransaction = function (expectedTx) {
