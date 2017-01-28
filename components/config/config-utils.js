@@ -51,7 +51,8 @@ function getDefaultKeyValueConfig() {
     contractOwnerAccount: process.env.CONTRACT_OWNER_ACCOUNT || "0xe5233d15f4993c83f066575accde2ce10e369188",
     mashapeSecret: process.env.MASHAPE_SECRET || "mashapeSecret",
     musicoinOrgClientID: process.env.MUSICOIN_ORG_CLIENT_ID || "clientID",
-    musicoinOrgClientSecret: process.env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret"
+    musicoinOrgClientSecret: process.env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
+    orbiterEndpoint: process.env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/addr"
   };
 }
 

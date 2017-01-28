@@ -4,13 +4,14 @@ const JsonPromiseRouter = require('./json-promise-router');
 const expressRouter = express.Router();
 const router = new JsonPromiseRouter(expressRouter, "tx");
 let txModule;
+let orbiterEndpoint;
 
 router.get('/detail/:hash', req => txModule.getTransactionDetails(req.params.hash));
 router.get('/raw/:hash', req => txModule.getTransaction(req.params.hash));
 router.get('/receipt/:hash', req => txModule.getTransactionReceipt(req.params.hash));
 router.get('/status/:hash', req => txModule.getTransactionStatus(req.params.hash));
 router.get('/history/:address', req => {
-  return getJson("http://orbiter.musicoin.org/addr", {
+  return getJson(orbiterEndpoint, {
     addr: req.params.address,
     length: typeof req.query.length != "undefined" ? req.query.length : 10,
     start: req.query.start
@@ -55,7 +56,8 @@ function getJson(url, properties) {
   }.bind(this));
 }
 
-module.exports.init = function(_txModule) {
+module.exports.init = function(_txModule, _orbiterEndpoint) {
   txModule = _txModule;
+  orbiterEndpoint = _orbiterEndpoint;
   return expressRouter;
 };

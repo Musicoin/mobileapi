@@ -16,7 +16,7 @@ const AccountManager = require("../components/account-manager");
 const accountManager = new AccountManager();
 const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
 const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider);
-const txModule = require("./tx").init(musicoinCore.getTxModule());
+const txModule = require("./tx").init(musicoinCore.getTxModule(), config.orbiterEndpoint);
 
 musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
 mongoose.connect(config.keyDatabaseUrl);
