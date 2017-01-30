@@ -1,9 +1,10 @@
 const Promise = require("bluebird");
 const Web3Reader = require('./web3-reader');
 
-function Web3Writer(web3Reader) {
+function Web3Writer(web3Reader, maxCoinsPerPlay) {
   this.web3 = web3Reader.getWeb3();
   this.web3Reader = web3Reader;
+  this.maxCoinsPerPlay = maxCoinsPerPlay;
 }
 
 Web3Writer.prototype.setCredentialsProvider = function(provider) {
@@ -92,6 +93,9 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
     this.web3Reader.loadLicense(licenseAddress),
     this.unlockAccount(credentialsProvider),
     function(license, sender) {
+      if (license.coinsPerPlay > this.maxCoinsPerPlay) {
+        throw new Error(`license exceeds max coins per play, ${license.coinsPerPlay} > ${this.maxCoinsPerPlay}`)
+      }
       const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
       const params = {from: sender, value: license.weiPerPlay, gas: 940000};
       return new Promise(function(resolve, reject) {
