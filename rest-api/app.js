@@ -7,6 +7,7 @@ const config = ConfigUtils.loadConfig(process.argv);
 const MusicoinCore = require("../mc-core");
 const musicoinCore = new MusicoinCore(config);
 const Timers = require('timers');
+const jsonParser = require('body-parser').json();
 
 const contractOwnerAccount = config.contractOwnerAccount;
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
@@ -48,6 +49,18 @@ app.use("/client/balance", function(req, res) {
     })
     .catch(function (err) {
       console.log(`Request failed in ${name}: ${err}`);
+      res.status(500);
+      res.send(err);
+    });
+});
+
+app.post("/reward", jsonParser, (req, res) => {
+  musicoinCore.getWeb3Writer().sendCoins(req.body.recipient, req.body.musicoins, paymentAccountCredentialsProvider)
+    .then(tx => {
+      res.json({tx: tx});
+    })
+    .catch(function (err) {
+      console.log(`Reward request failed: ${err}`);
       res.status(500);
       res.send(err);
     });

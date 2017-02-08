@@ -112,6 +112,23 @@ Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
     });
 };
 
+Web3Writer.prototype.sendCoins = function (recipient, musicoins, credentialsProvider) {
+  return this.unlockAccount(credentialsProvider)
+    .then((account) => {
+      const params = {to: recipient, from: account, value: this.toIndivisibleUnits(musicoins), gas: 940000};
+      return new Promise(function(resolve, reject) {
+        return this.web3.eth.sendTransaction(params, function (err, tx) {
+          if (err) reject(err);
+          else resolve(tx);
+        });
+      }.bind(this))
+    })
+    .then(function(tx) {
+      console.log("Sending payment: " + tx);
+      return tx;
+    })
+};
+
 /**
  *
  * @param releaseRequest: A JSON object with the following structure
