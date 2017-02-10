@@ -27,7 +27,7 @@ ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, mus
  * @returns {Promise<string>} A Promise that will resolve to transaction hash
  */
 ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProvider) {
-  return this.web3Writer.releaseArtistProfileV2(releaseRequest, credentialsProvider);
+  return this.web3Writer.releaseArtistProfile(releaseRequest, credentialsProvider);
 };
 
 module.exports = ArtistModule;

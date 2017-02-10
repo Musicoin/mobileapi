@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const ArrayUtils = require('./array-utils');
 const fs = require('fs');
 const pppMvp2Abi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/PayPerPlay.sol.abi'));
-const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp2/Artist.sol.abi'));
+const artistAbi = JSON.parse(fs.readFileSync(__dirname + '/../../solidity/mvp7/Artist.sol.abi'));
 const SolidityUtils = require("./solidity-utils");
 
 const TxTypes = Object.freeze({
@@ -28,22 +28,7 @@ Web3Reader.TxTypes = TxTypes;
 Web3Reader.ContractTypes = ContractTypes;
 Web3Reader.FunctionTypes = FunctionTypes;
 
-const knownContracts = [
-  {
-    codeLength: 20850,
-    codeHash: "0x2cbaccdf9ee4827a97b24bc8533b118ac01c83450906a77e75bdc1ad3b992b54",
-    type: ContractTypes.PPP,
-    version: "v0.2",
-    abi: pppMvp2Abi
-  },
-  {
-    codeLength: 7705,
-    codeHash: "0xe0e61252714ecac51d023f49502a3df25ba7e035e83364848f536b365bc46f8a",
-    type: ContractTypes.ARTIST,
-    version: "v0.1",
-    abi: artistAbi
-  }
-];
+const knownContracts = [];
 
 function Web3Reader(web3) {
   this.web3 = web3;
@@ -61,6 +46,7 @@ function Web3Reader(web3) {
   this.pppV6 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp6/PayPerPlay.json');
   this.pppV7 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp7/PayPerPlay.json');
   this.artistV2 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp5/Artist.json');
+  this.artistV3 = SolidityUtils.loadContractDefinition(this.web3.sha3, __dirname + '/../../solidity/mvp7/Artist.json');
 
   this.getBalanceAsync = Promise.promisify(this.web3.eth.getBalance);
 
@@ -68,6 +54,7 @@ function Web3Reader(web3) {
   knownContracts.push(this.pppV6);
   knownContracts.push(this.pppV7);
   knownContracts.push(this.artistV2);
+  knownContracts.push(this.artistV3);
 };
 
 Web3Reader.getDependencies = function() {
@@ -170,7 +157,7 @@ Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
 };
 
 Web3Reader.prototype.getArtistContractInstance = function(profileAddress) {
-  return this.web3.eth.contract(this.artistV2.abi).at(profileAddress);
+  return this.web3.eth.contract(this.artistV3.abi).at(profileAddress);
 };
 
 Web3Reader.prototype.getContractAt = function(abi, address) {

@@ -55,7 +55,7 @@ describe('Artist', function() {
     const web3Reader = {};
     const credentialsProvider = {};
     const web3Writer = {
-      releaseArtistProfileV2: (request, credsProvider) => {
+      releaseArtistProfile: (request, credsProvider) => {
         assert.equal(expectedRequest.artistName, request.artistName);
         assert.equal(expectedRequest.descriptionUrl, request.descriptionUrl);
         assert.equal(expectedRequest.imageUrl, request.imageUrl);

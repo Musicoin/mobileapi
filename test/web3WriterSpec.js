@@ -62,7 +62,7 @@ describe('Web3Writer', function() {
     };
     const web3Writer = new Web3Writer(web3Reader);
 
-    return web3Writer.releaseArtistProfileV2(releaseRequest, credsProvider)
+    return web3Writer.releaseArtistProfile(releaseRequest, credsProvider)
       .then(function(tx) {
         assert.equal(tx, transactionHash);
       });

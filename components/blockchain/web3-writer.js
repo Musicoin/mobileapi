@@ -170,8 +170,8 @@ Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvi
   return this.releaseContract(contractDefinition, params, credentialsProvider);
 };
 
-Web3Writer.prototype.releaseArtistProfileV2 = function(releaseRequest, credentialsProvider) {
-  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.2");
+Web3Writer.prototype.releaseArtistProfile = function(releaseRequest, credentialsProvider) {
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.3");
   if (releaseRequest.profileAddress) {
     return this.updateArtistProfile(releaseRequest, credentialsProvider);
   }
@@ -184,7 +184,7 @@ Web3Writer.prototype.releaseArtistProfileV2 = function(releaseRequest, credentia
 };
 
 Web3Writer.prototype.updateArtistProfile = function(releaseRequest, credentialsProvider) {
-  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.2");
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.3");
   const contract = this.web3Reader.getContractAt(contractDefinition.abi, releaseRequest.profileAddress);
 
   return this.unlockAccount(credentialsProvider)
