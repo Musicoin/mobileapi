@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const express  = require('express');
 const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
-const jsonRouter = new JsonPromiseRouter(router, "artist");
+const jsonRouter = new JsonPromiseRouter(router, "license");
 var jsonParser = require('body-parser').json();
 let licenseModule;
 let publishCredentialsProvider;
