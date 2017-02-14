@@ -32,10 +32,12 @@ app.use("/tx", txModule);
 app.use("/balance/:address", function(req, res) {
   musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
     .then(function (output) {
-      res.json(output);
+      res.json({
+        musicoins: output
+      });
     })
     .catch(function (err) {
-      console.log(`Request failed in ${name}: ${err}`);
+      console.log(`Request failed in /balance/:address: ${err}`);
       res.status(500);
       res.send(err);
     });
