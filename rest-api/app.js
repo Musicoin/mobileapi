@@ -24,6 +24,12 @@ mongoose.connect(config.keyDatabaseUrl);
 
 const LicenseKey = require('../components/models/key');
 
+const get_ip = require('ipware')().get_ip;
+app.use(function(req, res, next) {
+  get_ip(req);
+  next();
+});
+
 app.use("/", isKnownUser);
 
 app.use("/license", licenseModule);
@@ -86,11 +92,20 @@ function isKnownUser(req, res, next) {
       })
       .catch(function(err) {
         console.warn(err);
+        console.warn((`Invalid clientid provided.  
+          req.originalUrl: ${req.originalUrl}, 
+          req.headers: ${JSON.stringify(req.rawHeaders)},
+          req.clientIp: ${req.clientIp}
+        `));
         res.status(401).send({ error: 'Invalid clientid: ' + clientID});
     });
   }
   else {
-    console.warn("No clientID provided");
+    console.warn((`No clientID provided.  
+      req.originalUrl: ${req.originalUrl}, 
+      req.headers: ${JSON.stringify(req.rawHeaders)},
+      req.clientIp: ${req.clientIp}
+    `));
     res.status(401).send({ error: 'Invalid user credentials, you must include a clientid header' });
   }
 }
