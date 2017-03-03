@@ -72,8 +72,8 @@ Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddres
   return this.web3Reader.getBalanceInMusicoins(profileAddress)
     .bind(this)
     .then(balance => {
-      if (balance >= musicoins) {
-        return this.unlockAccount(credentialsProvider)
+      if (balance.greaterThanOrEqualTo(musicoins)) {
+        return this.unlockAccount(credentialsProvider);
       }
       throw new Error(`Tip failed, account does not have enough funds to send ${musicoins} musicoins, balance: ${balance}, account: ${profileAddress}`);
     })
