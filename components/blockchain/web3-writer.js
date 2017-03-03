@@ -69,8 +69,14 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
 
 Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddress, musicoins, credentialsProvider) {
   const weiAmount = this.toIndivisibleUnits(musicoins);
-  return this.unlockAccount(credentialsProvider)
+  return this.web3Reader.getBalanceInMusicoins(profileAddress)
     .bind(this)
+    .then(balance => {
+      if (balance > musicoins) {
+        return this.unlockAccount(credentialsProvider)
+      }
+      throw new Error(`Tip failed, account does not have enough funds to send ${musicoins} musicoins, balance: ${balance}, account: ${profileAddress}`);
+    })
     .then(function(sender) {
       const contract = this.web3Reader.getArtistContractInstance(profileAddress);
       const params = {from: sender, gas: 940000};
