@@ -16,25 +16,28 @@ router.get('/history/:address', req => {
     length: typeof req.query.length != "undefined" ? req.query.length : 10,
     start: req.query.start
   })
-    .then(function(results) {
-      return results.data.map(r => {
-        return txModule.getTransactionDetails(r[0])
-          .then(function (details) {
-            details.blockNumber = r[1];
-            details.internal = {
-              from: r[2],
-              to: r[3]
-            };
-            details.musicoins = r[4];
-            details.timestamp = r[6];
-
-            // TODO: HACK: Figure out how to handle this for other clients
-            if (details.eventType) details.source = "musicoin.org";
-            return details;
-          });
-      })
+    .then(results => {
+      return results.data
+        .filter(tx => tx[4] > 0)
+        .map(tx => {
+          return txModule.getTransactionDetails(tx[0])
+            .then(function (details) {
+              return {
+                transactionHash: tx[0],
+                blockNumber: tx[1],
+                from: tx[2],
+                to: tx[3],
+                musicoins: tx[3] == req.params.address ? tx[4] : -tx[4],
+                timestamp: tx[6],
+                eventType: details.eventType || "transfer",
+                txType: details.txType,
+                title: details.title || details.artistName,
+                licenseAddress: details.licenseAddress
+              }
+            });
+        })
     })
-    .then(function(promises) {
+    .then(function (promises) {
       return Promise.all(promises);
     })
 });

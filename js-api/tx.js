@@ -40,7 +40,11 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
       output.to = transaction.to;
       if (output.txType == Web3Reader.TxTypes.FUNCTION) {
         output.eventType = this.web3Reader.getFunctionType(transaction);
-        output.licenseAddress = transaction.to;
+
+        // TODO: We can't tell what type of contract is being tipped easily.
+        // If would require looking up the contract code from the address
+        if (output.eventType == Web3Reader.FunctionTypes.PLAY)
+          output.licenseAddress = transaction.to;
       }
       else if (output.txType == Web3Reader.TxTypes.CREATION) {
         output.contractMetadata = this.web3Reader.getContractType(transaction.input);

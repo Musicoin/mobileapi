@@ -52,7 +52,7 @@ function getDefaultKeyValueConfig() {
     mashapeSecret: process.env.MASHAPE_SECRET || "mashapeSecret",
     musicoinOrgClientID: process.env.MUSICOIN_ORG_CLIENT_ID || "clientID",
     musicoinOrgClientSecret: process.env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
-    orbiterEndpoint: process.env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/addr",
+    orbiterEndpoint: process.env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
     maxCoinsPerPlay: process.env.MAX_COINS_PER_PLAY || 1
   };
 }
