@@ -49,6 +49,25 @@ app.use("/balance/:address", function(req, res) {
     });
 });
 
+app.use('/health/deep', function(req, res) {
+  console.log("Received deep health check call...");
+  return musicoinCore.getWeb3Reader().getBalanceInMusicoins("0x13559ecbdbf8c32d6a86c5a277fd1efbc8409b5b")
+    .then(function(result) {
+      return accountManager.getAPIUserCount()
+    })
+    .then(function(result) {
+      res.json({ok: true})
+    })
+    .then(function() {
+      console.log("Health check ok");
+    })
+    .catch (function(err) {
+      console.log("Health check failed: " + err);
+      res.status(500);
+      res.send("Health check failed");
+    })
+});
+
 app.use("/client/balance", function(req, res) {
   accountManager.getBalance(req.user.clientID)
     .then(function (output) {

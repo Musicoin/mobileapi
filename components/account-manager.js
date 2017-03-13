@@ -30,6 +30,10 @@ AccountManager.prototype.pay = function(clientID, amount) {
   })
 };
 
+AccountManager.prototype.getAPIUserCount = function() {
+  return APIUser.count().exec();
+};
+
 AccountManager.prototype.getBalance = function(clientID) {
   return APIUser.findOne({clientID:clientID}).exec()
     .then(function(record) {
