@@ -70,7 +70,7 @@ function getInstanceVariables() {
 function getDefaultKeyValueConfig() {
   return getInstanceVariables()
     .then(instanceVars => {
-      let env = Object.assign({}, process.env);
+      let env = Object.assign(instanceVars, process.env);
       return {
         web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
         ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
