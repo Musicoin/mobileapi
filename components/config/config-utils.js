@@ -44,7 +44,8 @@ function getInstanceVariables() {
   // curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true" -H "Metadata-Flavor: Google" | less
   return new Promise(function(resolve, reject) {
     request({
-      url: "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true",
+      url: "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&alt=json",
+      json: true,
       headers: {
         "Metadata-Flavor": "Google"
       }
