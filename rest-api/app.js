@@ -30,25 +30,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use("/", isKnownUser);
-
-app.use("/license", licenseModule);
-app.use('/artist', artistModule);
-app.use("/tx", txModule);
-app.use("/balance/:address", function(req, res) {
-  musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
-    .then(function (output) {
-      res.json({
-        musicoins: output
-      });
-    })
-    .catch(function (err) {
-      console.log(`Request failed in /balance/:address: ${err}`);
-      res.status(500);
-      res.send(err);
-    });
-});
-
 app.use('/health/deep', function(req, res) {
   console.log("Received deep health check call...");
   return musicoinCore.getWeb3Reader().getBalanceInMusicoins("0x13559ecbdbf8c32d6a86c5a277fd1efbc8409b5b")
@@ -66,6 +47,25 @@ app.use('/health/deep', function(req, res) {
       res.status(500);
       res.send("Health check failed");
     })
+});
+
+app.use("/", isKnownUser);
+
+app.use("/license", licenseModule);
+app.use('/artist', artistModule);
+app.use("/tx", txModule);
+app.use("/balance/:address", function(req, res) {
+  musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
+    .then(function (output) {
+      res.json({
+        musicoins: output
+      });
+    })
+    .catch(function (err) {
+      console.log(`Request failed in /balance/:address: ${err}`);
+      res.status(500);
+      res.send(err);
+    });
 });
 
 app.use("/client/balance", function(req, res) {
