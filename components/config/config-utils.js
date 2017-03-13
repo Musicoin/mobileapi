@@ -55,31 +55,38 @@ function getInstanceVariables() {
         console.log(`Failed to load instance variables: ${response}`);
       }
       console.log(`Successfully retrieved values from google metadata service: ${JSON.stringify(result, null, 2)}`);
+      console.log(`CONTRACT_OWNER_ACCOUNT: ${result.CONTRACT_OWNER_ACCOUNT}`);
       resolve(result);
     })
-  }.bind(this));
+  }.bind(this))
+    .catch(err => {
+      console.log(`Error getting instance variables: ${err}`)
+      return {}
+    });
 }
 
 function getDefaultKeyValueConfig() {
-  getInstanceVariables();
-  let env = Object.assign({}, process.env, {});
-  return {
-    web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
-    ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
-    ipfsAddEndpoint: env.IPFS_ADD_ENDPOINT || 'http://localhost:5001',
-    mongoEndpoint: env.MONGO_ENDPOINT || "mongodb://localhost",
-    port: env.MUSICOIN_API_PORT || 3000,
-    publishingAccount: env.PUBLISHING_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
-    publishingAccountPassword: env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1",
-    paymentAccount: env.PAYMENT_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
-    paymentAccountPassword: env.PAYMENT_ACCOUNT_PASSWORD || "dummy1",
-    contractOwnerAccount: env.CONTRACT_OWNER_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
-    mashapeSecret: env.MASHAPE_SECRET || "mashapeSecret",
-    musicoinOrgClientID: env.MUSICOIN_ORG_CLIENT_ID || "clientID",
-    musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
-    orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
-    maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1
-  };
+  return getInstanceVariables()
+    .then(instanceVars => {
+      let env = Object.assign(instanceVars, process.env);
+      return {
+        web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
+        ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
+        ipfsAddEndpoint: env.IPFS_ADD_ENDPOINT || 'http://localhost:5001',
+        mongoEndpoint: env.MONGO_ENDPOINT || "mongodb://localhost",
+        port: env.MUSICOIN_API_PORT || 3000,
+        publishingAccount: env.PUBLISHING_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
+        publishingAccountPassword: env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1",
+        paymentAccount: env.PAYMENT_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
+        paymentAccountPassword: env.PAYMENT_ACCOUNT_PASSWORD || "dummy1",
+        contractOwnerAccount: env.CONTRACT_OWNER_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
+        mashapeSecret: env.MASHAPE_SECRET || "mashapeSecret",
+        musicoinOrgClientID: env.MUSICOIN_ORG_CLIENT_ID || "clientID",
+        musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
+        orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
+        maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1
+      };
+    });
 }
 
 module.exports.loadConfig = loadConfig;
