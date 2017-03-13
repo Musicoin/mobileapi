@@ -1,19 +1,20 @@
 const request = require('request');
 
 const loadConfig = function(argsv) {
-  let config = Object.assign(getDefaultKeyValueConfig(), getInstanceVariables());
+  return getDefaultKeyValueConfig()
+    .then(config => {
+      const cmdLineOverrides = convertArgsToKeyValuePairs(argsv);
 
-  const cmdLineOverrides = convertArgsToKeyValuePairs(argsv);
+      // Override defaults
+      Object.assign(config, cmdLineOverrides);
 
-  // Override defaults
-  Object.assign(config, cmdLineOverrides);
+      // computed values (N.B. make sure this is *after* defaults have been overridden)
+      Object.assign(config, getComputedKeyValuePairs(config));
 
-  // computed values (N.B. make sure this is *after* defaults have been overridden)
-  Object.assign(config, getComputedKeyValuePairs(config));
-
-  // Allow computed values to be overridden directly from the command line
-  Object.assign(config, cmdLineOverrides);
-  return Promise.resolve(getStructuredConfig(config));
+      // Allow computed values to be overridden directly from the command line
+      Object.assign(config, cmdLineOverrides);
+      return getStructuredConfig(config);
+    })
 };
 
 function getStructuredConfig(keyValuePairs) {
@@ -68,7 +69,7 @@ function getInstanceVariables() {
 function getDefaultKeyValueConfig() {
   return getInstanceVariables()
     .then(instanceVars => {
-      let env = Object.assign(instanceVars, process.env);
+      let env = Object.assign({}, process.env);
       return {
         web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
         ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
