@@ -43,11 +43,7 @@ function getInstanceVariables() {
   // curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true" -H "Metadata-Flavor: Google" | less
   return new Promise(function(resolve, reject) {
     request({
-      url: "http://metadata.google.internal/computeMetadata/v1/instance/attributes/",
-      qs: {
-        recursive: true
-      },
-      json: true,
+      url: "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true",
       headers: {
         "Metadata-Flavor": "Google"
       }
@@ -58,13 +54,14 @@ function getInstanceVariables() {
       else if (response.statusCode != 200) {
         console.log(`Failed to load instance variables: ${response}`);
       }
+      console.log(`Successfully retrieved values from google metadata service: ${JSON.stringify(result, null, 2)}`);
       resolve(result);
     })
   }.bind(this));
 }
 
 function getDefaultKeyValueConfig() {
-  console.log(JSON.stringify(getInstanceVariables(), null, 2));
+  getInstanceVariables();
   let env = Object.assign({}, process.env, {});
   return {
     web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
