@@ -51,14 +51,15 @@ function getInstanceVariables() {
       }
     }, function(error, response, result) {
       if (error) {
-        console.log(`Failed to load instance variables: ${error}`);
+        reject(new Error(`Failed to load instance variables: ${error}`))
       }
       else if (response.statusCode != 200) {
-        console.log(`Failed to load instance variables: ${response}`);
+        reject(new Error(`Failed to load instance variables: ${response}`));
       }
-      console.log(`Successfully retrieved values from google metadata service: ${JSON.stringify(result, null, 2)}`);
-      console.log(`CONTRACT_OWNER_ACCOUNT: ${result.CONTRACT_OWNER_ACCOUNT}`);
-      resolve(result);
+      else {
+        console.log(`Successfully retrieved values from google metadata service: ${JSON.stringify(result, null, 2)}`);
+        resolve(result);
+      }
     })
   }.bind(this))
     .catch(err => {

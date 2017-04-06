@@ -94,6 +94,28 @@ Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddres
     })
 };
 
+Web3Writer.prototype.distributeLicenseBalance = function(licenseAddress, credentialsProvider) {
+  return Promise.join(
+    this.web3Reader.loadLicense(licenseAddress),
+    this.unlockAccount(credentialsProvider),
+    function(license, sender) {
+      const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
+      const params = {from: sender, gas: 940000};
+      return new Promise(function(resolve, reject) {
+        //noinspection JSCheckFunctionSignatures
+        contract.distributeBalance(params, function (err, tx) {
+          if (err) reject(err);
+          else resolve(tx);
+        });
+      })
+    }.bind(this))
+    .then(function(tx) {
+      console.log("Distributing balance of " + licenseAddress + ", tx: " + tx);
+      return tx;
+    });
+
+};
+
 Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
   return Promise.join(
     this.web3Reader.loadLicense(licenseAddress),

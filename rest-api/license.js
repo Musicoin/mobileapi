@@ -40,6 +40,17 @@ jsonRouter.get('/ppp/:address', (req, res) => {
     })
 });
 
+router.post('/distributeBalance/', jsonParser, (req, res) => {
+  return licenseModule.distributeBalance(req.body.address)
+    .then(tx => {
+      res.send({tx: tx});
+    })
+    .catch(function (err) {
+      res.status(500)
+      res.send(err);
+    });
+});
+
 router.get('/resource/:address', function(req, res) {
   licenseModule.getResourceStream(req.params.address)
     .then(function (result) {
