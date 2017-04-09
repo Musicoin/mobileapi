@@ -3,8 +3,10 @@ const JsonPromiseRouter = require('./json-promise-router');
 const router = express.Router();
 const jsonRouter = new JsonPromiseRouter(router, "artist");
 const jsonParser = require('body-parser').json();
+const LicenseKey = require('../components/models/key');
 let artistModule;
 let publishCredentialsProvider;
+let hotWalletCredentialsProvider;
 
 jsonRouter.get('/profile/:address', req => artistModule.getArtistByProfile(req.params.address));
 jsonRouter.post('/profile/', jsonParser, function(req, res, next) {
@@ -33,9 +35,24 @@ jsonRouter.post('/send/', jsonParser, function(req, res, next) {
     });
 });
 
+jsonRouter.post('/ppp/', jsonParser, function(req, res, next) {
+  const context = {};
+  return LicenseKey.findOne({licenseAddress: req.body.licenseAddress}).exec()
+    .then(record => {
+      if (!record) throw new Error("Key not found for license: " + req.body.licenseAddress);
+      context.key = record.key;
+      return artistModule.pppFromProfile(req.body.profileAddress, req.body.licenseAddress, hotWalletCredentialsProvider)
+    })
+    .then(transactions => {
+      context.transactions = transactions;
+      return context;
+    })
+});
 
-module.exports.init = function(_artistModule, _publishCredentialsProvider) {
+
+module.exports.init = function(_artistModule, _publishCredentialsProvider, _hotWalletCredentialsProvider) {
   artistModule = _artistModule;
   publishCredentialsProvider = _publishCredentialsProvider;
+  hotWalletCredentialsProvider = _hotWalletCredentialsProvider;
   return router;
 };

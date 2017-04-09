@@ -32,6 +32,7 @@ jsonRouter.get('/ppp/:address', (req, res) => {
     })
     .then(function(tx) {
       console.log(`Initiated payment, tx: ${tx}`);
+      context.output.tx = tx;
       return context.output;
     })
     .catch(function(err) {
