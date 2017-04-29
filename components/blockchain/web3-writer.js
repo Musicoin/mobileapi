@@ -234,10 +234,11 @@ Web3Writer.prototype.releaseContract = function(contractDefinition, releaseReque
     .then(function (account) {
       return new Promise(function (resolve, reject) {
         const constructorArgs = _extractRequiredProperties(releaseRequest, contractDefinition.constructorArgs);
+        const blockNumber = this.web3.eth.blockNumber;
         this.web3.eth.contract(contractDefinition.abi).new(
           ...constructorArgs,
           _createNewContractProperties(account, contractDefinition),
-          _createNewContractListener(resolve, reject, account, contractDefinition));
+          _createNewContractListener(resolve, reject, account, contractDefinition, blockNumber));
       }.bind(this))
     }.bind(this))
 };
@@ -266,15 +267,15 @@ const _extractRequiredProperties = function(sourceObject, names) {
   })
 };
 
-const _createNewContractListener = function(resolve, reject, account, contractDefinition) {
+const _createNewContractListener = function(resolve, reject, account, contractDefinition, blockNumber) {
   return function (e, contract) {
     const label = contractDefinition.type + ", version " + contractDefinition.version;
     if (e) {
-      console.log("Failed to deploy " + label + ": " + e);
+      console.log("Failed to deploy " + label + ": blockNumber: " + blockNumber + ": " + e);
       reject(e);
     }
     else {
-      console.log("Deploying " + label + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address);
+      console.log("Deploying " + label + ", blockNumber: " + blockNumber + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address);
       resolve(contract.transactionHash);
     }
   }
