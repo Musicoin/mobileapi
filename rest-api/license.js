@@ -64,6 +64,26 @@ router.get('/resource/:address', function(req, res) {
     });
 });
 
+router.post('/update', jsonParser, function(req, res) {
+  console.log("Received license UPDATE release request: " + JSON.stringify(req.body));
+  licenseModule.updatePPPLicense({
+    contractAddress: req.body.contractAddress,
+    title: req.body.title,
+    imageUrl: req.body.imageUrl,
+    metadataUrl: req.body.metadataUrl,
+    contributors: req.body.contributors,
+    coinsPerPlay: 1
+  }, publishCredentialsProvider)
+    .then(txs => {
+      res.json({txs: txs});
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500);
+      res.send(err);
+    });
+});
+
 router.post('/', jsonParser, function(req, res) {
   console.log("Received license release request: " + JSON.stringify(req.body));
   publishCredentialsProvider.getCredentials()

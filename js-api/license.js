@@ -23,6 +23,10 @@ LicenseModule.prototype.distributeBalance = function(licenseAddress, credentials
   return this.web3Writer.distributeLicenseBalance(licenseAddress, credentialsProvider);
 };
 
+LicenseModule.prototype.updatePPPLicense = function(licenseAddress, credentialsProvider) {
+  return this.web3Writer.updatePPPLicense(licenseAddress, credentialsProvider);
+};
+
 LicenseModule.prototype.getWeb3Reader = function() {
   return this.web3Reader;
 };

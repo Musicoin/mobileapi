@@ -1,5 +1,6 @@
 const Promise = require("bluebird");
 const Web3Reader = require('./web3-reader');
+const ArrayUtils = require('./array-utils');
 
 function Web3Writer(web3Reader, maxCoinsPerPlay) {
   this.web3 = web3Reader.getWeb3();
@@ -196,6 +197,60 @@ Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvi
   });
 
   return this.releaseContract(contractDefinition, params, credentialsProvider);
+};
+
+Web3Writer.prototype.updatePPPLicense = function(releaseRequest, credentialsProvider) {
+  // Go through each field and update only if needed.
+  const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.7");
+  const contract = this.web3Reader.getContractAt(contractDefinition.abi, releaseRequest.contractAddress);
+  releaseRequest.weiPerPlay = this.toIndivisibleUnits(releaseRequest.coinsPerPlay);
+  return this.web3Reader.loadLicense(releaseRequest.contractAddress)
+    .then(license => {
+    return this.unlockAccount(credentialsProvider)
+        .then(account => {
+          const titleUpdate = (license.title != releaseRequest.title)
+            ? contract.updateTitleAsync(releaseRequest.title, {from: account, gas: 120000})
+            : Promise.resolve(null);
+
+          const imageUpdate = (license.imageUrl != releaseRequest.imageUrl)
+            ? contract.updateImageUrlAsync(releaseRequest.imageUrl, {from: account, gas: 120000})
+            : Promise.resolve(null);
+
+          const metadataUpdate = (license.metadataUrl != releaseRequest.metadataUrl)
+            ? contract.updateMetadataUrlAsync(releaseRequest.metadataUrl, {from: account, gas: 120000})
+            : Promise.resolve(null);
+
+          const oldContributors = license.contributors.map(c => c.address);
+          const oldShares = license.contributors.map(c => c.shares);
+
+          const newContributors = releaseRequest.contributors.map(c => c.address);
+          const newShares = releaseRequest.contributors.map(c => c.shares);
+
+          const distributionUpdate = !ArrayUtils.equals(newContributors, oldContributors)
+            || !ArrayUtils.equals(newShares, oldShares)
+            || license.weiPerPlay != releaseRequest.weiPerPlay
+            ? contract.updateLicenseAsync(
+              releaseRequest.weiPerPlay,
+              newContributors,
+              newShares,
+              {from: account, gas: 240000})
+            : Promise.resolve(null);
+
+          return Promise.join(titleUpdate, imageUpdate, metadataUpdate, distributionUpdate, (titleTx, imageTx, metadataTx, distributionTx) => {
+            console.log("Updating PPP contract " + license.title + ", " + releaseRequest.contractAddress);
+            if (titleTx) console.log("title update tx: " + titleTx);
+            if (imageTx) console.log("image update tx: " + imageTx);
+            if (metadataTx) console.log("metadata update tx: " + metadataTx);
+            if (distributionTx) console.log("distribution update tx: " + distributionTx);
+            return {
+              titleTx: titleTx,
+              imageTx: imageTx,
+              metadataTx: metadataTx,
+              distributionTx: distributionTx
+            }
+          })
+        });
+    })
 };
 
 Web3Writer.prototype.releaseArtistProfile = function(releaseRequest, credentialsProvider) {
