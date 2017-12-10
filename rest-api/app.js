@@ -52,6 +52,16 @@ function loadApp(config) {
       })
   });
 
+  app.post('/client', jsonParser, function(req, res) {
+    if(req.ip.indexOf('127.0.0.1') !== -1 && req.body) {
+      accountManager.createAccount(req.body.clientId, req.body.name)
+      .then((user) => res.json(user), (error) => res.status(500).json(error));
+    }
+    else {
+      res.status(500).json({ error: 'Unknown error' });
+    }
+  });
+
   app.use("/", isKnownUser);
 
   app.use("/license", licenseModule);

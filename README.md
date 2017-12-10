@@ -7,7 +7,7 @@ Currently, this package assumes IPFS, Geth/Parity, and MongoDB are already runni
 
 You can start it like this:
 
-`node mc-core.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
+`node rest-api/app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
 
 You can get license details like this:
 
