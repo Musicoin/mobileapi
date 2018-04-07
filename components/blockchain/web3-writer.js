@@ -13,6 +13,7 @@ Web3Writer.prototype.setCredentialsProvider = function(provider) {
 };
 
 Web3Writer.createInMemoryCredentialsProvider = function(account, password) {
+  if (password == "dummy1") { console.log("Default dummy account password was used, might be an incorrect configuration") }
   return {
     getCredentials: function() {
       return Promise.resolve({
