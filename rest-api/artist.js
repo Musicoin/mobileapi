@@ -17,6 +17,7 @@ function getLimit(req) {
 
 jsonRouter.get('/profile/:address', req => artistModule.getArtistByProfile(req.params.address));
 jsonRouter.get('/new/', req => artistModule.getNewArtists(getLimit(req)));
+jsonRouter.get('/featured/', req => artistModule.getFeaturedArtists(getLimit(req)));
 jsonRouter.post('/profile/', jsonParser, function(req, res, next) {
   return publishCredentialsProvider.getCredentials()
     .then(function(credentials) {

@@ -78,6 +78,15 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
     .then(promises => Promise.all(promises))
 
 }
+ArtistModule.prototype.getFeaturedArtists = function(limit) {
+  // find recently joined artists that have at least one release
+  let query = User.find({ profileAddress: { $ne: null } })
+    .where({ mostRecentReleaseDate: { $ne: null } });
+
+  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
+    .then(records => records.map(r => this.convertDbRecordToArtist(r)))
+    .then(promises => Promise.all(promises))
+}
 
 ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
   return this.web3Reader.getArtistByProfile(record.profileAddress)
