@@ -88,6 +88,33 @@ ArtistModule.prototype.getFeaturedArtists = function(limit) {
     .then(promises => Promise.all(promises))
 }
 
+ArtistModule.prototype.findArtists = function(limit, search1) {
+  const search = this.sanitize(search1);
+
+  let query = User.find({ profileAddress: { $exists: true, $ne: null } })
+    .where({ mostRecentReleaseDate: { $exists: true, $ne: null } });
+
+  if (search) {
+    query = query.where({
+      $or: [
+        { "draftProfile.artistName": { "$regex": search, "$options": "i" } },
+        { "google.email": { "$regex": search, "$options": "i" } },
+        { "facebook.email": { "$regex": search, "$options": "i" } },
+        { "local.email": { "$regex": search, "$options": "i" } },
+      ]
+    })
+  }
+
+  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
+    .then(records => records.map(r => {
+      return {
+        id: r.profileAddress,
+        label: `${r.draftProfile.artistName} (${r.profileAddress})`,
+        value: r.profileAddress
+      }
+    }));
+}
+
 ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
   return this.web3Reader.getArtistByProfile(record.profileAddress)
     .then((artist) => {
