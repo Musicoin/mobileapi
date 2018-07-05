@@ -26,7 +26,10 @@
     "reverse-line-reader": "^0.2.6",
     "serve-favicon": "~2.3.0",
     "tmp": "0.0.29",
-    "web3": "^0.17.0-beta"
+    "web3": "^0.17.0-beta",
+    "fastest-validator": "*",
+    "bcrypt-nodejs": "*",
+    "owasp-password-strength-test": "*"
   },
   "devDependencies": {
     "mocha": "^3.2.0"

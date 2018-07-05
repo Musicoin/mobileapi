@@ -17,13 +17,13 @@ ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, mus
 };
 
 function sanitize(s) {
-  const s = FormUtils.defaultString(_s, "");
-  return s ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s;
+  const s1 = FormUtils.defaultString(s, "");
+  return s1 ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s1;
 }
 
 ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
-  const search = sanitize(_search);
-  const genre = sanitize(_genre);
+  const search1 = sanitize(search);
+  const genre1 = sanitize(genre);
 
   let query = User.find({
       profileAddress: {
@@ -42,19 +42,19 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
     query = query.where({
       $or: [{
           "draftProfile.artistName": {
-            "$regex": search,
+            "$regex": search1,
             "$options": "i"
           }
         },
         {
           "draftProfile.genres": {
-            "$regex": search,
+            "$regex": search1,
             "$options": "i"
           }
         },
         {
           "draftProfile.regions": {
-            "$regex": search,
+            "$regex": search1,
             "$options": "i"
           }
         }
@@ -64,7 +64,7 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
 
   if (genre) {
     query = query.where({
-      "draftProfile.genres": genre
+      "draftProfile.genres": genre1
     });
   }
 
