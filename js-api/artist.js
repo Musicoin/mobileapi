@@ -74,13 +74,13 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
   return query.sort({
       joinDate: 'desc'
     }).limit(limit).exec()
-    .then(records => records.map(r => convertDbRecordToArtist(r)))
+    .then(records => records.map(r => this.convertDbRecordToArtist(r)))
     .then(promises => Promise.all(promises))
 
 }
 
-function convertDbRecordToArtist(record) {
-  return getArtistProfile(record.profileAddress)
+ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
+  return this.web3Reader.getArtistByProfile(record.profileAddress)
     .then((artist) => {
       artist.profileAddress = record.profileAddress;
       artist.timeSince = this._timeSince(record.joinDate);
@@ -95,21 +95,6 @@ function convertDbRecordToArtist(record) {
 
       artist.id = record._id;
       return artist;
-    });
-}
-
-function getArtistProfile(profileAddress) {
-  return this.musicoinApi.getProfile(profileAddress)
-    .then((profile) => {
-      const s = this.mediaProvider.readJsonFromIpfs(profile.socialUrl).catchReturn({});
-      const d = this.mediaProvider.readTextFromIpfs(profile.descriptionUrl).catchReturn("");
-      return Promise.join(s, d, function (social, description) {
-        profile.image = profile.imageUrl ? this.mediaProvider.resolveIpfsUrl(profile.imageUrl) : "";
-        profile.social = social;
-        profile.description = description;
-        profile.profileAddress = profileAddress;
-        return profile;
-      }.bind(this))
     });
 }
 
