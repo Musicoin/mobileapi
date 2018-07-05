@@ -1,6 +1,8 @@
 const Promise = require('bluebird');
 const request = require('request');
 const User = require('../components/models/user');
+const MediaProvider = require('../utils/media-provider');
+const MusicoinAPI =require('../utils/musicoin-api');
 const FormUtils = require('../utils/form-utils')
 
 function ArtistModule(web3Reader, web3Writer, maxCoinsPerPlay) {
@@ -68,7 +70,7 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
       "draftProfile.genres": genre1
     });
   }
-
+  console.log(query);
   return query.sort({
       joinDate: 'desc'
     }).limit(limit).exec()
@@ -77,31 +79,38 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
 
 }
 
-function convertDbRecordToLicenseLite(record) {
-  const draftProfile = record.artist && record.artist.draftProfile ? record.artist.draftProfile : null;
-  return {
-    artistName: record.artistName,
+function convertDbRecordToArtist(record) {
+  return getArtistProfile(record.profileAddress)
+    .then((artist) => {
+      artist.profileAddress = record.profileAddress;
+      artist.timeSince = this._timeSince(record.joinDate);
+      artist.genres = record.draftProfile.genres;
+      artist.directTipCount = record.directTipCount || 0;
+      artist.followerCount = record.followerCount || 0;
+      artist.verified = record.verified;
 
-    genres: record.genres,
-    languages: record.languages,
-    moods: record.moods,
-    regions: record.regions,
+      // facebook and twitter are special, used for verification, so they have to come from auth objects
+      artist.social["facebook"] = record.facebook.urlIsPublic ? record.facebook.url : null;
+      artist.social["twitter"] = record.twitter.urlIsPublic ? record.twitter.url : null;
 
-    description: record.description,
-    timeSince: this._timeSince(record.releaseDate),
-    directTipCount: record.directTipCount || 0,
-    directPlayCount: record.directPlayCount || 0,
-    artistProfileAddress: record.artistAddress,
-    title: record.title,
-    image: this.mediaProvider.resolveIpfsUrl(record.imageUrl),
-    address: record.contractAddress,
-    tx: record.tx,
-    artist: {
-      artistName: draftProfile ? draftProfile.artistName : "",
-      image: draftProfile ? this.mediaProvider.resolveIpfsUrl(draftProfile.ipfsImageUrl) : "",
-      verified: record.artist && record.artist.verified
-    }
-  }
+      artist.id = record._id;
+      return artist;
+    });
+}
+
+function getArtistProfile(profileAddress) {
+  return this.musicoinApi.getProfile(profileAddress)
+    .then((profile) => {
+      const s = this.mediaProvider.readJsonFromIpfs(profile.socialUrl).catchReturn({});
+      const d = this.mediaProvider.readTextFromIpfs(profile.descriptionUrl).catchReturn("");
+      return Promise.join(s, d, function (social, description) {
+        profile.image = profile.imageUrl ? this.mediaProvider.resolveIpfsUrl(profile.imageUrl) : "";
+        profile.social = social;
+        profile.description = description;
+        profile.profileAddress = profileAddress;
+        return profile;
+      }.bind(this))
+    });
 }
 
 ArtistModule.prototype.pppFromProfile = function(profileAddress, licenseAddress, hotWalletCredentialsProvider) {
