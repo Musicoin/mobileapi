@@ -89,7 +89,7 @@ ArtistModule.prototype.getFeaturedArtists = function(limit) {
 }
 
 ArtistModule.prototype.findArtists = function(limit, search1) {
-  const search = this.sanitize(search1);
+  var search = sanitize(search1);
 
   let query = User.find({ profileAddress: { $exists: true, $ne: null } })
     .where({ mostRecentReleaseDate: { $exists: true, $ne: null } });
