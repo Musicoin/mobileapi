@@ -12,14 +12,12 @@ let accountManager;
 const LicenseKey = require('../components/models/key');
 const defaultRecords = 20;
 const maxRecords = 100;
-const defaultMaxGroupSize = 8;
-
 function getLimit(req) {
     return Math.max(0, Math.min(req.query.limit || defaultRecords, maxRecords));
 }
 
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
-jsonRouter.get('/newreleases', (req) => jsonAPI.getNewReleases(getLimit(req)));
+jsonRouter.get('/newreleases', (req) => licenseModule.getNewReleases(getLimit(req)));
 
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};

@@ -1,39 +1,4 @@
 const Release = require('../components/models/release');
-const UserPlayback = require('../components/models/user-playback');
-const User = require('../components/models/user');
-const FormUtils = require('../utils/form-utils')
-const bluebird_1 = require("bluebird");
-
-const knownGenres = [
-  "Alternative Rock",
-  "Ambient",
-  "Classical",
-  "Country",
-  "Dance & EDM",
-  "Dancehall",
-  "Deep House",
-  "Disco",
-  "Drum & Bass",
-  "Electronic",
-  "Folk & Singer-Songwriter",
-  "Hip-hop & Rap",
-  "House",
-  "Indie",
-  "Jazz & Blues",
-  "Latin",
-  "Metal",
-  "Piano",
-  "Pop",
-  "R&B & Soul",
-  "Reggae",
-  "Reggaeton",
-  "Rock",
-  "Soundtrack",
-  "Techno",
-  "Trance",
-  "World",
-  "Other"
-];
 
 function LicenseModule(web3Reader, web3Writer) {
   this.web3Reader = web3Reader;
@@ -89,7 +54,7 @@ LicenseModule.prototype.getLicensesForEntries = function(condition, limit, sort)
     .then(promises => Promise.all(promises));
 }
 
-LicenseModule.prototype.getReleaseEntries = function(condition, limit,sort) {
+LicenseModule.prototype.getReleaseEntries = function(condition, limit, _sort) {
     let sort = _sort ? _sort : { releaseDate: 'desc' };
     let query = Release.find(condition).sort(sort);
     if (limit) {
