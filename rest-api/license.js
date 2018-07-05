@@ -18,6 +18,7 @@ function getLimit(req) {
 
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
 jsonRouter.get('/newreleases', (req) => licenseModule.getNewReleases(getLimit(req)));
+jsonRouter.get('/tracks/recent', (req) => licenseModule.getRecentPlays(getLimit(req)));
 
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};

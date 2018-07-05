@@ -1,4 +1,5 @@
 const Release = require('../components/models/release');
+const UserPlayback = require('../components/models/user-playback');
 
 function LicenseModule(web3Reader, web3Writer) {
   this.web3Reader = web3Reader;
@@ -85,6 +86,16 @@ LicenseModule.prototype.convertDbRecordToLicense = function(record) {
         license.pendingUpdateTxs = record.pendingUpdateTxs;
         return license;
       })
+}
+
+LicenseModule.prototype.getRecentPlays = function(limit: number) {
+  // grab the top 2*n from the db to try to get a distinct list that is long enough.
+  return UserPlayback.find({}).sort({ playbackDate: 'desc' }).limit(2 * limit).exec()
+    .then(records => records.map(r => r.contractAddress))
+    .then(addresses => Array.from(new Set(addresses))) // insertion order is preserved
+    .then(addresses => addresses.slice(0, Math.min(addresses.length, limit)))
+    .then(addresses => addresses.map(address => this.getLicense(address)))
+    .then(promises => Promise.all(promises))
 }
 
 LicenseModule.prototype.getWeb3Reader = function() {
