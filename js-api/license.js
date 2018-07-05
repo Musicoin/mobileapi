@@ -77,7 +77,6 @@ LicenseModule.prototype.convertDbRecordToLicense = function(record) {
         license.regions = record.regions;
 
         license.description = record.description;
-        license.timeSince = this._timeSince(record.releaseDate);
         license.directTipCount = record.directTipCount || 0;
         license.directPlayCount = record.directPlayCount || 0;
         license.releaseDate = record.releaseDate;
