@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const request = require('request');
 const User = require('../components/models/user');
+const FormUtils = require('../utils/form-utils')
 
 function ArtistModule(web3Reader, web3Writer, maxCoinsPerPlay) {
   this.web3Reader = web3Reader;
