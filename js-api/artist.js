@@ -1,9 +1,6 @@
 const Promise = require('bluebird');
 const request = require('request');
 const User = require('../components/models/user');
-const MediaProvider = require('../utils/media-provider');
-const MusicoinAPI =require('../utils/musicoin-api');
-const FormUtils = require('../utils/form-utils')
 
 function ArtistModule(web3Reader, web3Writer, maxCoinsPerPlay) {
   this.web3Reader = web3Reader;
@@ -20,13 +17,13 @@ ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, mus
 };
 
 function sanitize(s) {
-  const s1 = FormUtils.defaultString(s, "");
-  return s1 ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s1;
+  const s = FormUtils.defaultString(_s, "");
+  return s ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s;
 }
 
 ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
-  const search1 = sanitize(search);
-  const genre1 = sanitize(genre);
+  const search = sanitize(_search);
+  const genre = sanitize(_genre);
 
   let query = User.find({
       profileAddress: {
@@ -45,19 +42,19 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
     query = query.where({
       $or: [{
           "draftProfile.artistName": {
-            "$regex": search1,
+            "$regex": search,
             "$options": "i"
           }
         },
         {
           "draftProfile.genres": {
-            "$regex": search1,
+            "$regex": search,
             "$options": "i"
           }
         },
         {
           "draftProfile.regions": {
-            "$regex": search1,
+            "$regex": search,
             "$options": "i"
           }
         }
@@ -67,65 +64,43 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
 
   if (genre) {
     query = query.where({
-      "draftProfile.genres": genre1
+      "draftProfile.genres": genre
     });
   }
-  console.log(query);
+
   return query.sort({
       joinDate: 'desc'
     }).limit(limit).exec()
-    .then(records => records.map(r => this.convertDbRecordToArtist(r)))
+    .then(records => records.map(r => convertDbRecordToArtist(r)))
     .then(promises => Promise.all(promises))
 
 }
-ArtistModule.prototype.getFeaturedArtists = function(limit) {
-  // find recently joined artists that have at least one release
-  let query = User.find({ profileAddress: { $ne: null } })
-    .where({ mostRecentReleaseDate: { $ne: null } });
 
-  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
-    .then(records => records.map(r => this.convertDbRecordToArtist(r)))
-    .then(promises => Promise.all(promises))
-}
+function convertDbRecordToLicenseLite(record) {
+  const draftProfile = record.artist && record.artist.draftProfile ? record.artist.draftProfile : null;
+  return {
+    artistName: record.artistName,
 
-ArtistModule.prototype.findArtists = function(limit, search1) {
-  var search = sanitize(search1);
+    genres: record.genres,
+    languages: record.languages,
+    moods: record.moods,
+    regions: record.regions,
 
-  let query = User.find({ profileAddress: { $exists: true, $ne: null } })
-    .where({ mostRecentReleaseDate: { $exists: true, $ne: null } });
-
-  if (search) {
-    query = query.where({
-      $or: [
-        { "draftProfile.artistName": { "$regex": search, "$options": "i" } },
-        { "google.email": { "$regex": search, "$options": "i" } },
-        { "facebook.email": { "$regex": search, "$options": "i" } },
-        { "local.email": { "$regex": search, "$options": "i" } },
-      ]
-    })
+    description: record.description,
+    timeSince: this._timeSince(record.releaseDate),
+    directTipCount: record.directTipCount || 0,
+    directPlayCount: record.directPlayCount || 0,
+    artistProfileAddress: record.artistAddress,
+    title: record.title,
+    image: this.mediaProvider.resolveIpfsUrl(record.imageUrl),
+    address: record.contractAddress,
+    tx: record.tx,
+    artist: {
+      artistName: draftProfile ? draftProfile.artistName : "",
+      image: draftProfile ? this.mediaProvider.resolveIpfsUrl(draftProfile.ipfsImageUrl) : "",
+      verified: record.artist && record.artist.verified
+    }
   }
-
-  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
-    .then(records => records.map(r => {
-      return {
-        id: r.profileAddress,
-        label: `${r.draftProfile.artistName} (${r.profileAddress})`,
-        value: r.profileAddress
-      }
-    }));
-}
-
-ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
-  return this.web3Reader.getArtistByProfile(record.profileAddress)
-    .then((artist) => {
-      artist.profileAddress = record.profileAddress;
-      artist.genres = record.draftProfile.genres;
-      artist.directTipCount = record.directTipCount || 0;
-      artist.followerCount = record.followerCount || 0;
-      artist.verified = record.verified;
-      artist.id = record._id;
-      return artist;
-    });
 }
 
 ArtistModule.prototype.pppFromProfile = function(profileAddress, licenseAddress, hotWalletCredentialsProvider) {
