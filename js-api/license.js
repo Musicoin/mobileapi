@@ -1,5 +1,6 @@
 const Release = require('../components/models/release');
 const UserPlayback = require('../components/models/user-playback');
+const User = require('../components/models/user');
 const bluebird_1 = require("bluebird");
 
 function LicenseModule(web3Reader, web3Writer) {
@@ -136,6 +137,111 @@ LicenseModule.prototype.getLicensesForEntries = function(condition, limit, sort)
   return this.getReleaseEntries(condition, limit, sort)
     .then(items => items.map(item => this.convertDbRecordToLicense(item)))
     .then(promises => bluebird_1.Promise.all(promises));
+}
+
+LicenseModule.prototype.getSampleOfVerifiedTracks = function(limit, genre) {
+  // short of upgrading the DB, random selection is a bit difficult.
+  // However, we don't really need it to be truly random
+  const condition = {
+    verified: true,
+    mostRecentReleaseDate: {
+      $ne: null
+    }
+  };
+  if (!limit || limit < 1 || limit > 10) {
+    limit = 1;
+  }
+  // TODO we could cache the count() result as it doesn't change very often
+  return User.find(condition).count()
+    .then(count => {
+      let offset = count < limit ? 0 : Math.floor(Math.random() * (count - limit));
+      return User.find(condition, '_id')
+        .limit(limit)
+        .skip(offset);
+    })
+    .then(artists => {
+      const filter = genre ? {
+        state: 'published',
+        genres: genre,
+        markedAsAbuse: {
+          $ne: true
+        }
+      } : {
+        state: 'published',
+        markedAsAbuse: {
+          $ne: true
+        }
+      };
+      let query = Release.find(filter)
+        .where({
+          artist: {
+            $in: artists.map(a => a._id)
+          }
+        })
+        .populate("artist");
+      return query.exec()
+        .then(items => {
+          this.shuffle(items);
+          const newItems = [];
+          const artists = {};
+          items.forEach(item => {
+            if (!artists[item.artistAddress]) {
+              artists[item.artistAddress] = true;
+              newItems.unshift(item);
+            } else {
+              newItems.push(item);
+            }
+          });
+          return newItems.length > limit ? newItems.slice(0, limit) : newItems;
+        })
+        .then(items => items.map(item => this.convertDbRecordToLicense(item)))
+        .then(promises => bluebird_1.Promise.all(promises));
+    });
+}
+
+
+LicenseModule.prototype.doGetRandomReleases = function({
+  limit = 1,
+  genre,
+  artist
+}) {
+  let filter = {
+    state: 'published',
+    markedAsAbuse: {
+      $ne: true
+    }
+  };
+  let queryOptions = null;
+  if (genre) {
+    queryOptions = Object.assign({}, filter, {
+      genre: genre
+    });
+  }
+  if (artist) {
+    queryOptions = Object.assign({}, filter, {
+      artistAddress: artist
+    });
+  }
+  let query = Release.find(queryOptions).populate('artist');
+  return query.exec()
+    .then(items => {
+      this.shuffle(items);
+      return items.length > limit ? items.slice(0, limit) : items;
+    })
+    .then(items => bluebird_1.Promise.all(items.map(item => this.convertDbRecordToLicense(item))));
+}
+
+LicenseModule.prototype.getTrackDetailsByIds = function(addresses) {
+    return Release.find({ contractAddress: { $in: addresses } })
+        .populate('artist')
+        .then(releases => {
+        return bluebird_1.Promise.all(releases.map(r => this.convertDbRecordToLicenseLite(r)));
+    })
+        .then(releases => {
+        const byId = {};
+        releases.forEach(r => byId[r.address] = r);
+        return addresses.map(a => byId[a]);
+    });
 }
 
 LicenseModule.prototype.getWeb3Reader = function() {

@@ -20,6 +20,9 @@ jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.pa
 jsonRouter.get('/newreleases', (req) => licenseModule.getNewReleases(getLimit(req)));
 //jsonRouter.get('/recenttracks', (req) => licenseModule.getRecentPlays(getLimit(req)));
 jsonRouter.get('/top', req => licenseModule.getTopPlayed(getLimit(req), req.query.genre));
+jsonRouter.get('/random', (req) => licenseModule.getSampleOfVerifiedTracks(getLimit(req), req.query.genre));
+jsonRouter.get('/random/new', (req) => licenseModule.doGetRandomReleases({ ...req.query, limit: getLimit(req) }));
+jsonRouter.get('/tracks/details', (req) => licenseModule.getTrackDetailsByIds(req.query.addresses));
 
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};
