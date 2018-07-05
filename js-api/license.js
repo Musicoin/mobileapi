@@ -1,5 +1,6 @@
 const Release = require('../components/models/release');
 const UserPlayback = require('../components/models/user-playback');
+const bluebird_1 = require("bluebird");
 
 function LicenseModule(web3Reader, web3Writer) {
   this.web3Reader = web3Reader;
