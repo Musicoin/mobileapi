@@ -83,16 +83,10 @@ ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
   return this.web3Reader.getArtistByProfile(record.profileAddress)
     .then((artist) => {
       artist.profileAddress = record.profileAddress;
-      artist.timeSince = this._timeSince(record.joinDate);
       artist.genres = record.draftProfile.genres;
       artist.directTipCount = record.directTipCount || 0;
       artist.followerCount = record.followerCount || 0;
       artist.verified = record.verified;
-
-      // facebook and twitter are special, used for verification, so they have to come from auth objects
-      artist.social["facebook"] = record.facebook.urlIsPublic ? record.facebook.url : null;
-      artist.social["twitter"] = record.twitter.urlIsPublic ? record.twitter.url : null;
-
       artist.id = record._id;
       return artist;
     });
