@@ -1,7 +1,40 @@
 const Release = require('../components/models/release');
 const UserPlayback = require('../components/models/user-playback');
 const User = require('../components/models/user');
+const FormUtils = require('../utils/form-utils')
 const bluebird_1 = require("bluebird");
+
+
+const knownGenres = [
+  "Alternative Rock",
+  "Ambient",
+  "Classical",
+  "Country",
+  "Dance & EDM",
+  "Dancehall",
+  "Deep House",
+  "Disco",
+  "Drum & Bass",
+  "Electronic",
+  "Folk & Singer-Songwriter",
+  "Hip-hop & Rap",
+  "House",
+  "Indie",
+  "Jazz & Blues",
+  "Latin",
+  "Metal",
+  "Piano",
+  "Pop",
+  "R&B & Soul",
+  "Reggae",
+  "Reggaeton",
+  "Rock",
+  "Soundtrack",
+  "Techno",
+  "Trance",
+  "World",
+  "Other"
+];
 
 function LicenseModule(web3Reader, web3Writer) {
   this.web3Reader = web3Reader;
@@ -281,23 +314,20 @@ function sanitize(s) {
   return s1 ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s1;
 }
 
-LicenseModule.prototype.getNewReleasesByGenre(limit, maxGroupSize, _search, _genre, _sort) {
+LicenseModule.prototype.getNewReleasesByGenre = function(limit, maxGroupSize, _search, _genre, _sort) {
   const search = sanitize(_search);
   const genre = _genre;
   const flatten = arr => arr.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
-  const sort = _sort == "plays" ?
-    [
+  const sort = _sort == "plays" ? [
       ["directPlayCount", 'desc'],
       ["directTipCount", 'desc'],
       ["releaseDate", 'desc']
     ] :
-    _sort == "date" ?
-    [
+    _sort == "date" ? [
       ["releaseDate", 'desc'],
       ["directTipCount", 'desc'],
       ["directPlayCount", 'desc']
-    ] :
-    [
+    ] : [
       ["directTipCount", 'desc'],
       ["directPlayCount", 'desc'],
       ["releaseDate", 'desc']
@@ -399,7 +429,7 @@ LicenseModule.prototype.getNewReleasesByGenre(limit, maxGroupSize, _search, _gen
           }
           return flatten(genreOrder.map(g => genreItems[g]));
         })
-        .then(items => items.map(item => this._convertDbRecordToLicenseLite(item)))
+        .then(items => items.map(item => this.convertDbRecordToLicenseLite(item)))
         .then(promises => bluebird_1.Promise.all(promises));
     });
 }
