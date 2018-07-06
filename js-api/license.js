@@ -81,6 +81,9 @@ LicenseModule.prototype.getReleaseEntries = function(condition, limit, _sort) {
 }
 
 LicenseModule.prototype.convertDbRecordToLicense = function(record) {
+  if (typeof record.contractAddress == 'undefined') {
+    return
+  }
   return this.getLicense(record.contractAddress)
     .bind(this)
     .then(function(license) {
@@ -232,16 +235,45 @@ LicenseModule.prototype.doGetRandomReleases = function({
 }
 
 LicenseModule.prototype.getTrackDetailsByIds = function(addresses) {
-    return Release.find({ contractAddress: { $in: addresses } })
-        .populate('artist')
-        .then(releases => {
-        return bluebird_1.Promise.all(releases.map(r => this.convertDbRecordToLicenseLite(r)));
+  return Release.find({
+      contractAddress: {
+        $in: addresses
+      }
     })
-        .then(releases => {
-        const byId = {};
-        releases.forEach(r => byId[r.address] = r);
-        return addresses.map(a => byId[a]);
-    });
+    .populate('artist')
+    .then(releases => {
+      return bluebird_1.Promise.all(releases.map(r => this.convertDbRecordToLicenseLite(r)));
+    })
+}
+
+LicenseModule.prototype.convertDbRecordToLicenseLite = function(record) {
+  const draftProfile = record.artist && record.artist.draftProfile ? record.artist.draftProfile : null;
+  return {
+    artistName: record.artistName,
+    genres: record.genres,
+    languages: record.languages,
+    moods: record.moods,
+    regions: record.regions,
+    description: record.description,
+    directTipCount: record.directTipCount || 0,
+    directPlayCount: record.directPlayCount || 0,
+    artistProfileAddress: record.artistAddress,
+    title: record.title,
+    address: record.contractAddress,
+    tx: record.tx,
+    artist: {
+      artistName: draftProfile ? draftProfile.artistName : "",
+      verified: record.artist && record.artist.verified
+    }
+  };
+}
+
+LicenseModule.prototype.shuffle = function(a) {
+  for (let i = a.length; i; i--) {
+    let j = Math.floor(Math.random() * i);
+    [a[i - 1], a[j]] = [a[j], a[i - 1]];
+  }
+
 }
 
 LicenseModule.prototype.getWeb3Reader = function() {
