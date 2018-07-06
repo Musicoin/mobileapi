@@ -7,6 +7,10 @@
     "bignumber.js": "^2.4.0",
     "bluebird": "^3.4.0",
     "body-parser": "^1.15.2",
+    "cached-request": "*",
+    "request": "*",
+    "fs": "*",
+    "os": "*",
     "crypto": "0.0.3",
     "debug": "~2.2.0",
     "express": "^4.14.0",
@@ -19,7 +23,10 @@
     "reverse-line-reader": "^0.2.6",
     "serve-favicon": "~2.3.0",
     "tmp": "0.0.29",
-    "web3": "^0.17.0-beta"
+    "web3": "^0.17.0-beta",
+    "fastest-validator": "*",
+    "bcrypt-nodejs": "*",
+    "owasp-password-strength-test": "*"
   },
   "devDependencies": {
     "mocha": "^3.2.0"

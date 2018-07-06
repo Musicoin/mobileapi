@@ -27,16 +27,6 @@ MusicoinCore.prototype.getTransactionDetails = function(hash) {
 };
 
 /**
- * Retrieves a stream for a given PPP license.
- *
- * @address: The address of a PPP license
- * @returns: A promise that resolves to a playable stream
- */
-MusicoinCore.prototype.getLicenseResourceStream = function(address) {
-  return this.getLicenseModule().getResourceStream(address);
-};
-
-/**
  * Sends a tip to PPP contract located at the given address for the given amount
  *
  * @licenseAddress: The contract address
@@ -132,5 +122,3 @@ MusicoinCore.prototype.releaseArtistProfile = function(releaseRequest, credentia
 };
 
 module.exports = MusicoinCore;
-
-
