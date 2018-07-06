@@ -4,7 +4,6 @@ const User = require('../components/models/user');
 const FormUtils = require('../utils/form-utils')
 const bluebird_1 = require("bluebird");
 
-
 const knownGenres = [
   "Alternative Rock",
   "Ambient",

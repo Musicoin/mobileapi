@@ -19,6 +19,7 @@ function getLimit(req) {
 }
 //jsonRouter.get('/recenttracks', (req) => licenseModule.getRecentPlays(getLimit(req)));
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
+jsonRouter.get('/getaudiourl/:address', (req, res) => licenseModule.getAudioLicense(req.params.address));
 jsonRouter.get('/newreleases', (req) => licenseModule.getNewReleases(getLimit(req)));
 jsonRouter.get('/top', req => licenseModule.getTopPlayed(getLimit(req), req.query.genre));
 jsonRouter.get('/random', (req) => licenseModule.getSampleOfVerifiedTracks(getLimit(req), req.query.genre));
