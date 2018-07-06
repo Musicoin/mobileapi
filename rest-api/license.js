@@ -12,17 +12,24 @@ let accountManager;
 const LicenseKey = require('../components/models/key');
 const defaultRecords = 20;
 const maxRecords = 100;
+const defaultMaxGroupSize = 8;
+
 function getLimit(req) {
     return Math.max(0, Math.min(req.query.limit || defaultRecords, maxRecords));
 }
-
+//jsonRouter.get('/recenttracks', (req) => licenseModule.getRecentPlays(getLimit(req)));
 jsonRouter.get('/detail/:address', (req, res) => licenseModule.getLicense(req.params.address));
 jsonRouter.get('/newreleases', (req) => licenseModule.getNewReleases(getLimit(req)));
-//jsonRouter.get('/recenttracks', (req) => licenseModule.getRecentPlays(getLimit(req)));
 jsonRouter.get('/top', req => licenseModule.getTopPlayed(getLimit(req), req.query.genre));
 jsonRouter.get('/random', (req) => licenseModule.getSampleOfVerifiedTracks(getLimit(req), req.query.genre));
 jsonRouter.get('/random/new', (req) => licenseModule.doGetRandomReleases({ ...req.query, limit: getLimit(req) }));
 jsonRouter.get('/details', (req) => licenseModule.getTrackDetailsByIds(req.query.addresses));
+jsonRouter.get('/find', (req) => {
+  return licenseModule.getNewReleasesByGenre(
+    getLimit(req),
+    defaultMaxGroupSize,
+    req.query.search);
+});
 
 jsonRouter.get('/ppp/:address', (req, res) => {
   const context = {};

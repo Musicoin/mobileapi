@@ -276,6 +276,135 @@ LicenseModule.prototype.shuffle = function(a) {
 
 }
 
+function sanitize(s) {
+  const s1 = FormUtils.defaultString(s, "");
+  return s1 ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s1;
+}
+
+LicenseModule.prototype.getNewReleasesByGenre(limit, maxGroupSize, _search, _genre, _sort) {
+  const search = sanitize(_search);
+  const genre = _genre;
+  const flatten = arr => arr.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
+  const sort = _sort == "plays" ?
+    [
+      ["directPlayCount", 'desc'],
+      ["directTipCount", 'desc'],
+      ["releaseDate", 'desc']
+    ] :
+    _sort == "date" ?
+    [
+      ["releaseDate", 'desc'],
+      ["directTipCount", 'desc'],
+      ["directPlayCount", 'desc']
+    ] :
+    [
+      ["directTipCount", 'desc'],
+      ["directPlayCount", 'desc'],
+      ["releaseDate", 'desc']
+    ];
+  const artistList = search ?
+    User.find({
+      "draftProfile.artistName": {
+        "$regex": search,
+        "$options": "i"
+      }
+    })
+    .where({
+      mostRecentReleaseDate: {
+        $ne: null
+      }
+    })
+    .exec()
+    .then(records => records.map(r => r.profileAddress)) :
+    bluebird_1.Promise.resolve([]);
+  return artistList
+    .then(profiles => {
+      let releaseQuery = Release.find({
+        state: "published",
+        markedAsAbuse: {
+          $ne: true
+        }
+      });
+      if (search) {
+        releaseQuery = releaseQuery.where({
+          $or: [{
+              artistAddress: {
+                $in: profiles
+              }
+            },
+            {
+              title: {
+                "$regex": search,
+                "$options": "i"
+              }
+            },
+            {
+              genres: {
+                "$regex": search,
+                "$options": "i"
+              }
+            },
+            {
+              languages: {
+                "$regex": search,
+                "$options": "i"
+              }
+            },
+            {
+              moods: {
+                "$regex": search,
+                "$options": "i"
+              }
+            },
+            {
+              regions: {
+                "$regex": search,
+                "$options": "i"
+              }
+            }
+          ]
+        });
+      }
+      if (genre) {
+        releaseQuery = releaseQuery.where({
+          "genres": genre
+        });
+      }
+      return releaseQuery
+        .sort(sort)
+        .exec()
+        .then(items => {
+          const genreOrder = [];
+          const genreItems = {};
+          let itemsIncluded = 0;
+          for (let i = 0; i < items.length && itemsIncluded < limit; i++) {
+            const item = items[i];
+            const itemGenres = item.genres.slice(0);
+            itemGenres.push("Other");
+            for (let g = 0; g < itemGenres.length; g++) {
+              const genre = itemGenres[g];
+              if (knownGenres.indexOf(genre) == -1)
+                continue;
+              if (genreOrder.indexOf(genre) == -1) {
+                genreOrder.push(genre);
+                genreItems[genre] = [];
+              }
+              if (genreItems[genre].length < maxGroupSize) {
+                item.genres = genre;
+                genreItems[genre].push(item);
+                itemsIncluded++;
+                break;
+              }
+            }
+          }
+          return flatten(genreOrder.map(g => genreItems[g]));
+        })
+        .then(items => items.map(item => this._convertDbRecordToLicenseLite(item)))
+        .then(promises => bluebird_1.Promise.all(promises));
+    });
+}
+
+
 LicenseModule.prototype.getWeb3Reader = function() {
   return this.web3Reader;
 };
