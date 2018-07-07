@@ -9,7 +9,7 @@
     "body-parser": "^1.15.2",
     "cached-request": "*",
     "request": "*",
-    "fs": "*",
+    "fs": "0.0.1-security",
     "os": "*",
     "crypto": "0.0.3",
     "debug": "~2.2.0",
