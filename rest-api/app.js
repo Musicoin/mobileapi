@@ -1,13 +1,31 @@
 const express = require('express');
+const session = require('express-session');
+const { MemoryStore } = require('express-session');
 const app = express();
+const bodyParser = require('body-parser');
 const ConfigUtils = require('../components/config/config-utils');
 const Web3Writer = require('../components/blockchain/web3-writer');
 const Timers = require('timers');
 const jsonParser = require('body-parser').json();
 const mongoose = require('mongoose');
 const MusicoinCore = require("../mc-core");
-const rp = require('request-promise-native');
-var rewardP = 0;
+const RateLimit = require('express-rate-limit');
+const AuthMiddleware = require('./Middlewares/AuthMiddleware');
+
+app.use(function (req, res, next)
+{
+    // console.log('-=-=q-e=q-e=qw-e=qw-e=qw-e=qw-ec=qw-ec=qw-ec=qw-ce=qw-ec=qw-ce=qw-ec=qw-ce=qw-')
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
+
 
 ConfigUtils.loadConfig(process.argv)
   .then(config => {
@@ -20,13 +38,14 @@ function loadApp(config) {
   const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
   const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
 
+
+
   const AccountManager = require("../components/account-manager");
   const accountManager = new AccountManager();
-  const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
-  const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
-  const txModule = require("./tx").init(musicoinCore.getTxModule(), config.orbiterEndpoint);
-  const rewardMax = config.rewardMax;
-  const rewardMin = config.rewardMin;
+  const licenseModule = require("./Controllers/license").init(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
+  const artistModule = require("./Controllers/artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
+  const txModule = require("./Controllers/tx").init(musicoinCore.getTxModule(), config.orbiterEndpoint);
+  const packageModule = require('./Controllers/package');
 
   musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
   mongoose.connect(config.keyDatabaseUrl);
@@ -66,12 +85,35 @@ function loadApp(config) {
     }
   });
 
-  app.use("/", isKnownUser);
 
-  app.use("/license", licenseModule);
-  app.use('/artist', artistModule);
-  app.use("/tx", txModule);
-  app.use("/balance/:address", function (req, res) {
+
+
+    app.enable('trust proxy') // trust first proxy
+
+    const store = new MemoryStore();
+
+    app.use(session({
+        secret: 'keyboard cat',
+        store: store,
+        genid: function(Request, Response) {
+          return Request.query.clientId;
+        }
+    }));
+
+    const RateLimiter = new RateLimit({
+        windowMs: 1000,
+        max: 1,
+        delayMs:0
+    });
+
+  app.use('/auth', require('./Controllers/auth'));
+
+  app.use('/api', AuthMiddleware.checkTokens(store), RateLimiter);
+  app.use('/api/package', packageModule);
+  app.use("/api/license", licenseModule);
+  app.use('/api/artist', artistModule);
+  app.use("/api/tx", txModule);
+  app.use("/api/balance/:address", function(req, res) {
     musicoinCore.getWeb3Reader().getBalanceInMusicoins(req.params.address)
       .then(function (output) {
         res.json({
@@ -146,48 +188,44 @@ function loadApp(config) {
     res.json({ address: req.params.address, key: req.headers });
   });
 
-  function getMarketValue() {
-    var CoinMarketCapUrl = "https://api.coinmarketcap.com/v1/ticker/musicoin/?limit=1";
-    rp({
-      url: CoinMarketCapUrl,
-      json: true
-    })
-      .then(result => JSON.parse(JSON.stringify(result)))
-      .then(usd => rewardP = (0.011 / usd[0].price_usd) - 1)
-      .catch(error => rewardP = this.maxCoinsPerPlayVar);
-  }
+    process.on('SIGINT', () => {
 
-  function isKnownUser(req, res, next) {
-    if (config.isDev) {
-      req.user = { clientID: "clientID" };
-      return next();
-    }
-    let clientID = req.headers["clientid"];
-    if (clientID) {
-      accountManager.validateClient(clientID)
-        .then(function () {
-          req.user = { clientID: clientID };
-          next();
-        })
-        .catch(function (err) {
-          console.warn(err);
-          console.warn((`Invalid clientid provided.  
-          req.originalUrl: ${req.originalUrl}, 
-          req.headers: ${JSON.stringify(req.rawHeaders)},
-          req.clientIp: ${req.clientIp}
-        `));
-          res.status(401).send({ error: 'Invalid clientid: ' + clientID });
-        });
-    }
-    else {
-      console.warn((`No clientID provided.  
-      req.originalUrl: ${req.originalUrl}, 
-      req.headers: ${JSON.stringify(req.rawHeaders)},
-      req.clientIp: ${req.clientIp}
-    `));
-      res.status(401).send({ error: 'Invalid user credentials, you must include a clientid header' });
-    }
-  }
+        console.log('Received SIGINT. Press Control-D to exit.');
+        process.exit();
+    });
+
+  // function isKnownUser(req, res, next) {
+  //
+  //   if (config.isDev) {
+  //     req.user = { clientID: "clientID" };
+  //     return next();
+  //   }
+  //   let clientID = req.headers["clientid"];
+  //   if (clientID) {
+  //     accountManager.validateClient(clientID)
+  //       .then(function() {
+  //         req.user = { clientID: clientID };
+  //         next();
+  //       })
+  //       .catch(function(err) {
+  //         console.warn(err);
+  //         console.warn((`Invalid clientid provided.
+  //         req.originalUrl: ${req.originalUrl},
+  //         req.headers: ${JSON.stringify(req.rawHeaders)},
+  //         req.clientIp: ${req.clientIp}
+  //       `));
+  //         res.status(401).send({ error: 'Invalid clientid: ' + clientID});
+  //       });
+  //   }
+  //   else {
+  //     console.warn((`No clientID provided.
+  //     req.originalUrl: ${req.originalUrl},
+  //     req.headers: ${JSON.stringify(req.rawHeaders)},
+  //     req.clientIp: ${req.clientIp}
+  //   `));
+  //     res.status(401).send({ error: 'Invalid user credentials, you must include a clientid header' });
+  //   }
+  // }
 
 
 
@@ -205,7 +243,7 @@ function loadApp(config) {
 
   app.listen(config.port, function () {
     console.log('Listening on port ' + config.port);
-    console.log(JSON.stringify(config, null, 2));
+    // console.log(JSON.stringify(config, null, 2));
   });
 
   Timers.setInterval(tryUpdatePendingReleases, 2 * 60 * 1000);

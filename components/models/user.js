@@ -16,7 +16,10 @@ const userSchema = mongoose.Schema({
     pendingTx: String,
     local: {
         id: String,
-        email: String,
+        email:{
+            type: String,
+            unique: true
+        },
         username: String,
         password: String,
         phone: String,

@@ -9,14 +9,13 @@
     "bluebird": "^3.4.0",
     "body-parser": "^1.15.2",
     "cached-request": "*",
-    "request": "*",
-    "fs": "*",
-    "os": "*",
     "crypto": "0.0.3",
-    "debug": "~2.2.0",
-    "express": "^4.14.0",
+    "debug": "^3.1.0",
+    "express": "~4.16.0",
+    "express-rate-limit": "^2.11.0",
+    "express-session": "^1.15.6",
     "fastest-validator": "*",
-    "fs": "0.0.1-security",
+    "fs": "0.0.2",
     "ipware": "^1.0.0",
     "mkdirp": "^0.5.1",
     "mongoose": "^4.7.3",
@@ -27,15 +26,12 @@
     "request": "^2.75.0",
     "request-promise-native": "^1.0.5",
     "reverse-line-reader": "^0.2.6",
-    "serve-favicon": "~2.3.0",
+    "serve-favicon": "^2.5.0",
     "tmp": "0.0.29",
-    "web3": "^0.17.0-beta",
-    "fastest-validator": "*",
-    "bcrypt-nodejs": "*",
-    "owasp-password-strength-test": "*"
+    "web3": "^0.17.0-beta"
   },
   "devDependencies": {
-    "mocha": "^3.2.0"
+    "mocha": "^5.2.0"
   },
   "scripts": {
     "test": "mocha test"

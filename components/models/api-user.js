@@ -2,12 +2,24 @@ const mongoose = require('mongoose');
 
 // define the schema for our user model
 const userSchema = mongoose.Schema({
-  clientID: {
+  clientId: {
+    type: Object,
+    unique: true,
+    required: true
+  },
+  clientSecret: {
     type: String,
     unique: true,
     required: true
   },
-  name: String,
+  limitApiCalls: {
+    type: Number,
+    default: 1000
+  },
+  calls: {
+    type: Number,
+    default: 0
+  },
   balance: {
     type: Number,
     min: 0,
