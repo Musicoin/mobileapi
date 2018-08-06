@@ -1,6 +1,6 @@
-const Release = require('../components/models/release');
-const UserPlayback = require('../components/models/user-playback');
-const User = require('../components/models/user');
+const Release = require('../components/models/core/release');
+const UserPlayback = require('../components/models/core/user-playback');
+const User = require('../components/models/core/user');
 const FormUtils = require('../utils/form-utils')
 const bluebird_1 = require("bluebird");
 

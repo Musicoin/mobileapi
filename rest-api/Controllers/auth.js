@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 
-const User = require('../../components/models/user');
-const ApiUser = require('../../components/models/api-user');
+const User = require('../../components/models/core/user');
+const ApiUser = require('../../components/models/core/api-user');
 
 
 const ValidatorClass = require('fastest-validator');

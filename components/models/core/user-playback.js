@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require("mongoose");
+const mongoose = require('./../connections/core');
 module.exports = mongoose.model('UserPlayback', mongoose.Schema({
     contractAddress: String,
     release: {

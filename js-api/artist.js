@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const request = require('request');
-const User = require('../components/models/user');
+const User = require('../components/models/core/user');
 const MediaProvider = require('../utils/media-provider');
 const MusicoinAPI =require('../utils/musicoin-api');
 const FormUtils = require('../utils/form-utils')

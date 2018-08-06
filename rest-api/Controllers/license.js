@@ -9,7 +9,7 @@ let publishCredentialsProvider;
 let paymentAccountCredentialsProvider;
 let contractOwnerAccount;
 let accountManager;
-const LicenseKey = require('../../components/models/key');
+const LicenseKey = require('../../components/models/core/key');
 const defaultRecords = 20;
 const maxRecords = 100;
 const defaultMaxGroupSize = 8;

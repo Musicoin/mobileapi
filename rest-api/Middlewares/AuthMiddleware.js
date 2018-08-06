@@ -1,4 +1,4 @@
-const ApiUser = require('./../../components/models/api-user');
+const ApiUser = require('../../components/models/core/api-user');
 const { Store } = require('express-session');
 
 const mongoose = require('mongoose');

@@ -3,7 +3,7 @@ const JsonPromiseRouter = require('../json-promise-router');
 const router = express.Router();
 const jsonRouter = new JsonPromiseRouter(router, "artist");
 const jsonParser = require('body-parser').json();
-const LicenseKey = require('../../components/models/key');
+const LicenseKey = require('../../components/models/core/key');
 let artistModule;
 let publishCredentialsProvider;
 let hotWalletCredentialsProvider;

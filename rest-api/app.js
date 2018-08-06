@@ -48,10 +48,14 @@ function loadApp(config) {
   const packageModule = require('./Controllers/package');
 
   musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
+<<<<<<< HEAD
   mongoose.connect(config.keyDatabaseUrl);
   getMarketValue();
+=======
+  mongoose.connect(config.keyCoreDatabaseUrl);
+>>>>>>> Add support of two databases
 
-  const LicenseKey = require('../components/models/key');
+  const LicenseKey = require('../components/models/core/key');
 
   const get_ip = require('ipware')().get_ip;
   app.use(function (req, res, next) {
@@ -88,14 +92,14 @@ function loadApp(config) {
 
 
 
-    app.enable('trust proxy') // trust first proxy
+    app.enable('trust proxy');
 
     const store = new MemoryStore();
 
     app.use(session({
-        secret: 'keyboard cat',
+        secret: config.sessionSecretKey,
         store: store,
-        genid: function(Request, Response) {
+        genid: function(Request) {
           return Request.query.clientId;
         }
     }));

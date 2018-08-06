@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('./../connections/core');
 
 // define the schema for our user model
 const packageSchema = mongoose.Schema({

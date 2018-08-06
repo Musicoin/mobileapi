@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('./../connections/core');
 const bcrypt = require('bcrypt-nodejs');
 let Validator = require('fastest-validator');
 let v = new Validator();

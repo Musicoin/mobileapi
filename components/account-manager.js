@@ -1,4 +1,4 @@
-const APIUser = require('../components/models/api-user');
+const APIUser = require('./models/core/api-user');
 
 function AccountManager() {
 

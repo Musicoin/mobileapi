@@ -36,7 +36,9 @@ function getComputedKeyValuePairs(config) {
     web3Url: config.web3Endpoint,
     ipfsReadUrl: config.ipfsReadEndpoint,
     ipfsAddUrl: `${config.ipfsAddEndpoint}/api/v0/add`,
-    keyDatabaseUrl: `${config.mongoEndpoint}/key-store`
+    keyMainDatabaseUrl: `${config.mongoEndpoint}/musicoin-org`,
+    keyCoreDatabaseUrl: `${config.mongoEndpoint}/key-store`,
+    sessionSecretKey: config.sessionSecretKey
   };
 }
 
@@ -88,12 +90,9 @@ function getDefaultKeyValueConfig() {
         musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
         orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
         maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
-        rewardMax: env.REWARD_MAX || 250,
-        rewardMin: env.REWARD_MIN || 50
+        sessionSecretKey: env.SESSION_SECRET_KEY || 'secret'
       };
     });
 }
 
 module.exports.loadConfig = loadConfig;
-
-

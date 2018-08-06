@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const ApiPackage = require('../../components/models/api-package');
+const ApiPackage = require('../../components/models/core/api-package');
 
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
