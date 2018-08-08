@@ -1,4 +1,4 @@
-const ApiUser = require('../../components/models/core/api-user');
+const ApiUser = require('../../../components/models/core/api-user');
 const { Store } = require('express-session');
 
 const mongoose = require('mongoose');
@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 
-const AuthSchema = require('./../ValidatorSchemas/AuthSchema');
+const AuthSchema = require('../ValidatorSchemas/AuthSchema');
 
 class AuthMiddleware {
 
