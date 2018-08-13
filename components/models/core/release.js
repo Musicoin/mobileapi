@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require('./../connections/core');
+const mongoose = require('mongoose');
+const coreConnection = require('./../connections/core');
 // create the model for users and expose it to our app
-module.exports = mongoose.model('Release', mongoose.Schema({
+module.exports = coreConnection.model('Release', mongoose.Schema({
     tx: String,
     state: {
         type: String,

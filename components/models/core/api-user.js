@@ -1,5 +1,5 @@
-const mongoose = require('./../connections/core');
-
+const mongoose = require('mongoose');
+const coreConnection = require('./../connections/core');
 // define the schema for our user model
 const userSchema = mongoose.Schema({
   clientId: {
@@ -28,4 +28,4 @@ const userSchema = mongoose.Schema({
 });
 
 // create the model for users and expose it to our app
-module.exports = mongoose.model('APIUserAccount', userSchema);
+module.exports = coreConnection.model('APIUserAccount', userSchema);

@@ -1,4 +1,5 @@
-const mongoose = require('./../connections/core');
+const mongoose = require('mongoose');
+const coreConnection = require('./../connections/core');
 
 // define the schema for our user model
 const packageSchema = mongoose.Schema({
@@ -14,4 +15,4 @@ const packageSchema = mongoose.Schema({
 });
 
 // create the model for users and expose it to our app
-module.exports = mongoose.model('APIpackages', packageSchema);
+module.exports = coreConnection.model('APIpackages', packageSchema);

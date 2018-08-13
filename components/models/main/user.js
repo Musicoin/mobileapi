@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
+const mainConnection = require('./../connections/main');
 const bcrypt = require('bcrypt-nodejs');
 let Validator = require('fastest-validator');
 let v = new Validator();
@@ -17,10 +17,7 @@ const userSchema = mongoose.Schema({
     pendingTx: String,
     local: {
         id: String,
-        email:{
-            type: String,
-            unique: true
-        },
+        email: String,
         username: String,
         password: String,
         phone: String,
@@ -185,5 +182,5 @@ userSchema.methods.validPassword = function (password) {
     return bcrypt.compareSync(password, this.local.password);
 };
 // create the model for users and expose it to our app
-module.exports = coreConnection.model('User', userSchema);
+module.exports = mainConnection.model('UserMain', userSchema);
 //# sourceMappingURL=user.js.map

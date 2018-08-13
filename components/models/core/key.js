@@ -1,5 +1,5 @@
-const mongoose = require('./../connections/core');
-
+const mongoose = require('mongoose');
+const coreConnection = require('./../connections/core');
 // define the schema for our user model
 const keySchema = mongoose.Schema({
   tx: String,
@@ -9,4 +9,4 @@ const keySchema = mongoose.Schema({
 });
 
 // create the model for users and expose it to our app
-module.exports = mongoose.model('LicenseKeys', keySchema);
+module.exports = coreConnection.model('LicenseKeys', keySchema);
