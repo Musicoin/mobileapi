@@ -37,7 +37,7 @@ class AuthController {
     * apiUser -> Object() - from apiuseracoounts Collection
     *
     * */
-    signUp(req, res) {
+    registerNewUser(req, res) {
 
         const $this = this;
 

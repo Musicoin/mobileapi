@@ -13,28 +13,28 @@ class TxController {
         this.orbiterEndpoint = _orbiterEndpoint;
     };
 
-    getTransactionDetails(Request, Response) {
+    getTxDetails(Request, Response) {
         this.txModule.getTransactionDetails(Request.params.hash).then( res => {
             Response.send(res);
         });
     }
 
-    getTransaction(Request, Response) {
+    getTx(Request, Response) {
         this.txModule.getTransaction(Request.params.hash).then( res => {
             Response.send(res);
         })
     }
-    getTransactionReceipt(Request, Response) {
+    getTxReceipt(Request, Response) {
         this.txModule.getTransactionReceipt(Request.params.hash).then( res => {
             Response.send(res);
         })
     }
-    getTransactionStatus(Request, Response) {
+    getTxStatus(Request, Response) {
         this.txModule.getTransactionStatus(Request.params.hash).then( res => {
             Response.send(res);
         })
     }
-    getHistoryByAddress(Request, Response) {
+    getTxHistory(Request, Response) {
         const $this = this;
         this.getJson($this.orbiterEndpoint, {
             addr: Request.params.address,
