@@ -20,11 +20,15 @@ const artistModule = new ArtistController(musicoinCore.getArtistModule(), publis
 const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint);
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
+const ReleaseModule = require('./Controllers/ReleaseController');
+const UserModule = require('./Controllers/UserController');
 
 module.exports = {
     licenseModule: licenseModule,
     artistModule: artistModule,
     txModule: txModule,
     packageModule: packageModule,
-    authModule: authModule
+    authModule: authModule,
+    releaseModule: ReleaseModule,
+    userModule: UserModule
 };

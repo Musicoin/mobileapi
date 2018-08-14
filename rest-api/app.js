@@ -6,8 +6,9 @@ const bodyParser = require('body-parser');
 const ConfigUtils = require('../components/config/config-utils');
 const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./app/Middlewares/AuthMiddleware');
-
+const mailer = require('express-mailer');
 const config = ConfigUtils.loadConfig(process.argv);
+
 
 
 app.use(function (req, res, next)
@@ -43,6 +44,19 @@ const RateLimiter = new RateLimit({
 });
 
 
+app.set('views', '/var/www/node/muscoin/api/rest-api/views');
+app.set('view engine', 'pug');
+
+mailer.extend(app, {
+    from: config.MailClient.email,
+    host: config.MailClient.host,
+    secureConnection: true,
+    port: config.MailClient.port,
+    transportMethod: config.MailClient.transportMethod,
+    auth: config.MailClient.auth
+});
+
+
 app.use(require('./routes/auth'));
 
   mongoose.connect(config.keyCoreDatabaseUrl);
@@ -50,12 +64,20 @@ app.use(require('./routes/auth'));
 >>>>>>> rebuild architecture of Controllers, routes and application structure
 
 app.use('/api', AuthMiddleware.checkTokens(store), RateLimiter);
+app.use('/api/user', require('./routes/user'));
 app.use('/api/package', require('./routes/package'));
-
-
+app.use('/api/release', require('./routes/release'));
 app.use("/api/license", require('./routes/license'));
 app.use('/api/artist', require('./routes/artist'));
 app.use("/api/tx", require('./routes/tx'));
+
+const Users = require('./../components/models/main/user');
+
+app.get('/check/this', (req, res) => {
+    Users.find().then(users => {
+        res.send(users);
+    })
+});
 
 
 app.listen(config.port, function () {

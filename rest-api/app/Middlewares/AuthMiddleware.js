@@ -23,8 +23,6 @@ class AuthMiddleware {
                 * */
 
                 if ( session ) {
-                    //Response.send({success:true, error: session});
-
                     if(session.user.clientSecret === Request.query.clientSecret) {
 
                         if( session.user.calls > session.user.limitApiCalls ) {
@@ -34,15 +32,12 @@ class AuthMiddleware {
 
                         } else {
 
-                            Request.session.user.calls++;
 
-
-                            if( (session.user.calls%1) === 0 )
-                            {
-
+                            if( (session.user.calls%1) === 0 ) {
                                 $this.updateApiCallcount(session.user.clientId, session.user.calls);
                             }
 
+                            Request.session.user.calls++;
                             next();
                         }
                     } else {
@@ -61,7 +56,7 @@ class AuthMiddleware {
                             clientId: clientId
                         }).then(user => {
 
-                            if (user.clientSecret === Request.query.clientSecret) {
+                            if (user && user.clientSecret === Request.query.clientSecret) {
                                 /*
                                 *  if secret key are the same, then we start count API calls
                                 * */
@@ -86,13 +81,14 @@ class AuthMiddleware {
                                     next();
                                 }
                             } else {
+                                Request.session.destroy();
                                 Response.status(401);
                                 Response.send({success: false, error: 'Wrong key pare'})
                             }
 
                         }).catch(Error => {
                             Response.status(400);
-                            Response.send({success: false, error: Error});
+                            Response.send({success: false, error: Error.message});
                         });
 
                     } else {

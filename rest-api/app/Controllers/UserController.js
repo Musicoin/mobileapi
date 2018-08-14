@@ -1,0 +1,83 @@
+const User = require('./../../../components/models/core/user');
+const ApiUser = require('./../../../components/models/core/api-user');
+const mongoose = require('mongoose');
+
+class UserController {
+
+    async deleteUserAccount(Request, Response) {
+
+        const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
+        const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
+        if(Request.method === 'POST') {
+            const deletingToken = this.deletingTokenGenerate(80);
+            Request.session.deletingToken = deletingToken;
+
+            Response.mailer.send('deleting', {
+                domain:'http://127.0.0.1:3000',
+                to: user.local.email,
+                deletingToken: deletingToken,
+                subject: 'Test Email',
+                clientId: Request.session.user.clientId,
+                clientSecret: Request.session.user.clientSecret
+            }, function (Error) {
+
+                if (Error) {
+                    Response.status(400);
+                    Response.send({success: false, error: Error});
+                    return;
+                }
+
+            });
+
+            Response.send({token: Request.session.deletingToken});
+
+        } else if(Request.method === 'DELETE') {
+
+            if(Request.session.deletable) {
+                try {
+                    await user.remove();
+                    await ApiUserAccount.remove();
+                    Request.session.destroy();
+                    Response.send({success: true, message: 'User account was successfully deleted'});
+                } catch(Error) {
+                    Response.status(400);
+                    Response.send({success: false, message: Error.message});
+                }
+
+            } else {
+                Response.status(400);
+                Response.send({success:false, message: 'Deleting in not verified'})
+            }
+        }
+    }
+
+
+    verifyUserAccountDeleting(Request, Response) {
+        let token = Request.params.token;
+
+        if(token === Request.session.deletingToken) {
+
+            Request.session.deletable = true;
+            Response.send({success: true});
+        } else {
+            Response.send({success: true, error: 'Wrong deletable token'});
+        }
+
+
+    }
+
+    deletingTokenGenerate(count) {
+        let result = '';
+        let words = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+        let max_position = words.length - 1;
+
+        for (let i = 0; i < count; ++i) {
+            let position = Math.floor(Math.random() * max_position);
+            result = result + words.substring(position, position + 1);
+        }
+
+        return result;
+
+    }
+}
+module.exports = new UserController();
