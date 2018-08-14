@@ -66,6 +66,32 @@ class UserController {
 
     }
 
+    isMember(Request, Response) {
+
+        try {
+            User.findById(mongoose.Types.ObjectId(Request.query.publicKey)).then( user => {
+
+                if(user) {
+                    let joinDate = new Date(user.joinDate);
+                    let now = new Date();
+                    const daysRemaning = parseInt((now.getTime() - joinDate.getTime()) / (1000*60*60*24), 10);
+                    Response.send({success:true, days:daysRemaning});
+                } else {
+                    Response.status(400);
+                    Response.send({success:false});
+                }
+
+            }).catch( Error => {
+                Response.status(400);
+                Response.send({success:false, error: Error});
+            });
+        } catch(Error) {
+            Response.status(400);
+            Response.send({success:false, error: Error.message});
+        }
+        
+    }
+
     deletingTokenGenerate(count) {
         let result = '';
         let words = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
