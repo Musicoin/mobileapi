@@ -1,8 +1,8 @@
 const request = require('request');
 
 const loadConfig = function(argsv) {
-  return getDefaultKeyValueConfig()
-    .then(config => {
+   const config = getDefaultKeyValueConfig()
+
       const cmdLineOverrides = convertArgsToKeyValuePairs(argsv);
 
       // Override defaults
@@ -14,7 +14,7 @@ const loadConfig = function(argsv) {
       // Allow computed values to be overridden directly from the command line
       Object.assign(config, cmdLineOverrides);
       return getStructuredConfig(config);
-    })
+
 };
 
 function getStructuredConfig(keyValuePairs) {
@@ -71,9 +71,7 @@ function getInstanceVariables() {
 }
 
 function getDefaultKeyValueConfig() {
-  return getInstanceVariables()
-    .then(instanceVars => {
-      let env = Object.assign(instanceVars, process.env);
+      const env = process.env;
       return {
         web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
         ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
@@ -90,9 +88,19 @@ function getDefaultKeyValueConfig() {
         musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
         orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
         maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
-        sessionSecretKey: env.SESSION_SECRET_KEY || 'secret'
+        sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
+        MailClient: {
+            email:"dev.smartit@gmail.com",
+            host: "smtp.gmail.com",
+            port:465,
+            transportMethod:"SMTP",
+            auth: {
+                "user": "dev.smartit@gmail.com",
+                "pass": "OVu?zxDYcq9AmLEN"
+            }
+        }
       };
-    });
+
 }
 
 module.exports.loadConfig = loadConfig;
