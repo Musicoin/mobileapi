@@ -1,4 +1,4 @@
-/*
+/**
 *
 *   MODELS
 *
@@ -8,18 +8,18 @@ const User = require('../../../components/models/core/user');
 const ApiUser = require('../../../components/models/core/api-user');
 
 
-/*
+/**
 *   VALIDATION SCHEMAS
 */
 const AuthSchema = require('../ValidatorSchemas/AuthSchema');
-/*
+/**
 *  LIBS
 *
 * */
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
-
-/*
+const bcrypt = require('bcrypt-nodejs');
+/**
 *  AUTH CONTROLLER
 *
 *  Controls users functional on authentication and authorization
@@ -28,40 +28,41 @@ const Validator = new ValidatorClass();
 * */
 class AuthController {
 
-    /*
+    /**
     *
     *
-    * @return -> Object()
+    * @return Object()
     *
-    * user -> Object() - form users Colletion
-    * apiUser -> Object() - from apiuseracoounts Collection
+    *          success: Boolean
+    *          publicKey: String
     *
     * */
+
     registerNewUser(req, res) {
 
         const $this = this;
+        let body = req.body;
 
-        let errors = Validator.validate(req.body, AuthSchema.signup);
+        body.password = bcrypt.hashSync(body.password);
+
+        let errors = Validator.validate(body, AuthSchema.signup);
 
         if(errors === true) {
 
-            User.create({local:req.body}).then( user => {
+            User.create({local:body}).then( user => {
 
                 ApiUser.create({
                     clientId: user._id,
                     clientSecret: $this.clientSecretGenerate(30)
                 }).then( ApiUser => {
-                    res.send({
-                        user: user,
-                        apiUser: ApiUser
-                    });
+                    res.send({success: true, publicKey: ApiUser.clientId});
                 }).catch( Error => {
                     res.status(400);
                     res.send({success: false, error: Error})
                 });
             }).catch( Error => {
                 res.status(400);
-                res.send({success: false, error: Error})
+                res.send({success: false, error: Error});
             });
 
 
@@ -70,8 +71,7 @@ class AuthController {
         }
     }
 
-
-    /*
+    /**
     *
     * @get
     *

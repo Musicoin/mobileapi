@@ -173,6 +173,10 @@ const userSchema = mongoose.Schema({
     emailVerified: {
         type: Boolean,
         default: false
+    },
+    membershipLevel: {
+        type: Number,
+        default: 1
     }
 });
 // methods ======================

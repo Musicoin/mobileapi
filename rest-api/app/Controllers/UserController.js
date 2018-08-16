@@ -1,4 +1,5 @@
 const User = require('./../../../components/models/core/user');
+const MainUser = require('./../../../components/models/main/user');
 const ApiUser = require('./../../../components/models/core/api-user');
 const mongoose = require('mongoose');
 
@@ -13,7 +14,7 @@ class UserController {
             Request.session.deletingToken = deletingToken;
 
             Response.mailer.send('deleting', {
-                domain:'http://127.0.0.1:3000',
+                domain: process.env.DOMAIN,
                 to: user.local.email,
                 deletingToken: deletingToken,
                 subject: 'Test Email',
@@ -62,20 +63,18 @@ class UserController {
         } else {
             Response.send({success: true, error: 'Wrong deletable token'});
         }
-
-
     }
 
     isMember(Request, Response) {
 
         try {
-            User.findById(mongoose.Types.ObjectId(Request.query.publicKey)).then( user => {
+            User.findById(mongoose.Types.ObjectId(Request.params.id)).then( user => {
 
                 if(user) {
                     let joinDate = new Date(user.joinDate);
                     let now = new Date();
                     const daysRemaning = parseInt((now.getTime() - joinDate.getTime()) / (1000*60*60*24), 10);
-                    Response.send({success:true, days:daysRemaning});
+                    Response.send({success:true, daysRemaning:daysRemaning, membershipLevel: user.membershipLevel});
                 } else {
                     Response.status(400);
                     Response.send({success:false});
@@ -89,7 +88,27 @@ class UserController {
             Response.status(400);
             Response.send({success:false, error: Error.message});
         }
-        
+
+    }
+
+    getUserInfo(Request, Response) {
+
+        User.findById(Request.params.id).then( user => {
+
+            try{
+                ApiUser.findOne({clientId: mongoose.Types.ObjectId(Request.params.id)}).then( async apiUser => {
+                    delete apiUser._doc.clientSecret;
+                    Response.send({user: user, apiUser: apiUser});
+                });
+            } catch(Error) {
+                Response.status(400);
+                Response.send({success: false, error: Error.message});
+            }
+
+        }).catch( Error => {
+            Response.status(400);
+            Response.send({success: false, error: Error});
+        })
     }
 
     deletingTokenGenerate(count) {

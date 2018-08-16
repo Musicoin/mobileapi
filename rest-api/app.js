@@ -44,7 +44,7 @@ const RateLimiter = new RateLimit({
 });
 
 
-app.set('views', '/var/www/node/muscoin/api/rest-api/views');
+app.set('views', './rest-api/views');
 app.set('view engine', 'pug');
 
 mailer.extend(app, {
