@@ -78,6 +78,8 @@ class AuthMiddleware {
 
                                     Request.session.user.calls++;
 
+                                    store.set(Request.query.clientId, Request.session);
+
                                     next();
                                 }
                             } else {

@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
 
-app.enable('trust proxy');
+// app.enable('trust proxy');
 
 const store = new MemoryStore();
 
@@ -36,6 +36,12 @@ app.use(session({
         return Request.query.clientId;
     }
 }));
+
+
+app.use(function(Request, Response, next){
+    Request.store = store;
+    next();
+});
 
 const RateLimiter = new RateLimit({
     windowMs: 1000,

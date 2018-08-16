@@ -7,11 +7,14 @@ class UserController {
 
     async deleteUserAccount(Request, Response) {
 
+
+
         const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
         const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
         if(Request.method === 'POST') {
             const deletingToken = this.deletingTokenGenerate(80);
             Request.session.deletingToken = deletingToken;
+            Request.store.set(Request.query.clientId, Request.session);
 
             Response.mailer.send('deleting', {
                 domain: process.env.DOMAIN,
@@ -55,7 +58,6 @@ class UserController {
 
     verifyUserAccountDeleting(Request, Response) {
         let token = Request.params.token;
-
         if(token === Request.session.deletingToken) {
 
             Request.session.deletable = true;
