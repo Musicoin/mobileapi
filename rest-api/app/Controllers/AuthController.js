@@ -71,6 +71,42 @@ class AuthController {
         }
     }
 
+
+    getAPICredentials(Request, Response) {
+
+
+        let Errors = Validator.validate(Request.body, AuthSchema.login);
+
+        if(Errors === true) {
+            User.findOne({
+                "local.email": Request.body.email,
+            }).then( user => {
+
+                if(user && bcrypt.compareSync(Request.body.password, user.local.password)) {
+
+                    ApiUser.findOne({
+                        clientId: user._id
+                    }).then( apiUser => {
+                        if(apiUser) {
+                            Response.send({success: true, apiuser: apiUser});
+                        } else {
+                            Response.send({success: false, error: 'Api user account does not found'});
+                        }
+                    })
+
+                } else {
+                    Response.send(401);
+                    Response.send({success: false, error: 'Unauthorized'});
+                }
+
+            });
+        } else {
+            Response.send(Errors);
+        }
+
+
+    }
+
     /**
     *
     * @get

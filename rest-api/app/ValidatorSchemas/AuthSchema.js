@@ -10,6 +10,15 @@ const SignUp = {
     }
 };
 
+const Login = {
+    password: {
+        type: "string", min:6
+    },
+    email : {
+        type: 'email'
+    }
+};
+
 const SignIn = {
     clientId: {
         type:"string",
@@ -23,5 +32,6 @@ const SignIn = {
 
 module.exports = {
     signup: SignUp,
-    signin: SignIn
+    signin: SignIn,
+    login: Login
 };
