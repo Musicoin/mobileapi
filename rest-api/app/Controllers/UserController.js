@@ -130,10 +130,11 @@ class UserController {
                            _id: mongoose.Types.ObjectId(user._id),
                            total: { $sum: '$directTipCount' },
                        }
-                   }
+                   });
 
-               );
-               ResponseInstance.tipCount = tipCount[0].total;
+                if(tipCount.length > 0 ) {
+                    ResponseInstance.tipCount = tipCount[0].total;
+                }
 
            } catch(Error) {
                 Response.send(400, {success: false, error: Error.message});
