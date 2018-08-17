@@ -88,7 +88,14 @@ class AuthController {
                         clientId: user._id
                     }).then( apiUser => {
                         if(apiUser) {
-                            Response.send({success: true, apiuser: apiUser});
+
+                            Response.send({
+                                success: true,
+                                apiuser: {
+                                    clinetId: apiUser.clientId,
+                                    clientSecret: apiUser.clientSecret
+                                }
+                            });
                         } else {
                             Response.send({success: false, error: 'Api user account does not found'});
                         }
