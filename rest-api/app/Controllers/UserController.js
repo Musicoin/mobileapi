@@ -1,9 +1,15 @@
 const User = require('./../../../components/models/core/user');
 const MainUser = require('./../../../components/models/main/user');
 const ApiUser = require('./../../../components/models/core/api-user');
+const Release = require('./../../../components/models/core/release');
+
 const mongoose = require('mongoose');
 
 class UserController {
+
+    constructor(config) {
+        this.config = config;
+    }
 
     async deleteUserAccount(Request, Response) {
 
@@ -95,21 +101,53 @@ class UserController {
 
     getUserInfo(Request, Response) {
 
-        User.findById(Request.params.id).then( user => {
+        User.findById(Request.params.id).then( async user => {
 
-            try{
-                ApiUser.findOne({clientId: mongoose.Types.ObjectId(Request.params.id)}).then( async apiUser => {
-                    delete apiUser._doc.clientSecret;
-                    Response.send({user: user, apiUser: apiUser});
-                });
-            } catch(Error) {
-                Response.status(400);
-                Response.send({success: false, error: Error.message});
+            let ResponseInstance = {
+                createdBy: this.config.publishingAccount,
+                artistName: user.draftProfile.artistName || '',
+                contractVersion: this.config.contractVersion,
+                imageUrl: user.draftProfile.ipfsImageUrl || '',
+                followers: user.followerCount,
+                socialUrl: '',
+                tipCount: 0,
+                balance: 0,
+                membershipLevel: user.membershipLevel
+            };
+
+            if(user.draftProfile.social) {
+                ResponseInstance.socialUrl = user.draftProfile.social.socialUrl || '';
             }
 
+           try {
+                const tipCount = await Release.aggregate(
+                   {
+                       $match: {
+                           artist: mongoose.Types.ObjectId(user._id)
+                       }
+                   },
+                   { $group: {
+                           _id: mongoose.Types.ObjectId(user._id),
+                           total: { $sum: '$directTipCount' },
+                       }
+                   }
+
+               );
+               ResponseInstance.tipCount = tipCount[0].total;
+
+           } catch(Error) {
+                Response.send(400, {success: false, error: Error.message});
+           }
+
+            const apiUser = await ApiUser.findOne({
+                clientId: mongoose.Types.ObjectId(user._id)
+            });
+            ResponseInstance.balance = apiUser.balance;
+
+            Response.send(ResponseInstance);
         }).catch( Error => {
             Response.status(400);
-            Response.send({success: false, error: Error});
+            Response.send({success: false, error: Error.message});
         })
     }
 
@@ -127,4 +165,4 @@ class UserController {
 
     }
 }
-module.exports = new UserController();
+module.exports =  UserController;

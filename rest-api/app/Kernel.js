@@ -4,6 +4,7 @@ const MusicoinCore = require("./../../mc-core");
 const ArtistController = require('./Controllers/ArtistController');
 const LicenseController = require('./Controllers/LicenseController');
 const TxController = require('./Controllers/TxController');
+const UserController =  require('./Controllers/UserController');
 
 const config = ConfigUtils.loadConfig(process.argv);
 
@@ -21,7 +22,7 @@ const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndp
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
 const ReleaseModule = require('./Controllers/ReleaseController');
-const UserModule = require('./Controllers/UserController');
+const UserModule = new UserController(config);
 
 module.exports = {
     licenseModule: licenseModule,

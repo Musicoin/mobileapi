@@ -89,6 +89,7 @@ function getDefaultKeyValueConfig() {
         orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
         maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
         sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
+        contractVersion: env.CONTRACT_VERSION ||  "v0.3",
         MailClient: {
             email:"dev.smartit@gmail.com",
             host: "smtp.gmail.com",
