@@ -92,7 +92,7 @@ class AuthController {
                             Response.send({
                                 success: true,
                                 apiuser: {
-                                    clinetId: apiUser.clientId,
+                                    clientId: apiUser.clientId,
                                     clientSecret: apiUser.clientSecret
                                 }
                             });
