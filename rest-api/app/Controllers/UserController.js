@@ -112,6 +112,9 @@ class UserController {
                 socialUrl: '',
                 tipCount: 0,
                 balance: 0,
+                forwardingAddress: this.config.forwardingAddress,
+                descriptionUrl:'',
+                prettyUrl: '',
                 membershipLevel: user.membershipLevel
             };
 
