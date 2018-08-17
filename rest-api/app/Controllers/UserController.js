@@ -101,65 +101,69 @@ class UserController {
 
     getUserInfo(Request, Response) {
 
-        User.findById(Request.params.id).then( async user => {
+        ApiUser.findById(Request.params.id).then(apiuser => {
+            User.findById(apiuser.clientId).then( async user => {
+                if (!user) {
+                    Response.status(400);
+                    Response.send({success: false, error: 'There are no such user founded'});
 
-            if(!user) {
-                Response.status(400);
-                Response.send({success: false, error: 'There are no such user founded'});
-
-                return;
-            }
-
-            let ResponseInstance = {
-                createdBy: this.config.publishingAccount,
-                artistName: user.draftProfile.artistName || '',
-                contractVersion: this.config.contractVersion,
-                imageUrl: user.draftProfile.ipfsImageUrl || '',
-                followers: user.followerCount,
-                socialUrl: '',
-                tipCount: 0,
-                balance: 0,
-                forwardingAddress: this.config.forwardingAddress,
-                descriptionUrl:'',
-                prettyUrl: '',
-                membershipLevel: user.membershipLevel
-            };
-
-            if(user.draftProfile.social) {
-                ResponseInstance.socialUrl = user.draftProfile.social.socialUrl || '';
-            }
-
-           try {
-                const tipCount = await Release.aggregate(
-                   {
-                       $match: {
-                           artist: mongoose.Types.ObjectId(user._id)
-                       }
-                   },
-                   { $group: {
-                           _id: mongoose.Types.ObjectId(user._id),
-                           total: { $sum: '$directTipCount' },
-                       }
-                   });
-
-                if(tipCount.length > 0 ) {
-                    ResponseInstance.tipCount = tipCount[0].total;
+                    return;
                 }
 
-           } catch(Error) {
-                Response.send(400, {success: false, error: Error.message});
-           }
+                let ResponseInstance = {
+                    createdBy: this.config.publishingAccount,
+                    artistName: user.draftProfile.artistName || '',
+                    contractVersion: this.config.contractVersion,
+                    imageUrl: user.draftProfile.ipfsImageUrl || '',
+                    followers: user.followerCount,
+                    socialUrl: '',
+                    tipCount: 0,
+                    balance: apiuser.balance,
+                    forwardingAddress: this.config.forwardingAddress,
+                    descriptionUrl: '',
+                    prettyUrl: '',
+                    membershipLevel: user.membershipLevel
+                };
 
-            const apiUser = await ApiUser.findOne({
-                clientId: mongoose.Types.ObjectId(user._id)
-            });
-            ResponseInstance.balance = apiUser.balance;
+                if (user.draftProfile.social) {
+                    ResponseInstance.socialUrl = user.draftProfile.social.socialUrl || '';
+                }
 
-            Response.send(ResponseInstance);
-        }).catch( Error => {
+                try {
+                    const tipCount = await Release.aggregate(
+                        {
+                            $match: {
+                                artist: mongoose.Types.ObjectId(user._id)
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: mongoose.Types.ObjectId(user._id),
+                                total: {$sum: '$directTipCount'},
+                            }
+                        });
+
+                    if (tipCount.length > 0) {
+                        ResponseInstance.tipCount = tipCount[0].total;
+                    }
+
+                } catch (Error) {
+                    Response.send(400, {success: false, error: Error.message});
+                }
+
+                Response.send(ResponseInstance);
+
+            }).catch(Error => {
+
+                Response.status(400);
+                Response.send({success: false, error: Error.message});
+
+            })
+        }).catch(Error => {
             Response.status(400);
             Response.send({success: false, error: Error.message});
-        })
+        });
+
     }
 
     deletingTokenGenerate(count) {
