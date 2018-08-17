@@ -102,6 +102,12 @@ class UserController {
     getUserInfo(Request, Response) {
 
         ApiUser.findById(Request.params.id).then(apiuser => {
+            if (!apiuser) {
+                Response.status(400);
+                Response.send({success: false, error: 'There are no such Api user account founded'});
+
+                return;
+            }
             User.findById(apiuser.clientId).then( async user => {
                 if (!user) {
                     Response.status(400);
