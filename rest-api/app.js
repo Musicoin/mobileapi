@@ -24,6 +24,8 @@ function loadApp(config) {
   const licenseModule = require("./license").init(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
   const artistModule = require("./artist").init(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
   const txModule = require("./tx").init(musicoinCore.getTxModule(), config.orbiterEndpoint);
+  const rewardMax = config.rewardMax;
+  const rewardMin = config.rewardMin;
 
   musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword);
   mongoose.connect(config.keyDatabaseUrl);
@@ -94,8 +96,20 @@ function loadApp(config) {
       });
   });
 
-  app.post("/reward", jsonParser, (req, res) => {
-    musicoinCore.getWeb3Writer().sendCoins(req.body.recipient, req.body.musicoins, paymentAccountCredentialsProvider)
+  app.post("/rewardmax", jsonParser, (req, res) => {
+    musicoinCore.getWeb3Writer().sendCoins(req.body.recipient, rewardMax, paymentAccountCredentialsProvider)
+      .then(tx => {
+        res.json({tx: tx});
+      })
+      .catch(function (err) {
+        console.log(`Reward request failed: ${err}`);
+        res.status(500);
+        res.send(err);
+      });
+  });
+  
+  app.post("/rewardmin", jsonParser, (req, res) => {
+    musicoinCore.getWeb3Writer().sendCoins(req.body.recipient, rewardMin, paymentAccountCredentialsProvider)
       .then(tx => {
         res.json({tx: tx});
       })

@@ -87,7 +87,9 @@ function getDefaultKeyValueConfig() {
         musicoinOrgClientID: env.MUSICOIN_ORG_CLIENT_ID || "clientID",
         musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
         orbiterEndpoint: env.ORBITER_ENDPOINT || "http://orbiter.musicoin.org/internal",
-        maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1
+        maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
+        rewardMax: env.REWARD_MAX || 250,
+        rewardMin: env.REWARD_MIN || 50
       };
     });
 }
