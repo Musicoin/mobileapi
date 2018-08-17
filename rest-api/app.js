@@ -69,13 +69,13 @@ app.use(require('./routes/auth'));
 =======
 >>>>>>> rebuild architecture of Controllers, routes and application structure
 
-app.use('/api', AuthMiddleware.checkTokens(store), RateLimiter);
-app.use('/api/user', require('./routes/user'));
-app.use('/api/package', require('./routes/package'));
-app.use('/api/release', require('./routes/release'));
-app.use("/api/license", require('./routes/license'));
-app.use('/api/artist', require('./routes/artist'));
-app.use("/api/tx", require('./routes/tx'));
+app.use('/', AuthMiddleware.checkTokens(store), RateLimiter);
+app.use('/user', require('./routes/user'));
+app.use('/package', require('./routes/package'));
+app.use('/release', require('./routes/release'));
+app.use("/license", require('./routes/license'));
+app.use('/artist', require('./routes/artist'));
+app.use("/tx", require('./routes/tx'));
 
 const Users = require('./../components/models/main/user');
 
