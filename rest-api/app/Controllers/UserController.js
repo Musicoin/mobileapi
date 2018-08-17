@@ -76,7 +76,7 @@ class UserController {
     isMember(Request, Response) {
 
         try {
-            User.findById(mongoose.Types.ObjectId(Request.params.id)).then( user => {
+            User.findById(mongoose.Types.ObjectId(Request.query.clientId)).then( user => {
 
                 if(user) {
                     let joinDate = new Date(user.joinDate);
@@ -101,75 +101,69 @@ class UserController {
 
     getUserInfo(Request, Response) {
 
-        ApiUser.findById(Request.params.id).then(apiuser => {
-            if (!apiuser) {
+        User.findById(Request.query.clientId).then( async user => {
+            if (!user) {
                 Response.status(400);
-                Response.send({success: false, error: 'There are no such Api user account founded'});
+                Response.send({success: false, error: 'There are no such user founded'});
 
                 return;
             }
-            User.findById(apiuser.clientId).then( async user => {
-                if (!user) {
-                    Response.status(400);
-                    Response.send({success: false, error: 'There are no such user founded'});
 
-                    return;
+            let ResponseInstance = {
+                createdBy: this.config.publishingAccount,
+                artistName: user.draftProfile.artistName || '',
+                contractVersion: this.config.contractVersion,
+                imageUrl: user.draftProfile.ipfsImageUrl || '',
+                followers: user.followerCount,
+                socialUrl: '',
+                tipCount: 0,
+                balance: 0,
+                forwardingAddress: this.config.forwardingAddress,
+                descriptionUrl: '',
+                prettyUrl: '',
+                membershipLevel: user.membershipLevel
+            };
+
+            if (user.draftProfile.social) {
+                ResponseInstance.socialUrl = user.draftProfile.social.socialUrl || '';
+            }
+
+            try {
+                const tipCount = await Release.aggregate(
+                    {
+                        $match: {
+                            artist: mongoose.Types.ObjectId(user._id)
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: mongoose.Types.ObjectId(user._id),
+                            total: {$sum: '$directTipCount'},
+                        }
+                    });
+
+                if (tipCount.length > 0) {
+                    ResponseInstance.tipCount = tipCount[0].total;
                 }
 
-                let ResponseInstance = {
-                    createdBy: this.config.publishingAccount,
-                    artistName: user.draftProfile.artistName || '',
-                    contractVersion: this.config.contractVersion,
-                    imageUrl: user.draftProfile.ipfsImageUrl || '',
-                    followers: user.followerCount,
-                    socialUrl: '',
-                    tipCount: 0,
-                    balance: apiuser.balance,
-                    forwardingAddress: this.config.forwardingAddress,
-                    descriptionUrl: '',
-                    prettyUrl: '',
-                    membershipLevel: user.membershipLevel
-                };
+            } catch (Error) {
+                Response.send(400, {success: false, error: Error.message});
+            }
 
-                if (user.draftProfile.social) {
-                    ResponseInstance.socialUrl = user.draftProfile.social.socialUrl || '';
-                }
+            const apiUser = await ApiUser.findOne({
+                clientId: user._id
+            });
 
-                try {
-                    const tipCount = await Release.aggregate(
-                        {
-                            $match: {
-                                artist: mongoose.Types.ObjectId(user._id)
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: mongoose.Types.ObjectId(user._id),
-                                total: {$sum: '$directTipCount'},
-                            }
-                        });
+            ResponseInstance.balance = apiUser.balance;
 
-                    if (tipCount.length > 0) {
-                        ResponseInstance.tipCount = tipCount[0].total;
-                    }
+            Response.send(ResponseInstance);
 
-                } catch (Error) {
-                    Response.send(400, {success: false, error: Error.message});
-                }
-
-                Response.send(ResponseInstance);
-
-            }).catch(Error => {
-
-                Response.status(400);
-                Response.send({success: false, error: Error.message});
-
-            })
         }).catch(Error => {
+
             Response.status(400);
             Response.send({success: false, error: Error.message});
-        });
 
+        })
     }
 
     deletingTokenGenerate(count) {
