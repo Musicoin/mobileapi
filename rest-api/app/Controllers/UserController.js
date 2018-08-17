@@ -103,6 +103,13 @@ class UserController {
 
         User.findById(Request.params.id).then( async user => {
 
+            if(!user) {
+                Response.status(400);
+                Response.send({success: false, error: 'There are no such user founded'});
+
+                return;
+            }
+
             let ResponseInstance = {
                 createdBy: this.config.publishingAccount,
                 artistName: user.draftProfile.artistName || '',
