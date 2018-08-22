@@ -1,3 +1,3 @@
 const mongoose = require('mongoose');
 
-module.exports = mongoose.createConnection('mongodb://localhost/key-store');
+module.exports = mongoose.createConnection('mongodb://localhost/musicoin-org');

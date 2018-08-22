@@ -70,14 +70,13 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
       "draftProfile.genres": genre1
     });
   }
-  console.log(query);
+
   return query.sort({
       joinDate: 'desc'
-    }).limit(limit).exec()
-    .then(records => records.map(r => this.convertDbRecordToArtist(r)))
-    .then(promises => Promise.all(promises))
+    }).limit(limit).exec();
 
-}
+};
+
 ArtistModule.prototype.getFeaturedArtists = function(limit) {
   // find recently joined artists that have at least one release
   let query = User.find({ profileAddress: { $ne: null } })
@@ -166,5 +165,6 @@ ArtistModule.prototype.pppFromProfile = function(profileAddress, licenseAddress,
 ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProvider) {
   return this.web3Writer.releaseArtistProfile(releaseRequest, credentialsProvider);
 };
+
 
 module.exports = ArtistModule;

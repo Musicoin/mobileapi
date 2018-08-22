@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const LicenseKey = require('../../../components/models/core/key');
 const Release = require('./../../../components/models/core/release');
-
+const ReleaseStats = require('./../../../components/models/core/release-stat');
 const User = require('./../../../components/models/core/user');
 const defaultRecords = 20;
 const maxRecords = 100;
@@ -140,8 +140,22 @@ class ArtistController {
             };
 
             for(let release of releases) {
-                ResponseInstance.totalTips += release.directTipCount;
-                ResponseInstance.totalPlays += release.directPlayCount;
+                  let stats = await ReleaseStats.aggregate(
+                    {
+                        $match: {
+                            release: mongoose.Types.ObjectId(release._id)
+                        },
+                    },{
+                        $group: {
+                            _id: null,
+                            tipCount: {$sum:'$tipCount'},
+                            playCount: {$sum:'$playCount'},
+                        }
+
+                    });
+
+                ResponseInstance.totalPlays += stats[0].playCount;
+                ResponseInstance.totalTips += stats[0].tipCount;
             }
 
             ResponseInstance.totalReleases = releases.length;
@@ -158,19 +172,33 @@ class ArtistController {
     async getArtistPlays(Request, Response) {
 
         try{
-            const playsCount = await Release.aggregate(
-                {
-                    $match: {
-                        artist: mongoose.Types.ObjectId(Request.params.id)
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        total: {$sum: '$directPlayCount'},
-                    }
-                });
-            Response.send(playsCount);
+            Release.find({
+                artist: mongoose.Types.ObjectId(Request.params.id)
+            }).then( async releases => {
+
+                let playsCount = 0;
+
+                for(let release of releases) {
+                    let stats = await ReleaseStats.aggregate(
+                        {
+                            $match: {
+                                release: mongoose.Types.ObjectId(release._id)
+                            },
+                        },{
+                            $group: {
+                                _id: null,
+                                tipCount: {$sum:'$tipCount'},
+                                playCount: {$sum:'$playCount'},
+                            }
+
+                        });
+
+                    playsCount += stats[0].playCount;
+                }
+
+                Response.send({success:true, playsCount: playsCount});
+
+            });
         } catch (Error) {
             Response.status(400);
             Response.send({success: false, error: Error.message});
@@ -179,19 +207,32 @@ class ArtistController {
 
     async getArtistTips(Request, Response) {
         try {
-            const tipsCount = await Release.aggregate(
-                {
-                    $match: {
-                        artist: mongoose.Types.ObjectId(Request.params.id)
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        total: {$sum: '$directTipCount'},
-                    }
-                });
-            Response.send(tipsCount);
+            Release.find({
+                artist: mongoose.Types.ObjectId(Request.params.id)
+            }).then( async releases => {
+
+                let tipCount = 0;
+
+                for(let release of releases) {
+                    let stats = await ReleaseStats.aggregate(
+                        {
+                            $match: {
+                                release: mongoose.Types.ObjectId(release._id)
+                            },
+                        },{
+                            $group: {
+                                _id: null,
+                                tipCount: {$sum:'$tipCount'},
+                                playCount: {$sum:'$playCount'},
+                            }
+
+                        });
+
+                    tipCount += stats[0].tipCount;
+                }
+
+                Response.send({success:true, tipCount: tipCount});
+            });
         } catch(Error) {
             Response.status(400);
             Response.send({success: false, error: Error.message});
