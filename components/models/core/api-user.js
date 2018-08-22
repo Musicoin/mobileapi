@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
     type: Number,
     min: 0,
     default: 0
+  },
+  tie: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ApiPackage'
   }
 });
 

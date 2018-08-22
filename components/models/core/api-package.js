@@ -15,4 +15,4 @@ const packageSchema = mongoose.Schema({
 });
 
 // create the model for users and expose it to our app
-module.exports = coreConnection.model('APIpackages', packageSchema);
+module.exports = coreConnection.model('ApiPackage', packageSchema);

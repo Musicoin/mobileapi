@@ -71,6 +71,24 @@ class AuthController {
         }
     }
 
+    authenticateUser(Request, Response) {
+        let Errors = Validator.validate(Request.body, AuthSchema.login);
+
+        if(Errors === true) {
+            User.findOne({
+                "local.email": Request.body.email,
+            }).then( user => {
+
+                if (user && bcrypt.compareSync(Request.body.password, user.local.password)) {
+                    Response.send({success: true})
+                } else {
+                    Response.send({success: false});
+                }
+            });
+        } else {
+
+        }
+    }
 
     getAPICredentials(Request, Response) {
 
