@@ -3,6 +3,8 @@ const MainUser = require('./../../../components/models/main/user');
 const ApiUser = require('./../../../components/models/core/api-user');
 const Release = require('./../../../components/models/core/release');
 
+const Package = require('./../../../components/models/core/api-package');
+
 const mongoose = require('mongoose');
 
 class UserController {
@@ -162,6 +164,45 @@ class UserController {
 
             Response.status(400);
             Response.send({success: false, error: Error.message});
+
+        })
+    }
+
+    apiGetUsageStats(Request, Response) {
+        Request.store.get(Request.query.clientId, function(Error, Session) {
+
+            if(!Error && Session) {
+
+                ApiUser.findOne({
+                    clientId: mongoose.Types.ObjectId(Session.user.clientId)
+                }).populate('tie').then( async apiuser => {
+                    if(apiuser) {
+                        if(apiuser.tie !== undefined) {
+                            Response.send({
+                                tie:apiuser.tie.name,
+                                calls: Session.user.calls
+                            });
+                        } else {
+
+                            const Tie = await Package.findOne({
+                                name: 'Free'
+                            });
+
+                            Response.send({
+                                tie: Tie.name,
+                                calls: Session.user.calls
+                            });
+                        }
+
+                    }
+                }).catch( Error => {
+                    Response.status(400);
+                    Response.send({success: false, error: Error.message})
+                });
+
+            } else {
+                Response.send(Error)
+            }
 
         })
     }
