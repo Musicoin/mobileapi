@@ -270,29 +270,44 @@ class ArtistController {
     }
 
     async getArtistEarnings(Request, Response) {
-        try {
-            const data = await Release.aggregate(
-                {
-                    $match: {
-                        artist: mongoose.Types.ObjectId(Request.params.id)
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalTips: {$sum: '$directTipCount'},
-                        totalPlays: {$sum: '$directPlayCount'},
-                    }
+
+
+            Release.find({
+                artist: mongoose.Types.ObjectId(Request.params.id)
+            }).then( async releases => {
+
+                let tipCount = 0;
+                let playCount = 0;
+                for(let release of releases) {
+                    let stats = await ReleaseStats.aggregate(
+                        {
+                            $match: {
+                                release: mongoose.Types.ObjectId(release._id)
+                            },
+                        },{
+                            $group: {
+                                _id: null,
+                                tipCount: {$sum:'$tipCount'},
+                                playCount: {$sum:'$playCount'},
+                            }
+
+                        });
+
+                    tipCount += stats[0].tipCount;
+                    playCount += stats[0].playCount;
+                }
+
+                Response.send({
+                    success:true,
+                    tipCount: tipCount,
+                    playCount: playCount,
+                    earned: (tipCount + playCount)
                 });
-            Response.send({
-                totalPlays: data[0].totalPlays,
-                totalTips: data[0].totalTips,
-                earned: (data[0].totalPlays + data[0].totalTips)
+            }).catch( Error => {
+                Response.status(400);
+                Response.send({success: false, error: Error.message});
             });
-        } catch(Error) {
-            Response.status(400);
-            Response.send({success: false, error: Error.message});
-        }
+
     }
 }
 
