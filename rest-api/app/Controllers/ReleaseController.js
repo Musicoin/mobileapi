@@ -50,7 +50,10 @@ class ReleaseController {
     }
 
     getTrackDetails(Request, Response) {
-        Release.findById(Request.params.id).populate('artist').then( track => {
+        Release.findOne({
+            contractAddress: Request.params.publicKey
+        }).populate('artist').then( track => {
+
             if(track) {
                 Response.send({
                     success: true,

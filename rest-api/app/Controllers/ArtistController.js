@@ -129,7 +129,7 @@ class ArtistController {
 
     getArtistInfo(Request, Response) {
         Release.find({
-            artist: mongoose.Types.ObjectId(Request.params.id)
+            artistAddress: Request.params.publicKey
         }).then( async releases => {
 
             let ResponseInstance = {
@@ -160,7 +160,9 @@ class ArtistController {
 
             ResponseInstance.totalReleases = releases.length;
 
-            const artist = await User.findById(Request.params.id);
+            const artist = await User.find({
+                profileAddress: Request.params.publicKey
+            });
             ResponseInstance.totalFollowers = artist.followerCount;
             Response.send(ResponseInstance);
         }).catch( Error => {
@@ -173,7 +175,7 @@ class ArtistController {
 
         try{
             Release.find({
-                artist: mongoose.Types.ObjectId(Request.params.id)
+                artistAddress: Request.params.publicKey
             }).then( async releases => {
 
                 let playsCount = 0;
@@ -208,7 +210,7 @@ class ArtistController {
     async getArtistTips(Request, Response) {
         try {
             Release.find({
-                artist: mongoose.Types.ObjectId(Request.params.id)
+                artistAddress: Request.params.publicKey
             }).then( async releases => {
 
                 let tipCount = 0;
@@ -273,7 +275,7 @@ class ArtistController {
 
 
             Release.find({
-                artist: mongoose.Types.ObjectId(Request.params.id)
+                artistAddress: Request.params.publicKey
             }).then( async releases => {
 
                 let tipCount = 0;

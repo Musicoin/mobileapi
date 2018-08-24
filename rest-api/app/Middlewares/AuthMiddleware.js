@@ -21,6 +21,12 @@ class AuthMiddleware {
                 * Handle which watch in user current api calls count
                 *
                 * */
+                let valid = Validator.validate(Request.query, AuthSchema.signin);
+
+                if(valid !== true) {
+                    Response.send({success: false, error: valid});
+                    return;
+                }
 
                 if ( session ) {
                     if(session.user.clientSecret === Request.query.clientSecret) {
@@ -113,7 +119,7 @@ class AuthMiddleware {
             user.update({
                 calls: calls
             }).then( user => {
-                console.log('User '+user.clientId+' calls modified');
+                console.log('User '+userClientId+' calls modified');
             } );
 
         })
