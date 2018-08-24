@@ -308,9 +308,14 @@ class ArtistController {
                             }
 
                         });
+                    if(stats.length > 0) {
+                        tipCount += stats[0].tipCount;
+                        playCount += stats[0].playCount;
+                    } else{
+                        tipCount += release.directTipCount ? release.directTipCount : 0;
+                        playCount += release.directPlayCount ? release.directPlayCount : 0;
+                    }
 
-                    tipCount += stats[0].tipCount;
-                    playCount += stats[0].playCount;
                 }
 
                 Response.send({
