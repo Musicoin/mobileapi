@@ -131,14 +131,13 @@ class ArtistController {
         Release.find({
             artistAddress: Request.params.publicKey
         }).then( async releases => {
-
             let ResponseInstance = {
               totalTips: 0,
               totalFollowers: 0,
               totalReleases: 0,
               totalPlays: 0
             };
-            //
+
             for(let release of releases) {
                   let stats = await ReleaseStats.aggregate(
                     {
@@ -158,8 +157,8 @@ class ArtistController {
                     ResponseInstance.totalPlays += stats[0].playCount;
                     ResponseInstance.totalTips += stats[0].tipCount;
                 } else {
-                    ResponseInstance.totalPlays += release.directPlayCount;
-                    ResponseInstance.totalTips += release.directTipCount;
+                    ResponseInstance.totalPlays += release.directPlayCount ? release.directPlayCount : 0;
+                    ResponseInstance.totalTips += release.directTipCount ? release.directTipCount : 0;
                 }
             }
 
@@ -203,7 +202,7 @@ class ArtistController {
                         playsCount += stats[0].playCount;
 
                     } else {
-                        playsCount += release.directPlayCount;
+                        playsCount += release.directPlayCount ? release.directPlayCount : 0;
                     }
                 }
 
@@ -242,7 +241,7 @@ class ArtistController {
                         tipCount += stats[0].tipCount;
 
                     } else {
-                        tipCount += release.directTipCount;
+                        tipCount += release.directTipCount ? release.directTipCount : 0;
                     }
                 }
 
