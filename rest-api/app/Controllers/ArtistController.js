@@ -138,7 +138,7 @@ class ArtistController {
               totalReleases: 0,
               totalPlays: 0
             };
-
+            //
             for(let release of releases) {
                   let stats = await ReleaseStats.aggregate(
                     {
@@ -154,8 +154,13 @@ class ArtistController {
 
                     });
 
-                ResponseInstance.totalPlays += stats[0].playCount;
-                ResponseInstance.totalTips += stats[0].tipCount;
+                if(stats.length > 0) {
+                    ResponseInstance.totalPlays += stats[0].playCount;
+                    ResponseInstance.totalTips += stats[0].tipCount;
+                } else {
+                    ResponseInstance.totalPlays += release.directPlayCount;
+                    ResponseInstance.totalTips += release.directTipCount;
+                }
             }
 
             ResponseInstance.totalReleases = releases.length;
@@ -194,8 +199,12 @@ class ArtistController {
                             }
 
                         });
+                    if(stats.length > 0) {
+                        playsCount += stats[0].playCount;
 
-                    playsCount += stats[0].playCount;
+                    } else {
+                        playsCount += release.directPlayCount;
+                    }
                 }
 
                 Response.send({success:true, playsCount: playsCount});
@@ -229,8 +238,12 @@ class ArtistController {
                             }
 
                         });
+                    if(stats.length > 0) {
+                        tipCount += stats[0].tipCount;
 
-                    tipCount += stats[0].tipCount;
+                    } else {
+                        tipCount += release.directTipCount;
+                    }
                 }
 
                 Response.send({success:true, tipCount: tipCount});
