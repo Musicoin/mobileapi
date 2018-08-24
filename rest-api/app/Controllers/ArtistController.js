@@ -256,7 +256,7 @@ class ArtistController {
     async isArtist(Request, Response) {
         User.findOne({ profileAddress: { $exists: true, $ne: null } })
             .where({ mostRecentReleaseDate: { $exists: true, $ne: null } })
-            .where({ _id: mongoose.Types.ObjectId(Request.query.clientId)})
+            .where({ profileAddress: Request.params.publicKey})
             .exec()
             .then(user => {
                 if(user) {
@@ -271,7 +271,9 @@ class ArtistController {
     }
 
     async isArtistVerified(Request, Response) {
-        User.findById(Request.query.clientId).then(user => {
+        User.findOne({
+            profileAddress: Request.params.publicKey
+        }).then(user => {
             if(user) {
                 Response.send({success:true, verified: user.verified || false});
             } else {
