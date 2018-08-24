@@ -7,5 +7,5 @@ Router.delete('/delete', Kernel.userModule.deleteUserAccount.bind(Kernel.userMod
 Router.get('/delete/verify/:token', Kernel.userModule.verifyUserAccountDeleting.bind(Kernel.userModule));
 Router.get('/ismember', Kernel.userModule.isMember.bind(Kernel.userModule));
 Router.get('/info', Kernel.userModule.getUserInfo.bind(Kernel.userModule));
-Router.get('/stats', Kernel.userModule.apiGetUsageStats.bind(Kernel.userModule));
+Router.get('/usage/stats', Kernel.userModule.apiGetUsageStats.bind(Kernel.userModule));
 module.exports = Router;
