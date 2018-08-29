@@ -17,6 +17,24 @@ or stream a media file like this:
 
 http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 
+## User API
+
+### Create playlist
+- POST - /user/playlist
+- BODY
+***
+- Request example Object:
+```javascript
+  {
+	"name": String,
+	"user": {
+		"email": String,
+		"password": String
+	},
+	"songs": Array // of contractAddresses of songs
+  }
+```
+
 ## Releases API
 
 ### get Track UpVotes
