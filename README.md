@@ -22,8 +22,6 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 ### Create playlist
 - POST - /user/playlist
 - BODY
-***
-- Request example Object:
 ```javascript
   {
 	"name": String,
@@ -32,6 +30,54 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 		"password": String
 	},
 	"songs": Array // of contractAddresses of songs
+  }
+```
+- QUERY 
+	clientId, clientSecret
+- Reponse Object: 
+```javascript
+  {
+    "success": Boolean,
+    "playlistName": String,
+    "playlistUrl": String,
+    "creatorName": String,
+    "creatorUrl": String
+  }
+```
+### Get playlist
+- GET - /user/playlist/{name}
+- PARAMS 
+	- name - name of playlist (required)
+- QUERY 
+	clientId, clientSecret
+- Response object: 
+```javascript
+  {
+    "success": Boolean,
+    "playlistName": String,
+    "playlistUrl": String,
+    "creatorName": String,
+    "creatorUrl": String
+  }
+```
+
+### Delete playlist 
+- DELETE - /user/playlist/{name}
+- PARAMS 
+	- name - name of playlist (required)
+- BODY
+	- username - name of user who create this playlist (required)
+	- password - (required)
+- QUERY 
+	- clientId, clientSecret
+- Response object: 
+```javascript
+  {
+    "success": Boolean,
+    "playlistName": String,
+    "playlistUrl": String,
+    "creatorName": String,
+    "creatorUrl": String
   }
 ```
 
