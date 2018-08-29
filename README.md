@@ -47,7 +47,7 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 ### Get playlist
 - GET - /user/playlist/{name}
 - PARAMS 
-	- name - name of playlist (required)
+	- `name` - name of playlist (required)
 - QUERY 
 	clientId, clientSecret
 - Response object: 
@@ -66,8 +66,8 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 - PARAMS 
 	- name - name of playlist (required)
 - BODY
-	- username - name of user who create this playlist (required)
-	- password - (required)
+	- `username` - name of user who create this playlist (required)
+	- `password` - (required)
 - QUERY 
 	- clientId, clientSecret
 - Response object: 
@@ -86,10 +86,10 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 ### get Track UpVotes
 - GET - /release/upvotes/{contractAddress}
 - PARAMS
-	contractAddress - contractAddress of track
+	 - `contractAddress` - contractAddress of track
 - QUERY 
-	clientId, clientSecret
-Response Onject:
+	 - clientId, clientSecret
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -99,10 +99,10 @@ Response Onject:
 ### Get Track Plays
 - GET - /release/plays/{contractAddress}
 - PARAMS
-	contractAddress - contractAddress of track
+	- `contractAddress` - contractAddress of track
 - QUERY 
 	clientId, clientSecret
-Response Onject:
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -112,10 +112,10 @@ Response Onject:
 ### Get Track Tips
 - GET - /release/tips/{contractAddress}
 - PARAMS
-	contractAddress - contractAddress of track
+	 - `contractAddress` - contractAddress of track
 - QUERY 
 	clientId, clientSecret
-Response Onject:
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -126,10 +126,10 @@ Response Onject:
 ### Get Tracks By Genre
 - GET - /release/bygenre
 - QUERY 
-	clientId, clientSecret,
-	genre - String (required)
-	limit - Number (optional)
-Response Onject:
+	 - clientId, clientSecret,
+	 - `genre` - String (required)
+	 - `limit` - Number (optional)
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -152,9 +152,9 @@ Response Onject:
 ### Get Top Tracks
 - GET - /release/top
 - QUERY 
-	clientId, clientSecret,
-	limit - Number (optional)
-Response Onject:
+	 - clientId, clientSecret,
+	 - `limit` - Number (optional)
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -177,9 +177,9 @@ Response Onject:
 ### Get Recent Tracks
 - GET - /release/recent
 - QUERY 
-	clientId, clientSecret,
-	limit - Number (optional)
-Response Onject:
+	 - clientId, clientSecret,
+	 - `limit` - Number (optional)
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -202,10 +202,10 @@ Response Onject:
 ### Tip Track
 - POST - /release/tip/{contractAddress}
 - BODY
-	tip - Number (required)
+	 - `tip` - Number (required)
 - QUERY 
-	clientId, clientSecret
-Response Onject:
+	 - clientId, clientSecret
+- Response Onject:
 ```javascript
 {
     "success": Boolean,
@@ -217,9 +217,9 @@ Response Onject:
 
 - GET - /release/genres
 - QUERY 
-	clientId, clientSecret
+	- clientId, clientSecret
 
-Response Array:
+- Response Array:
 ``` javascript
 
 ['Genre name', ...]
@@ -234,7 +234,7 @@ Response Array:
 - QUERY 
 	clientId,clientSecret
 
-Response Object: 
+- Response Object: 
 ``` javascript
 
     "success": Boolean,
@@ -280,6 +280,24 @@ Response Object:
 ```
 
 ## Artist API
+
+### Get Artist of Week
+
+- GET - /artist/ofweek
+- QUERY 
+	clientId,clientSecret
+- Response Object:
+``` javascript
+{
+    "success": Boolean,
+    "data": [
+	{
+	    "artistName": String,
+            "artistAddress": String
+	}
+    ]
+}
+```
 
 
 ### getNewArtists()
