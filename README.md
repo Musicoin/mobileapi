@@ -19,6 +19,136 @@ http://localhost:3000/media/0x92e853935f8588956057ba87866fc6d58c82ba72
 
 ## Releases API
 
+### get Track UpVotes
+- GET - /release/upvotes/{contractAddress}
+- PARAMS
+	contractAddress - contractAddress of track
+- QUERY 
+	clientId, clientSecret
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "upVotes": Number
+}
+```
+### Get Track Plays
+- GET - /release/plays/{contractAddress}
+- PARAMS
+	contractAddress - contractAddress of track
+- QUERY 
+	clientId, clientSecret
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "plays": Number
+}
+```
+### Get Track Tips
+- GET - /release/tips/{contractAddress}
+- PARAMS
+	contractAddress - contractAddress of track
+- QUERY 
+	clientId, clientSecret
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "tips": Number
+}
+```
+
+### Get Tracks By Genre
+- GET - /release/bygenre
+- QUERY 
+	clientId, clientSecret,
+	genre - String (required)
+	limit - Number (optional)
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "data": [
+   	{
+            "title": String,
+            "link": String,
+            "pppLink": String,
+            "genres": Array,
+            "author": String,
+            "authorLink": String,
+            "trackImg": String,
+            "directTipCount": Number,
+            "directPlayCount": Number
+        } 
+    ]
+}
+```
+
+### Get Top Tracks
+- GET - /release/top
+- QUERY 
+	clientId, clientSecret,
+	limit - Number (optional)
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "data": [
+   	{
+            "title": String,
+            "link": String,
+            "pppLink": String,
+            "genres": Array,
+            "author": String,
+            "authorLink": String,
+            "trackImg": String,
+            "directTipCount": Number,
+            "directPlayCount": Number
+        } 
+    ]
+}
+```
+
+### Get Recent Tracks
+- GET - /release/recent
+- QUERY 
+	clientId, clientSecret,
+	limit - Number (optional)
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "data": [
+   	{
+            "title": String,
+            "link": String,
+            "pppLink": String,
+            "genres": Array,
+            "author": String,
+            "authorLink": String,
+            "trackImg": String,
+            "directTipCount": Number,
+            "directPlayCount": Number
+        } 
+    ]
+}
+```
+
+### Tip Track
+- POST - /release/tip/{contractAddress}
+- BODY
+	tip - Number (required)
+- QUERY 
+	clientId, clientSecret
+Response Onject:
+```javascript
+{
+    "success": Boolean,
+    "tipCount": Number 
+}
+```
+
 ### Get genres
 
 - GET - /release/genres
