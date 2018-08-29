@@ -1,5 +1,27 @@
+/**
+ *
+ *   MODELS
+ *
+ * */
+
 const Release = require('./../../../components/models/core/release');
 const ReleaseStat = require('./../../../components/models/main/release-stat');
+const Playlist = require('./../../../components/models/core/playlist');
+const User = require('./../../../components/models/core/user');
+const TipHistory = require('./../../../components/models/core/tip-history');
+
+/**
+ *   VALIDATION SCHEMAS
+ */
+const ReleaseSchema = require('./../ValidatorSchemas/ReleaseSchema');
+
+/**
+ *  LIBS
+ *
+ * */
+const mongoose = require('mongoose');
+const ValidatorClass = require('fastest-validator');
+const Validator = new ValidatorClass();
 
 const knownGenres = [
     "Alternative Rock",
@@ -34,15 +56,13 @@ const knownGenres = [
 
 class ReleaseController {
 
-    /**
-     * Test method
-     *
-     * */
-    async getTopTracks(Request, Response) {
 
-        let releaseStats = await ReleaseStat.find().populate('release');
-        let releases = await Release.find().populate('stats','release');
-        Response.send(releases);
+    limit(limit) {
+        if(limit && limit > 0) {
+            return limit;
+        } else {
+            return 10;
+        }
     }
 
     getGenres(Request, Response) {
@@ -124,6 +144,222 @@ class ReleaseController {
            Response.status(400);
            Response.send({success: false, error: Error.message})
         });
+    }
+
+    getTrackUpVotes(Request, Response) {
+        Release.findOne({
+            contractAddress: Request.params.publicKey
+        }).populate('artist').then( track => {
+
+            if(track) {
+                if(track.votes){
+                    Response.send({success: true, upVotes: track.votes.up})
+                } else {
+                    Response.send({success: true, message: 'There are no votes of this track'});
+                }
+            } else {
+                Response.send({success: false, message: 'Track does not exist'});
+            }
+        }).catch( Error => {
+            Response.status(400);
+            Response.send({success: false, error: Error.message});
+        });
+    }
+
+    getTrackTips(Request, Response) {
+        Release.findOne({
+            contractAddress: Request.params.publicKey
+        }).then( track => {
+
+            if(track) {
+                ReleaseStat.find({
+                    release: mongoose.Types.ObjectId(track._id)
+                }).then( releaseStats => {
+
+                    let totalTips = 0;
+
+                    for(let stat of releaseStats) {
+                        totalTips += stat.tipCount;
+                    }
+
+                    if(totalTips === 0 && track.directTipCount) {
+                        totalTips = track.directTipCount;
+                    }
+
+                    Response.send({success:true, totalTips: totalTips});
+
+                }).catch( Error => {
+                    Response.send(400, {success:false, error: Error.message});
+                });
+            } else {
+                Response.send({success: false, message: 'Track does not found'})
+            }
+
+        }).catch( Error => {
+            Response.status(400);
+            Response.send({success: false, error: Error.message})
+        })
+    }
+
+    getTrackPlays(Request, Response) {
+        Release.findOne({
+            contractAddress: Request.params.publicKey
+        }).populate('artist').then( track => {
+
+            if(track) {
+                ReleaseStat.find({
+                    release: mongoose.Types.ObjectId(track._id)
+                }).then( releaseStats => {
+
+                    let totalPlays = 0;
+
+                    for(let stat of releaseStats) {
+                        totalPlays += stat.playCount;
+                    }
+
+                    if(totalPlays === 0 && track.directPlayCount) {
+                        totalPlays = track.directPlayCount;
+                    }
+
+                    Response.send({success:true, totalPlays: totalPlays});
+
+                }).catch( Error => {
+                    Response.send(400, {success:false, error: Error.message});
+                });
+            } else {
+                Response.send({success: false, message: 'Track does not found'})
+            }
+
+        }).catch( Error => {
+            Response.status(400);
+            Response.send({success: false, error: Error.message})
+        })
+    }
+
+    getTracksByGenre(Request, Response) {
+
+        Release.find({genres: Request.query.genre})
+            .limit(this.limit(Number(Request.query.limit)))
+            .then(releases => {
+                let ReleasesArray = [];
+                for(let track of releases)
+                {
+                    ReleasesArray.push({
+                        title: track.title,
+                        link: 'https://musicion.org/nav/track/'+track.contractAddress,
+                        pppLink: track.tx,
+                        genres: track.genres,
+                        author: track.artistName,
+                        authorLink: 'https://musicoin.org/nav/artist/'+track.artistAddress,
+                        trackImg: track.imageUrl,
+                        trackDescription: track.description,
+                        directTipCount: track.directTipCount,
+                        directPlayCount: track.directPlayCount
+                    });
+                }
+
+                Response.send({success: true, data: ReleasesArray});
+            })
+            .catch( Error => {
+                Response.status(400);
+                Response.send({success:false, error: Error.message});
+            })
+    }
+
+    getTopTracks(Request, Response) {
+        Release.find()
+            .sort({directTipCount:'desc'})
+            .limit(this.limit(Number(Request.query.limit)))
+            .then( releases => {
+                let ReleasesArray = [];
+                for(let track of releases)
+                {
+                    ReleasesArray.push({
+                        title: track.title,
+                        link: 'https://musicion.org/nav/track/'+track.contractAddress,
+                        pppLink: track.tx,
+                        genres: track.genres,
+                        author: track.artistName,
+                        authorLink: 'https://musicoin.org/nav/artist/'+track.artistAddress,
+                        trackImg: track.imageUrl,
+                        trackDescription: track.description,
+                        directTipCount: track.directTipCount,
+                        directPlayCount: track.directPlayCount
+                    });
+                }
+
+                Response.send({success: true, data: ReleasesArray});
+            })
+            .catch( Error => {
+                Response.send(400, {success:false, error: Error.message})
+            });
+    }
+
+    getRecentTracks(Request, Response) {
+        Release.find({})
+            .sort({
+                releaseDate: 'desc'
+            })
+            .limit(this.limit(Number(Request.query.limit)))
+            .then( tracks =>  {
+               let TrackArray = [];
+
+               for(let track of tracks) {
+                   TrackArray.push({
+                       artistName: track.artistName,
+                       artistProfile: 'https://musicoin.org/nav/artist/'+ track.artistAddress,
+                       trackURL: 'https://musicion.org/nav/track/'+track.contractAddress
+                   });
+               }
+
+               Response.send({success: true, data: TrackArray});
+            })
+            .catch( Error => {
+                Response.status(400);
+                Response.send({success: false, error: Error.message});
+            });
+    }
+
+    tipTrack(Request, Response) {
+
+        const body = {
+            tip: Number(Request.body.tip)
+        };
+
+        const validate = Validator.validate(body, ReleaseSchema.tip);
+
+        if(validate === true) {
+            Release.findOne({contractAddress: Request.params.publicKey})
+                .then( async release => {
+                    if(release) {
+
+                        if(!release.directTipCount) {
+                            release.directTipCount = 0;
+                        }
+                        release.directTipCount += Number(body.tip);
+                        release.save();
+
+                       await TipHistory.create({
+                           user: Request.query.clientId,
+                           release: release._id,
+                           tipCount: body.tip,
+                           date: Date.now()
+                        });
+
+                        Response.send({success: true, tipCount: release.directTipCount})
+                    } else {
+                        Response.send({success: false, message: 'This track does not exist'});
+                    }
+                })
+                .catch( Error => {
+                    Response.status(400);
+                    Response.send({success: false, error: Error.message});
+                })
+        } else {
+            Response.status(400);
+            Response.send({success: false, error: validate})
+        }
+
     }
 
 }

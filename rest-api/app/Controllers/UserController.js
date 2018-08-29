@@ -1,12 +1,40 @@
+/**
+ *
+ *   MODELS
+ *
+ * */
 const User = require('./../../../components/models/core/user');
-const MainUser = require('./../../../components/models/main/user');
 const ApiUser = require('./../../../components/models/core/api-user');
 const Release = require('./../../../components/models/core/release');
-
+const Playlist = require('./../../../components/models/core/playlist');
 const Package = require('./../../../components/models/core/api-package');
 
+
+/**
+ *   VALIDATION SCHEMAS
+ */
+
+
+/**
+ *  LIBS
+ *
+ * */
+const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
 
+
+/**
+ *
+ * User Controller class
+ *
+ *
+ * Main user functional
+ *
+ * playlist create, delete, get
+ *
+ * useraccount delete
+ *
+ * */
 class UserController {
 
     constructor(config) {
@@ -219,6 +247,91 @@ class UserController {
 
         return result;
 
+    }
+
+    createPlaylist( Request, Response) {
+
+
+        User.findOne({
+            "local.email": Request.body.user.email,
+        }).then( user => {
+
+            if (user && bcrypt.compareSync(Request.body.user.password, user.local.password)) {
+
+
+                Playlist.create({
+                    name: Request.body.name,
+                    user: {
+                        email: user.local.email,
+                        profileAddress: user.profileAddress,
+                        userId: user._id,
+                        name: user.local.username
+                    },
+                    songs: Request.body.songs
+                }).then(playlist => {
+                    Response.send({
+                        success: true,
+                        playlistName: playlist.name,
+                        playlistUrl: 'http://musicoin.org/playlist/'+playlist.name,
+                        creatorName: playlist.user.name,
+                        creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress
+                    })
+                }).catch(Error => {
+                    Response.send({success: false, message: Error.message})
+                })
+
+
+            } else {
+                Response.send({success: false});
+            }
+        });
+
+    }
+
+    getPlaylist(Request, Response) {
+        Playlist.findOne({
+            name: Request.params.name
+        }).then( playlist => {
+            Response.send({
+                success: true,
+                playlistName: playlist.name,
+                playlistUrl: 'http://musicoin.org/playlist/'+playlist.name,
+                creatorName: playlist.user.name,
+                creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress
+            });
+        }).catch(Error => {
+            Response.send({success: false, message: Error.message})
+        })
+    }
+
+    deletePlaylist(Request, Response) {
+        Playlist.findOne({
+            name: Request.params.name
+        }).populate('user.userId').then( playlist => {
+
+            if(playlist) {
+                if(playlist.user.userId.local.username === Request.body.username && bcrypt.compareSync(Request.body.password, playlist.user.userId.local.password)) {
+                    playlist.remove();
+                    Response.send({
+                        success: true,
+                        playlistName: playlist.name,
+                        playlistUrl: 'http://musicoin.org/playlist/'+playlist.name,
+                        creatorName: playlist.user.name,
+                        creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress
+                    });
+                } else {
+                    Response.status(401);
+                    Response.send({success: false, message: 'Invalid credentials'});
+                }
+
+            } else {
+                Response.send({success: false, message: 'Playlist does not found'});
+            }
+
+        }).catch( Error => {
+            Response.status(400);
+            Response.send({success: false, error: Error.message});
+        })
     }
 }
 module.exports =  UserController;

@@ -2,6 +2,8 @@ const express = require('express');
 const Router = express.Router();
 const Kernel = require('./../app/Kernel');
 
+const ArtistMiddleware = require('./../app/Middlewares/ArtistMiddleware');
+
 const ArtistController = Kernel.artistModule;
 
 Router.get('/profile/:address', ArtistController.getProfileByAddress.bind(ArtistController));
@@ -17,4 +19,5 @@ Router.get('/totaltips/:publicKey', ArtistController.getArtistTips.bind(ArtistCo
 Router.get('/isartist/:publicKey', ArtistController.isArtist.bind(ArtistController));
 Router.get('/isverified/:publicKey', ArtistController.isArtistVerified.bind(ArtistController));
 Router.get('/earnings/:publicKey', ArtistController.getArtistEarnings.bind(ArtistController));
+Router.get('/ofweek', ArtistController.getArtistOfWeek.bind(ArtistController));
 module.exports = Router;

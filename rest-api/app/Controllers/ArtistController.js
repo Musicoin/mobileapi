@@ -330,6 +330,31 @@ class ArtistController {
             });
 
     }
+
+    getArtistOfWeek(Request, Response) {
+
+        User.find({
+                AOWBadge: true,
+                profileAddress: { $exists: true, $ne: null }
+            })
+            .where({ mostRecentReleaseDate: { $exists: true, $ne: null } })
+            .exec()
+            .then(users => {
+            let UsersInstance = [];
+
+            for(let user of users) {
+                UsersInstance.push({
+                    artistName: user.draftProfile.artistName,
+                    artistAddress: "http://musicoin.org/nav/artist/"+user.profileAddress
+                })
+            }
+
+            Response.send({success: true, data: UsersInstance});
+
+        }).catch( Error => {
+            Response.send({success: false, error: Error.message});
+        })
+    }
 }
 
 
