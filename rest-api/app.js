@@ -10,7 +10,6 @@ const mailer = require('express-mailer');
 const config = ConfigUtils.loadConfig(process.argv);
 
 
-
 app.use(function (req, res, next)
 {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -70,6 +69,7 @@ app.use(require('./routes/auth'));
 >>>>>>> rebuild architecture of Controllers, routes and application structure
 
 app.use('/', AuthMiddleware.checkTokens(store), RateLimiter);
+app.use('/', require('./routes/global'));
 app.use('/user', require('./routes/user'));
 app.use('/package', require('./routes/package'));
 app.use('/release', require('./routes/release'));

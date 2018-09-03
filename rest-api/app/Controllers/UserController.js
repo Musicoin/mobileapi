@@ -21,7 +21,7 @@ const Package = require('./../../../components/models/core/api-package');
  * */
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
-
+const Web3 = require('web3');
 
 /**
  *
@@ -39,6 +39,39 @@ class UserController {
 
     constructor(config) {
         this.config = config;
+        if (typeof this.web3 !== 'undefined') {
+            this.web3 = new Web3(web3.currentProvider);
+        } else {
+            // set the provider you want from Web3.providers
+            this.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+    }
+
+    getBalance(Request, Response) {
+        let $this = this;
+
+        this.web3.eth.getBlock(3746338, function (error, res) {
+           if(!error) {
+               Response.send(res);
+           } else {
+               Response.send({error:error});
+           }
+        });
+        return;
+        this.web3.eth.getBalance(Request.params.address, function(error, res) {
+            if(!error) {
+                Response.send({
+                    success: true,
+                    balance:$this.web3.fromWei(res, 'ether')
+                })
+            } else {
+                Response.send({
+                    success: false,
+                    error: error
+                })
+            }
+        })
+
     }
 
     async deleteUserAccount(Request, Response) {
@@ -337,5 +370,7 @@ class UserController {
             Response.send({success: false, error: Error.message});
         })
     }
+
+
 }
 module.exports =  UserController;

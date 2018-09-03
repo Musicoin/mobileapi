@@ -14,9 +14,18 @@ class TxController {
     };
 
     getTxDetails(Request, Response) {
-        this.txModule.getTransactionDetails(Request.params.hash).then( res => {
-            Response.send(res);
-        });
+        try {
+            this.txModule.getTransactionDetails(Request.params.hash).then( res => {
+
+                Response.send(res);
+            }).catch(Error => {
+
+                Response.send({error:Error.message})
+            });
+        } catch( Error ) {
+            Response.send({error:Error.message})
+        }
+
     }
 
     getTx(Request, Response) {
@@ -31,7 +40,10 @@ class TxController {
     }
     getTxStatus(Request, Response) {
         this.txModule.getTransactionStatus(Request.params.hash).then( res => {
-            Response.send(res);
+            Response.send({
+                success: true,
+                res: res
+            });
         })
     }
     getTxHistory(Request, Response) {
@@ -42,6 +54,7 @@ class TxController {
             start: Request.query.start
         })
             .then(results => {
+                console.log(results);
                 return results.data
                     .filter(tx => tx[4] > 0)
                     .map(tx => {

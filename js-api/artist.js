@@ -166,5 +166,8 @@ ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProv
   return this.web3Writer.releaseArtistProfile(releaseRequest, credentialsProvider);
 };
 
+ArtistModule.prototype.getBalance = function(address) {
+    return this.web3Reader.getBalanceInMusicoins(address);
+}
 
 module.exports = ArtistModule;

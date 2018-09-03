@@ -5,6 +5,7 @@ const ArtistController = require('./Controllers/ArtistController');
 const LicenseController = require('./Controllers/LicenseController');
 const TxController = require('./Controllers/TxController');
 const UserController =  require('./Controllers/UserController');
+const GlobalController = require('./Controllers/GlobalController');
 
 const config = ConfigUtils.loadConfig(process.argv);
 
@@ -23,6 +24,8 @@ const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
 const ReleaseModule = require('./Controllers/ReleaseController');
 const UserModule = new UserController(config);
+const GlobalModule = new GlobalController();
+
 
 module.exports = {
     licenseModule: licenseModule,
@@ -31,5 +34,6 @@ module.exports = {
     packageModule: packageModule,
     authModule: authModule,
     releaseModule: ReleaseModule,
-    userModule: UserModule
+    userModule: UserModule,
+    globalController: GlobalModule
 };

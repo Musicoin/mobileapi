@@ -11,5 +11,6 @@ Router.get('/usage/stats', Kernel.userModule.apiGetUsageStats.bind(Kernel.userMo
 Router.post('/playlist',  Kernel.userModule.createPlaylist.bind(Kernel.userModule));
 Router.get('/playlist/:name',  Kernel.userModule.getPlaylist.bind(Kernel.userModule));
 Router.delete('/playlist/:name',  Kernel.userModule.deletePlaylist.bind(Kernel.userModule));
+Router.get('/balance/:address',  Kernel.userModule.getBalance.bind( Kernel.userModule));
 
 module.exports = Router;
