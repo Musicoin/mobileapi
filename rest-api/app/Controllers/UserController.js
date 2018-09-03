@@ -297,7 +297,8 @@ class UserController {
                 playlistName: playlist.name,
                 playlistUrl: 'http://musicoin.org/playlist/'+playlist.name,
                 creatorName: playlist.user.name,
-                creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress
+                creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress,
+                songs: playlist.songs
             });
         }).catch(Error => {
             Response.send({success: false, message: Error.message})
