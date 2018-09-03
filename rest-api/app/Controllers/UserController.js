@@ -292,12 +292,15 @@ class UserController {
         Playlist.findOne({
             name: Request.params.name
         }).then( playlist => {
+
+
+
             Response.send({
                 success: true,
                 playlistName: playlist.name,
                 playlistUrl: 'http://musicoin.org/playlist/'+playlist.name,
                 creatorName: playlist.user.name,
-                creatorUrl: 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress,
+                creatorUrl: playlist.user.profileAddress ? 'http://musicoin.org/artist/nav/'+playlist.user.profileAddress : null ,
                 songs: playlist.songs
             });
         }).catch(Error => {
