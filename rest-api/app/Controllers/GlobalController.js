@@ -15,14 +15,81 @@ class GlobalController {
     async search(Request, Response) {
 
         try {
-            let users = await User.find(Request.body);
+            let user = await User.findOne(Request.body);
             let releases = await Release.find(Request.body);
+
+            let ReleasesArray = [];
+            let ResponseInstance = {};
+
+
+            if(releases.length > 0) {
+
+                for(let track of releases)
+                {
+                    ReleasesArray.push({
+                        title: track.title,
+                        link: 'https://musicion.org/nav/track/'+track.contractAddress,
+                        pppLink: track.tx,
+                        genres: track.genres,
+                        author: track.artistName,
+                        authorLink: 'https://musicoin.org/nav/artist/'+track.artistAddress,
+                        trackImg: track.imageUrl,
+                        trackDescription: track.description,
+                        directTipCount: track.directTipCount,
+                        directPlayCount: track.directPlayCount
+                    });
+                }
+            }
+
+            if(user) {
+                let releases = await Release.find({
+                    artistAddress: user.profileAddress
+                });
+
+                ResponseInstance = {
+                    totalTips: 0,
+                    totalFollowers: 0,
+                    totalReleases: 0,
+                    totalPlays: 0
+                };
+
+                for (let release of releases) {
+                    let stats = await ReleaseStats.aggregate(
+                        {
+                            $match: {
+                                release: mongoose.Types.ObjectId(release._id)
+                            },
+                        }, {
+                            $group: {
+                                _id: null,
+                                tipCount: {$sum: '$tipCount'},
+                                playCount: {$sum: '$playCount'},
+                            }
+
+                        });
+
+                    if (stats.length > 0) {
+                        ResponseInstance.totalPlays += stats[0].playCount;
+                        ResponseInstance.totalTips += stats[0].tipCount;
+                    } else {
+                        ResponseInstance.totalPlays += release.directPlayCount ? release.directPlayCount : 0;
+                        ResponseInstance.totalTips += release.directTipCount ? release.directTipCount : 0;
+                    }
+                }
+
+                ResponseInstance.totalReleases = releases.length;
+
+                const artist = await User.find({
+                    profileAddress: Request.params.publicKey
+                });
+                ResponseInstance.totalFollowers = artist.followerCount;
+            }
 
             Response.send({
                 success:true,
                 data: {
-                    users: users,
-                    releases: releases
+                    user: ResponseInstance,
+                    releases: ReleasesArray
                 }
             })
         } catch(Error) {
