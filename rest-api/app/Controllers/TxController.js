@@ -8,9 +8,10 @@ let orbiterEndpoint;
 
 class TxController {
 
-    constructor(_txModule, _orbiterEndpoint) {
+    constructor(_txModule, _orbiterEndpoint, web3) {
         this.txModule = _txModule;
         this.orbiterEndpoint = _orbiterEndpoint;
+        this.web3 = web3;
     };
 
     getTxDetails(Request, Response) {
@@ -40,63 +41,69 @@ class TxController {
     }
     getTxStatus(Request, Response) {
         this.txModule.getTransactionStatus(Request.params.hash).then( res => {
-            Response.send({
-                success: true,
-                res: res
-            });
+            let web3 = this.web3.getWeb3();
+
+            let currentBlock = web3.eth.blockNumber;
+            let confirmNumber = Number(currentBlock - res.receipt.blockNumber);
+
+
+            if(res &&  confirmNumber >= 100) {
+                Response.send({
+                    confirmed: true,
+                    confirmNumber: confirmNumber
+                })
+            } else {
+                Response.send({
+                    confirmed: false
+                })
+            }
+
+        }).catch( Error => {
+            Response.send({error: Error.message})
         })
     }
+
     getTxHistory(Request, Response) {
-        const $this = this;
-        this.getJson($this.orbiterEndpoint, {
-            addr: Request.params.address,
-            length: typeof Request.query.length != "undefined" ? Request.query.length : 10,
-            start: Request.query.start
-        })
-            .then(results => {
-                console.log(results);
-                return results.data
-                    .filter(tx => tx[4] > 0)
-                    .map(tx => {
-                        return $this.txModule.getTransactionDetails(tx[0])
-                            .then(function (details) {
-                                return {
-                                    transactionHash: tx[0],
-                                    blockNumber: tx[1],
-                                    from: tx[2],
-                                    to: tx[3],
-                                    musicoins: tx[3] == req.params.address ? tx[4] : -tx[4],
-                                    timestamp: tx[6],
-                                    eventType: details.eventType || "transfer",
-                                    txType: details.txType,
-                                    title: details.title || details.artistName,
-                                    licenseAddress: details.licenseAddress
-                                }
-                            });
-                    })
-            })
-            .then(function (promises) {
-                return Promise.all(promises);
-            })
-    }
+        const web3 = this.web3.getWeb3();
 
-    getJson(url, properties) {
-        return new Promise(function(resolve, reject) {
-            request({
-                method: 'post',
-                url: url,
-                body: properties,
-                json: true,
-            }, function(error, response, result) {
-                if (error) {
-                    console.log(`Request failed with ${error}, url: ${url}, properties: ${JSON.stringify(properties)}`);
-                    return reject(error);
-                }
-                resolve(result)
-            })
-        }.bind(this));
-    }
+        let currentBlock = web3.eth.blockNumber;
+        // let myaccount = '0x2f56d753e4f10f2c88e95c5c147f4f2498beda17';
+        let myaccount = Request.params.address;
+        let txs = [];
 
+        /**
+         *
+         *  1:09
+         *
+         * */
+        for(let i = currentBlock - 1000; i < currentBlock; i++) {
+            let block = web3.eth.getBlock(i, true);
+
+            if(block && block.transactions.length > 0) {
+                console.log('block = '+ (currentBlock - i));
+                block.transactions.forEach( function(tx) {
+                    if (myaccount === tx.from || myaccount === tx.to) {
+                        let txInstance = {
+                            txid: tx.hash,
+                            from: tx.from,
+                            gas: tx.gas,
+                            to: tx.to,
+                            date: new Date(block.timestamp),
+                            amount: web3.fromWei(tx.value, 'ether'),
+                            paymentDate: tx.timestamp,
+                            blockHeight: tx.blockNumber,
+                            confirmNumber: currentBlock-tx.blockNumber,
+                            link: 'https://explorer.musicoin.org/tx/'+tx.hash
+                        };
+
+                        txs.push(txInstance);
+                    }
+                })
+
+            }
+        }
+        Response.send(txs);
+    }
 
 }
 

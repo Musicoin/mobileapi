@@ -3,6 +3,7 @@ const Web3Writer = require('../../components/blockchain/web3-writer');
 const ArtistModule = require('../../js-api/artist');
 const LicenseModule = require('../../js-api/license');
 const TxModule = require('../../js-api/tx');
+const UserModule = require('./../../js-api/user');
 const Web3 = require('web3');
 
 function ComponentRegistry(config) {
@@ -13,12 +14,14 @@ function ComponentRegistry(config) {
   this.artistModule = new ArtistModule(this.web3Reader, this.web3Writer, config.maxCoinsPerPlay);
   this.licenseModule = new LicenseModule(this.web3Reader, this.web3Writer);
   this.txModule = new TxModule(this.web3Reader, this.licenseModule, this.artistModule);
+  this.userModule = new UserModule(this.web3Reader);
   this.isRegistry = true;
 }
 
 ComponentRegistry.prototype.getArtistModule = function() { return this.artistModule};
 ComponentRegistry.prototype.getLicenseModule = function() { return this.licenseModule};
 ComponentRegistry.prototype.getTxModule = function() { return this.txModule};
+ComponentRegistry.prototype.getUserModule = function() { return this.userModule};
 ComponentRegistry.prototype.getWeb3Reader = function() { return this.web3Reader};
 ComponentRegistry.prototype.getWeb3Writer = function() { return this.web3Writer};
 

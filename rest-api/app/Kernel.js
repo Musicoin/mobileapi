@@ -19,11 +19,11 @@ const AccountManager = require("./../../components/account-manager");
 const accountManager = new AccountManager();
 const licenseModule = new LicenseController(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
 const artistModule = new ArtistController(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
-const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint);
+const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint, musicoinCore.getWeb3Reader());
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
 const ReleaseModule = require('./Controllers/ReleaseController');
-const UserModule = new UserController(config);
+const UserModule = new UserController(musicoinCore.getWeb3Reader(), config);
 const GlobalModule = new GlobalController();
 
 

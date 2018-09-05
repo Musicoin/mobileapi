@@ -13,7 +13,7 @@ const Package = require('./../../../components/models/core/api-package');
 /**
  *   VALIDATION SCHEMAS
  */
-
+const UserSchema = require('./../ValidatorSchemas/UserSchema');
 
 /**
  *  LIBS
@@ -21,8 +21,11 @@ const Package = require('./../../../components/models/core/api-package');
  * */
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
-const Web3 = require('web3');
+const async = require('async');
 
+
+const ValidatorClass = require('fastest-validator');
+const Validator = new ValidatorClass();
 /**
  *
  * User Controller class
@@ -35,48 +38,106 @@ const Web3 = require('web3');
  * useraccount delete
  *
  * */
+
+
+const kInitialMaxBlocks = 5000;
+const kMinBlocksToProcess = 10000;
+const kMaxBlocksToProcess = 100000;
+const kDefaultTargetNumberOfTransactions = 5000;
+
+
 class UserController {
 
-    constructor(config) {
+    constructor(web3, config) {
         this.config = config;
-        if (typeof this.web3 !== 'undefined') {
-            this.web3 = new Web3(web3.currentProvider);
-        } else {
-            // set the provider you want from Web3.providers
-            this.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-        }
+        this.web3 = web3;
     }
 
     getBalance(Request, Response) {
+
+        this.web3.getBalanceInMusicoins(Request.params.address).then(res => {
+            Response.send({
+                success: true,
+                balance: Number(res)
+            });
+        }).catch( Error => {
+            Response.send(Error.message);
+        })
+    }
+
+    renewMember(Request, Response) {
+        const validation = Validator.validate(Request.body, UserSchema.renew);
         let $this = this;
 
-        this.web3.eth.getBlock(3746338, function (error, res) {
-           if(!error) {
-               Response.send(res);
-           } else {
-               Response.send({error:error});
-           }
-        });
-        return;
-        this.web3.eth.getBalance(Request.params.address, function(error, res) {
-            if(!error) {
-                Response.send({
-                    success: true,
-                    balance:$this.web3.fromWei(res, 'ether')
-                })
-            } else {
-                Response.send({
-                    success: false,
-                    error: error
-                })
-            }
-        })
+        if(validation === true) {
+
+            this.web3.getTransaction(Request.body.txReceipt).then(async res => {
+
+
+                if(res && res.from === Request.body.publicKey && res.to == $this.config.contractOwnerAccount) {
+
+                    const amount = this.web3.convertWeiToMusicoins(res.value);
+                    let membershipLevel = 1;
+
+                    if(amount >= 1499.5 && amount <= 1500.5) {
+                        membershipLevel = 2
+                    } else if(amount >= 4999.5 && amount <= 5000.5) {
+                        membershipLevel = 3;
+                    }
+
+                    let user = await User.findOne({profileAddress: res.from});
+
+                    if(user) {
+
+                        let joinDate = new Date(user.joinDate);
+                        let now = new Date();
+
+                        if(user.membershipLevel !== membershipLevel) {
+                            user.membershipLevel = membershipLevel;
+                            user.save();
+                        }
+
+                        Response.send({
+                            success: true,
+                            days: parseInt((now.getTime() - joinDate.getTime()) / (1000*60*60*24)),
+                            membershipLevel: membershipLevel,
+                            name: user.draftProfile ? user.draftProfile.artistName : user.local.username,
+                            artistURL: 'https://musicoin.org/nav/artist/'+user.profileAddress
+                        })
+                    } else {
+
+                        Response.send({
+                            success: false,
+                            message: 'There are no such user founded',
+                            txInfo: res
+                        })
+                    }
+                } else {
+                    Response.send({success: false})
+                }
+            }).catch(Error => {
+                Response.send({error: Error.message})
+            })
+        } else {
+            Response.status(400);
+            Response.send({
+                success: false,
+                error: validation
+            })
+        }
 
     }
 
+    signMessage(Request, Response) {
+
+        this.web3.signMessage(Request.body.address, this.web3.encryptMessage(Request.body.message)).then(res => {
+            Response.send({res:res});
+        }).catch( Error => {
+            Response.send({error: Error.message})
+        })
+    }
+
     async deleteUserAccount(Request, Response) {
-
-
 
         const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
         const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
@@ -370,7 +431,6 @@ class UserController {
             Response.send({success: false, error: Error.message});
         })
     }
-
 
 }
 module.exports =  UserController;

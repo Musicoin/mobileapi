@@ -12,5 +12,6 @@ Router.post('/playlist',  Kernel.userModule.createPlaylist.bind(Kernel.userModul
 Router.get('/playlist/:name',  Kernel.userModule.getPlaylist.bind(Kernel.userModule));
 Router.delete('/playlist/:name',  Kernel.userModule.deletePlaylist.bind(Kernel.userModule));
 Router.get('/balance/:address',  Kernel.userModule.getBalance.bind( Kernel.userModule));
+Router.post('/renew',  Kernel.userModule.renewMember.bind( Kernel.userModule));
 
 module.exports = Router;
