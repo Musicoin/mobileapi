@@ -50,7 +50,7 @@ class TxController {
             if(res &&  confirmNumber >= 100) {
                 Response.send({
                     confirmed: true,
-                    confirmNumber: confirmNumber
+                    NumberOfConfirmations: confirmNumber
                 })
             } else {
                 Response.send({
