@@ -74,7 +74,17 @@ class UserController {
             this.web3.getTransaction(Request.body.txReceipt).then(async res => {
 
 
+
                 if(res && res.from === Request.body.publicKey && res.to == $this.config.contractOwnerAccount) {
+
+                    let web3 = this.web3.getWeb3();
+
+
+                    if( (web3.eth.blockNumber - res.blockNumber) ){
+                        Response.send({success: false, message: 'Block height greater then 1000'});
+                        return;
+                    }
+                    
 
                     const amount = this.web3.convertWeiToMusicoins(res.value);
                     let membershipLevel = 1;
@@ -91,6 +101,13 @@ class UserController {
 
                         let joinDate = new Date(user.joinDate);
                         let now = new Date();
+                        let membershipDuration = parseInt((now.getTime() - joinDate.getTime()) / (1000*60*60*24));
+
+                        if(membershipDuration > 356) {
+                            Response.send({success: false, message: 'The membership days count more than 356'});
+                            return;
+                        }
+
 
                         if(user.membershipLevel !== membershipLevel) {
                             user.membershipLevel = membershipLevel;
