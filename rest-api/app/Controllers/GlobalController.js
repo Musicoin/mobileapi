@@ -8,7 +8,8 @@ const ApiUser = require('./../../../components/models/core/api-user');
 const Release = require('./../../../components/models/core/release');
 const Playlist = require('./../../../components/models/core/playlist');
 const Package = require('./../../../components/models/core/api-package');
-
+const ReleaseStats =require('./../../../components/models/core/release-stat');
+const mongoose = require('mongoose');
 
 class GlobalController {
 
@@ -79,10 +80,10 @@ class GlobalController {
 
                 ResponseInstance.totalReleases = releases.length;
 
-                const artist = await User.find({
-                    profileAddress: Request.params.publicKey
-                });
-                ResponseInstance.totalFollowers = artist.followerCount;
+
+                ResponseInstance.name = user.draftProfile.artistName;
+                ResponseInstance.artistURL = 'https://musicoin.org/nav/artist/'+user.profileAddress;
+                ResponseInstance.totalFollowers = user.followerCount;
             }
 
             Response.send({
