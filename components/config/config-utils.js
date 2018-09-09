@@ -78,27 +78,24 @@ function getDefaultKeyValueConfig() {
         ipfsAddEndpoint: env.IPFS_ADD_ENDPOINT || 'http://localhost:5001',
         mongoEndpoint: env.MONGO_ENDPOINT || "mongodb://localhost",
         port: env.MUSICOIN_API_PORT || 3000,
-        publishingAccount: env.PUBLISHING_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
-        publishingAccountPassword: env.PUBLISHING_ACCOUNT_PASSWORD || "dummy1",
-        paymentAccount: env.PAYMENT_ACCOUNT || "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
-        paymentAccountPassword: env.PAYMENT_ACCOUNT_PASSWORD || "dummy1",
-        contractOwnerAccount: env.CONTRACT_OWNER_ACCOUNT || "0xea62a60b127efd524b6e19791bcb374a49302c71",
-        mashapeSecret: env.MASHAPE_SECRET || "mashapeSecret",
-        musicoinOrgClientID: env.MUSICOIN_ORG_CLIENT_ID || "clientID",
-        musicoinOrgClientSecret: env.MUSICOIN_ORG_CLIENT_SECRET || "clientSecret",
+        publishingAccount: env.PUBLISHING_ACCOUNT || "0x6e1d33f195e7fadcc6da8ca9e36d6d4d717cf504",
+        publishingAccountPassword: env.PUBLISHING_ACCOUNT_PASSWORD || "dummy",
+        paymentAccount: env.PAYMENT_ACCOUNT || "0xfef55843244453abc7e183d13139a528bdfbcbed",
+        paymentAccountPassword: env.PAYMENT_ACCOUNT_PASSWORD || "dummy",
+        contractOwnerAccount: env.CONTRACT_OWNER_ACCOUNT || "0x6e1d33f195e7fadcc6da8ca9e36d6d4d717cf504",
         orbiterEndpoint: env.ORBITER_ENDPOINT || "https://explorer.musicoin.org",
         maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
         sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
         contractVersion: env.CONTRACT_VERSION ||  "v0.3",
         forwardingAddress: env.FORWARDING_ADDRESS || '0x0',
         MailClient: {
-            email:"dev.smartit@gmail.com",
+            email:"sample@gmail.com",
             host: "smtp.gmail.com",
             port:465,
             transportMethod:"SMTP",
             auth: {
-                "user": "dev.smartit@gmail.com",
-                "pass": "OVu?zxDYcq9AmLEN"
+                "user": "sample@gmail.com",
+                "pass": "sample"
             }
         }
       };
