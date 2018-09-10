@@ -215,47 +215,24 @@ class ReleaseController {
   getTrackPlays(Request, Response) {
     Release.findOne({
       contractAddress: Request.params.publicKey
-    }).populate('artist').then(track => {
-
+    }).then(track => {
       if (track) {
-        ReleaseStat.find({
-          release: mongoose.Types.ObjectId(track._id)
-        }).then(releaseStats => {
-
-          let totalPlays = 0;
-
-          for (let stat of releaseStats) {
-            totalPlays += stat.playCount;
-          }
-
-          if (totalPlays === 0 && track.directPlayCount) {
-            totalPlays = track.directPlayCount;
-          }
-
-          Response.send({
-            success: true,
-            totalPlays: totalPlays
-          });
-
-        }).catch(Error => {
-          Response.send(400, {
-            success: false,
-            error: Error.message
-          });
+        Response.send(200, {
+          success: true,
+          plays: track.directPlayCount
         });
       } else {
         Response.send({
           success: false,
           message: 'Track does not found'
-        })
+        });
       }
     }).catch(Error => {
-      Response.status(400);
-      Response.send({
+      Response.send(400, {
         success: false,
         error: Error.message
-      })
-    })
+      });
+    });
   }
 
   getTracksByGenre(Request, Response) {
