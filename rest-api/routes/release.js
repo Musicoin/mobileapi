@@ -1,6 +1,8 @@
 const express = require('express');
 const Router = express.Router();
-const { releaseModule } = require('./../app/Kernel');
+const {
+  releaseModule
+} = require('./../app/Kernel');
 
 Router.get('/genres', releaseModule.getGenres.bind(releaseModule));
 Router.get('/details/:publicKey', releaseModule.getTrackDetails.bind(releaseModule));

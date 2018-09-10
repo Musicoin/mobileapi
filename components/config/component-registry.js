@@ -18,11 +18,23 @@ function ComponentRegistry(config) {
   this.isRegistry = true;
 }
 
-ComponentRegistry.prototype.getArtistModule = function() { return this.artistModule};
-ComponentRegistry.prototype.getLicenseModule = function() { return this.licenseModule};
-ComponentRegistry.prototype.getTxModule = function() { return this.txModule};
-ComponentRegistry.prototype.getUserModule = function() { return this.userModule};
-ComponentRegistry.prototype.getWeb3Reader = function() { return this.web3Reader};
-ComponentRegistry.prototype.getWeb3Writer = function() { return this.web3Writer};
+ComponentRegistry.prototype.getArtistModule = function() {
+  return this.artistModule
+};
+ComponentRegistry.prototype.getLicenseModule = function() {
+  return this.licenseModule
+};
+ComponentRegistry.prototype.getTxModule = function() {
+  return this.txModule
+};
+ComponentRegistry.prototype.getUserModule = function() {
+  return this.userModule
+};
+ComponentRegistry.prototype.getWeb3Reader = function() {
+  return this.web3Reader
+};
+ComponentRegistry.prototype.getWeb3Writer = function() {
+  return this.web3Writer
+};
 
 module.exports = ComponentRegistry;

@@ -1,10 +1,10 @@
 const ReleasetTip = {
-    tip: {
-        type: "number",
-        min: 1
-    },
+  tip: {
+    type: "number",
+    min: 1
+  },
 };
 
 module.exports = {
-    tip: ReleasetTip
+  tip: ReleasetTip
 };

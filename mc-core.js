@@ -2,18 +2,32 @@ const ComponentRegistry = require("./components/config/component-registry");
 const Web3Writer = require("./components/blockchain/web3-writer.js");
 
 function MusicoinCore(configOrProvider) {
-  this.provider = configOrProvider.isRegistry
-    ? configOrProvider
-    : new ComponentRegistry(configOrProvider);
+  this.provider = configOrProvider.isRegistry ?
+    configOrProvider :
+    new ComponentRegistry(configOrProvider);
 }
 
-MusicoinCore.prototype.getArtistModule = function() { return this.provider.getArtistModule()};
-MusicoinCore.prototype.getLicenseModule = function() {return this.provider.getLicenseModule()};
-MusicoinCore.prototype.getTxModule = function() { return this.provider.getTxModule()};
-MusicoinCore.prototype.getUserModule = function() { return this.provider.getUserModule()};
-MusicoinCore.prototype.getMediaProvider = function() { return this.provider.getMediaProvider()};
-MusicoinCore.prototype.getWeb3Reader = function() { return this.provider.getWeb3Reader()};
-MusicoinCore.prototype.getWeb3Writer = function() { return this.provider.getWeb3Writer()};
+MusicoinCore.prototype.getArtistModule = function() {
+  return this.provider.getArtistModule()
+};
+MusicoinCore.prototype.getLicenseModule = function() {
+  return this.provider.getLicenseModule()
+};
+MusicoinCore.prototype.getTxModule = function() {
+  return this.provider.getTxModule()
+};
+MusicoinCore.prototype.getUserModule = function() {
+  return this.provider.getUserModule()
+};
+MusicoinCore.prototype.getMediaProvider = function() {
+  return this.provider.getMediaProvider()
+};
+MusicoinCore.prototype.getWeb3Reader = function() {
+  return this.provider.getWeb3Reader()
+};
+MusicoinCore.prototype.getWeb3Writer = function() {
+  return this.provider.getWeb3Writer()
+};
 
 MusicoinCore.prototype.getArtist = function(address) {
   return this.getArtistModule().getArtistByProfile(address);

@@ -3,7 +3,6 @@ const APIUser = require('./models/core/api-user');
 function AccountManager() {
 
 }
-
 /**
  * Deducts the specified amount from the client's account, if they have sufficient balance.
  *
@@ -14,9 +13,16 @@ function AccountManager() {
  */
 AccountManager.prototype.pay = function(clientID, amount) {
   return new Promise(function(resolve, reject) {
-    APIUser.findOneAndUpdate(
-      {clientID:clientID, balance: {$gte: amount.toNumber()}},
-      {$inc: {balance: -amount}},
+    APIUser.findOneAndUpdate({
+        clientID: clientID,
+        balance: {
+          $gte: amount.toNumber()
+        }
+      }, {
+        $inc: {
+          balance: -amount
+        }
+      },
       function(err, apiUser) {
         if (err) return reject(err);
         if (apiUser) return resolve(true);
@@ -35,16 +41,22 @@ AccountManager.prototype.getAPIUserCount = function() {
 };
 
 AccountManager.prototype.getBalance = function(clientID) {
-  return APIUser.findOne({clientID:clientID}).exec()
+  return APIUser.findOne({
+      clientID: clientID
+    }).exec()
     .then(function(record) {
       if (!record) throw new Error(`Balance check failed: clientId not found`);
-      return {balance: record.balance}
+      return {
+        balance: record.balance
+      }
     });
 };
 
 AccountManager.prototype.validateClient = function(clientID) {
   return new Promise(function(resolve, reject) {
-    APIUser.findOne({clientID:clientID},
+    APIUser.findOne({
+        clientID: clientID
+      },
       function(err, apiUser) {
         if (err) return reject(err);
         if (apiUser) return resolve(true);
@@ -56,9 +68,11 @@ AccountManager.prototype.validateClient = function(clientID) {
 
 AccountManager.prototype.deposit = function(clientID, amount) {
   return new Promise(function(resolve, reject) {
-    APIUser.findOneAndUpdate(
-      {clientID:clientID},
-      {$inc: amount},
+    APIUser.findOneAndUpdate({
+        clientID: clientID
+      }, {
+        $inc: amount
+      },
       function(err, apiUser) {
         if (err) return reject(err);
         if (apiUser) return resolve(true);
@@ -78,8 +92,7 @@ AccountManager.prototype.createAccount = function(clientID, name) {
       if (err) {
         console.log("Failed create new user: " + err);
         reject(err);
-      }
-      else {
+      } else {
         console.log("New user created!");
         resolve(newUser);
       }

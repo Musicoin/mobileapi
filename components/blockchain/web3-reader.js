@@ -58,11 +58,15 @@ function Web3Reader(web3) {
 };
 
 Web3Reader.getDependencies = function() {
-  return {web3: null};
+  return {
+    web3: null
+  };
 };
 
 Web3Reader.prototype.getContractDefinition = function(type, version) {
-  return knownContracts.filter(function(d) { return d.type == type && d.version == version})[0];
+  return knownContracts.filter(function(d) {
+    return d.type == type && d.version == version
+  })[0];
 };
 
 Web3Reader.prototype.loadLicense = function(licenseAddress) {
@@ -116,7 +120,7 @@ Web3Reader.prototype.getTransactionType = function(transaction) {
 };
 
 Web3Reader.prototype.getContractType = function(code) {
-  for (let i=0; i < knownContracts.length; i++) {
+  for (let i = 0; i < knownContracts.length; i++) {
     const template = knownContracts[i];
     if (code.length >= template.codeLength) {
       const codeHash = this.web3.sha3(code.substr(0, template.codeLength));
@@ -174,8 +178,7 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
       const matches = abi.filter(k => k.name == f);
       if (matches.length == 1) {
         return matches[0];
-      }
-      else {
+      } else {
         console.log(`Could not match field: ${f}, found ${matches.length} matches`);
         return null;
       }
@@ -222,11 +225,11 @@ Web3Reader.prototype.getConstantFields = function(abi) {
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
 };
 
-Web3Reader.prototype.waitForTransaction = function (expectedTx) {
+Web3Reader.prototype.waitForTransaction = function(expectedTx) {
   return new Promise(function(resolve, reject) {
     let count = 0;
     const filter = this.web3.eth.filter('latest');
-    filter.watch(function (error, result) {
+    filter.watch(function(error, result) {
       if (error) console.log("Error: " + error);
       if (result) console.log("Result: " + result);
       count++;
@@ -241,19 +244,17 @@ Web3Reader.prototype.waitForTransaction = function (expectedTx) {
       this.web3.eth.getTransactionReceipt(expectedTx, function(error, receipt) {
         if (receipt && receipt.transactionHash == expectedTx) {
           console.log("Got receipt: " + expectedTx + ", blockHash: " + receipt.blockHash);
-          this.web3.eth.getTransaction(expectedTx, function (error, transaction) {
+          this.web3.eth.getTransaction(expectedTx, function(error, transaction) {
             if (transaction.gas == receipt.gasUsed) {
               // wtf?! This is the only way to check for an error??
               filter.stopWatching();
               reject(new Error("Out of gas (or an error was thrown)"));
-            }
-            else if (receipt.blockHash) {
+            } else if (receipt.blockHash) {
               console.log("Confirmed " + expectedTx);
               console.log("Block hash " + receipt.blockHash);
               filter.stopWatching();
               resolve(receipt);
-            }
-            else {
+            } else {
               console.log("Waiting for confirmation of " + expectedTx);
             }
           }.bind(this));
@@ -268,4 +269,3 @@ Web3Reader.prototype.getWeb3 = function() {
 };
 
 module.exports = Web3Reader;
-

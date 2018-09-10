@@ -4,7 +4,7 @@ const MusicoinCore = require("./../../mc-core");
 const ArtistController = require('./Controllers/ArtistController');
 const LicenseController = require('./Controllers/LicenseController');
 const TxController = require('./Controllers/TxController');
-const UserController =  require('./Controllers/UserController');
+const UserController = require('./Controllers/UserController');
 const GlobalController = require('./Controllers/GlobalController');
 
 const config = ConfigUtils.loadConfig(process.argv);
@@ -28,12 +28,12 @@ const GlobalModule = new GlobalController();
 
 
 module.exports = {
-    licenseModule: licenseModule,
-    artistModule: artistModule,
-    txModule: txModule,
-    packageModule: packageModule,
-    authModule: authModule,
-    releaseModule: ReleaseModule,
-    userModule: UserModule,
-    globalController: GlobalModule
+  licenseModule: licenseModule,
+  artistModule: artistModule,
+  txModule: txModule,
+  packageModule: packageModule,
+  authModule: authModule,
+  releaseModule: ReleaseModule,
+  userModule: UserModule,
+  globalController: GlobalModule
 };

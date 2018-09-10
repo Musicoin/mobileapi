@@ -21,10 +21,19 @@ TransactionModule.prototype.getTransactionStatus = function(hash) {
     this.web3Reader.getTransaction(hash),
     this.web3Reader.getTransactionReceipt(hash),
     function(raw, receipt) {
-      if (!raw) return {status: "unknown"};
-      if (raw && !receipt) return {status: "pending"};
-      if (raw.gas == receipt.gasUsed) return {status: "error"};
-      return {status: "complete", receipt: receipt};
+      if (!raw) return {
+        status: "unknown"
+      };
+      if (raw && !receipt) return {
+        status: "pending"
+      };
+      if (raw.gas == receipt.gasUsed) return {
+        status: "error"
+      };
+      return {
+        status: "complete",
+        receipt: receipt
+      };
     });
 };
 
@@ -45,14 +54,12 @@ TransactionModule.prototype.getTransactionDetails = function(hash) {
         // If would require looking up the contract code from the address
         if (output.eventType == Web3Reader.FunctionTypes.PLAY)
           output.licenseAddress = transaction.to;
-      }
-      else if (output.txType == Web3Reader.TxTypes.CREATION) {
+      } else if (output.txType == Web3Reader.TxTypes.CREATION) {
         output.contractMetadata = this.web3Reader.getContractType(transaction.input);
         if (output.contractMetadata) {
           if (output.contractMetadata.type == Web3Reader.ContractTypes.PPP) {
             output.eventType = "newrelease";
-          }
-          else if (output.contractMetadata.type == Web3Reader.ContractTypes.ARTIST) {
+          } else if (output.contractMetadata.type == Web3Reader.ContractTypes.ARTIST) {
             output.eventType = "newartist";
           }
         }

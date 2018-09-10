@@ -5,61 +5,57 @@ const ApiPackage = require('../../../components/models/core/api-package');
 
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
-
 /*
-*   VALIDATION SCHEMAS
-*/
+ *   VALIDATION SCHEMAS
+ */
 const PackageSchema = require('../ValidatorSchemas/PackageSchema');
-
 
 class PackageController {
 
-    create(Request, Response) {
+  create(Request, Response) {
+    const body = {
+      name: Request.body.name,
+      limitApiCalls: Number(Request.body.limitApiCalls)
+    };
 
-        const body = {
-            name: Request.body.name,
-            limitApiCalls: Number(Request.body.limitApiCalls)
-        };
+    let validate = Validator.validate(body, PackageSchema.create);
 
-        let validate = Validator.validate(body, PackageSchema.create);
+    if (validate === true) {
+      ApiPackage.create({
+        name: Request.body.name,
+        limitApiCalls: Request.body.limitApiCalls
+      }).then(Package => {
 
-        if(validate === true) {
-
-            ApiPackage.create({
-                name: Request.body.name,
-                limitApiCalls: Request.body.limitApiCalls
-            }).then( Package => {
-
-                Response.send({success:true, data: Package})
-
-            }).catch( Error => {
-                Response.status(400);
-                Response.send({success: false, error: Error})
-            })
-
-        } else {
-            Response.send(validate);
-        }
-    }
-
-    getAll(Request, Response) {
-
-
-
-        ApiPackage.find().then( Packages => {
-
-            Response.send({success:true, data: Packages})
-
-        }).catch( Error => {
-            Response.status(400);
-            Response.send({success: false, error: Error})
+        Response.send({
+          success: true,
+          data: Package
         })
-
+      }).catch(Error => {
+        Response.status(400);
+        Response.send({
+          success: false,
+          error: Error
+        })
+      })
+    } else {
+      Response.send(validate);
     }
+  }
 
+  getAll(Request, Response) {
+    ApiPackage.find().then(Packages => {
+      Response.send({
+        success: true,
+        data: Packages
+      })
+    }).catch(Error => {
+      Response.status(400);
+      Response.send({
+        success: false,
+        error: Error
+      })
+    })
+  }
 }
-
-
-
 
 module.exports = new PackageController();

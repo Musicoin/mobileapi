@@ -1,6 +1,8 @@
 const express = require('express');
 const session = require('express-session');
-const { MemoryStore } = require('express-session');
+const {
+  MemoryStore
+} = require('express-session');
 const app = express();
 const bodyParser = require('body-parser');
 const ConfigUtils = require('../components/config/config-utils');
@@ -10,16 +12,17 @@ const mailer = require('express-mailer');
 const config = ConfigUtils.loadConfig(process.argv);
 
 
-app.use(function (req, res, next)
-{
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    next();
+app.use(function(req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  next();
 });
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
@@ -29,23 +32,23 @@ app.use(bodyParser.raw());
 const store = new MemoryStore();
 
 app.use(session({
-    secret: config.sessionSecretKey,
-    store: store,
-    genid: function(Request) {
-        return Request.query.clientId;
-    }
+  secret: config.sessionSecretKey,
+  store: store,
+  genid: function(Request) {
+    return Request.query.clientId;
+  }
 }));
 
 
-app.use(function(Request, Response, next){
-    Request.store = store;
-    next();
+app.use(function(Request, Response, next) {
+  Request.store = store;
+  next();
 });
 
 const RateLimiter = new RateLimit({
-    windowMs: 1000,
-    max: 1,
-    delayMs:0
+  windowMs: 1000,
+  max: 1,
+  delayMs: 0
 });
 
 
@@ -53,12 +56,12 @@ app.set('views', './rest-api/views');
 app.set('view engine', 'pug');
 
 mailer.extend(app, {
-    from: config.MailClient.email,
-    host: config.MailClient.host,
-    secureConnection: true,
-    port: config.MailClient.port,
-    transportMethod: config.MailClient.transportMethod,
-    auth: config.MailClient.auth
+  from: config.MailClient.email,
+  host: config.MailClient.host,
+  secureConnection: true,
+  port: config.MailClient.port,
+  transportMethod: config.MailClient.transportMethod,
+  auth: config.MailClient.auth
 });
 
 
@@ -76,12 +79,12 @@ app.use("/tx", require('./routes/tx'));
 const Users = require('./../components/models/main/user');
 
 app.get('/check/this', (req, res) => {
-    Users.find().then(users => {
-        res.send(users);
-    })
+  Users.find().then(users => {
+    res.send(users);
+  })
 });
 
 
-app.listen(config.port, function () {
-    console.log('Listening  on port ' + config.port);
+app.listen(config.port, function() {
+  console.log('Listening  on port ' + config.port);
 });

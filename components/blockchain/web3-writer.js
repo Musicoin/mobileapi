@@ -13,7 +13,9 @@ Web3Writer.prototype.setCredentialsProvider = function(provider) {
 };
 
 Web3Writer.createInMemoryCredentialsProvider = function(account, password) {
-  if (password == "dummy1") { console.log("Default dummy account password was used, might be an incorrect configuration") }
+  if (password == "dummy") {
+    console.log("Default dummy account password was used, might be an incorrect configuration")
+  }
   return {
     getCredentials: function() {
       return Promise.resolve({
@@ -24,7 +26,7 @@ Web3Writer.createInMemoryCredentialsProvider = function(account, password) {
   }
 };
 
-Web3Writer.prototype.unlockAccount = function (provider) {
+Web3Writer.prototype.unlockAccount = function(provider) {
   provider = provider || this.credentialsProvider;
   if (!provider)
     throw new Error("You must provide a credentials provider or call setCredentialsProvider before sending transactions");
@@ -36,28 +38,31 @@ Web3Writer.prototype.unlockAccount = function (provider) {
     })
 };
 
-Web3Writer.prototype.unlockAccountWithCredentials = function (credentials) {
-  return new Promise(function (resolve, reject) {
+Web3Writer.prototype.unlockAccountWithCredentials = function(credentials) {
+  return new Promise(function(resolve, reject) {
     this.web3.personal.unlockAccount(credentials.account, credentials.password, 10, function(err, result) {
       if (result) {
         resolve(credentials.account);
-      }
-      else {
+      } else {
         reject(new Error("Unlocking account failed: " + err));
       }
     });
   }.bind(this));
 };
 
-Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, credentialsProvider) {
+Web3Writer.prototype.tipLicense = function(licenseAddress, weiTipAmount, credentialsProvider) {
   return this.unlockAccount(credentialsProvider)
     .bind(this)
     .then(function(account) {
       const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
-      const params = {from: account, value: weiTipAmount, gas: 940000};
+      const params = {
+        from: account,
+        value: weiTipAmount,
+        gas: 940000
+      };
       return new Promise(function(resolve, reject) {
         //noinspection JSUnresolvedFunction
-        contract.tip(params, function (err, tx) {
+        contract.tip(params, function(err, tx) {
           if (err) reject(err);
           else resolve(tx);
         });
@@ -69,7 +74,7 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
     })
 };
 
-Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddress, musicoins, credentialsProvider) {
+Web3Writer.prototype.sendFromProfile = function(profileAddress, recipientAddress, musicoins, credentialsProvider) {
   const weiAmount = this.toIndivisibleUnits(musicoins);
   return this.web3Reader.getBalanceInMusicoins(profileAddress)
     .bind(this)
@@ -81,10 +86,13 @@ Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddres
     })
     .then(function(sender) {
       const contract = this.web3Reader.getArtistContractInstance(profileAddress);
-      const params = {from: sender, gas: 940000};
+      const params = {
+        from: sender,
+        gas: 940000
+      };
       return new Promise(function(resolve, reject) {
         //noinspection JSUnresolvedFunction
-        contract.payOut(recipientAddress, weiAmount, params, function (err, tx) {
+        contract.payOut(recipientAddress, weiAmount, params, function(err, tx) {
           if (err) reject(err);
           else resolve(tx);
         });
@@ -98,19 +106,22 @@ Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddres
 
 Web3Writer.prototype.distributeLicenseBalance = function(licenseAddress, credentialsProvider) {
   return Promise.join(
-    this.web3Reader.loadLicense(licenseAddress),
-    this.unlockAccount(credentialsProvider),
-    function(license, sender) {
-      const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
-      const params = {from: sender, gas: 940000};
-      return new Promise(function(resolve, reject) {
-        //noinspection JSCheckFunctionSignatures
-        contract.distributeBalance(params, function (err, tx) {
-          if (err) reject(err);
-          else resolve(tx);
-        });
-      })
-    }.bind(this))
+      this.web3Reader.loadLicense(licenseAddress),
+      this.unlockAccount(credentialsProvider),
+      function(license, sender) {
+        const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
+        const params = {
+          from: sender,
+          gas: 940000
+        };
+        return new Promise(function(resolve, reject) {
+          //noinspection JSCheckFunctionSignatures
+          contract.distributeBalance(params, function(err, tx) {
+            if (err) reject(err);
+            else resolve(tx);
+          });
+        })
+      }.bind(this))
     .then(function(tx) {
       console.log("Distributing balance of " + licenseAddress + ", tx: " + tx);
       return tx;
@@ -118,36 +129,45 @@ Web3Writer.prototype.distributeLicenseBalance = function(licenseAddress, credent
 
 };
 
-Web3Writer.prototype.ppp = function (licenseAddress, credentialsProvider) {
+Web3Writer.prototype.ppp = function(licenseAddress, credentialsProvider) {
   return Promise.join(
-    this.web3Reader.loadLicense(licenseAddress),
-    this.unlockAccount(credentialsProvider),
-    function(license, sender) {
-      if (license.coinsPerPlay > this.maxCoinsPerPlay) {
-        throw new Error(`license exceeds max coins per play, ${license.coinsPerPlay} > ${this.maxCoinsPerPlay}`)
-      }
-      const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
-      const params = {from: sender, value: license.weiPerPlay, gas: 940000};
-      return new Promise(function(resolve, reject) {
-        //noinspection JSCheckFunctionSignatures
-        contract.play(params, function (err, tx) {
-          if (err) reject(err);
-          else resolve(tx);
-        });
-      })
-    }.bind(this))
+      this.web3Reader.loadLicense(licenseAddress),
+      this.unlockAccount(credentialsProvider),
+      function(license, sender) {
+        if (license.coinsPerPlay > this.maxCoinsPerPlay) {
+          throw new Error(`license exceeds max coins per play, ${license.coinsPerPlay} > ${this.maxCoinsPerPlay}`)
+        }
+        const contract = this.web3Reader.getLicenseContractInstance(licenseAddress);
+        const params = {
+          from: sender,
+          value: license.weiPerPlay,
+          gas: 940000
+        };
+        return new Promise(function(resolve, reject) {
+          //noinspection JSCheckFunctionSignatures
+          contract.play(params, function(err, tx) {
+            if (err) reject(err);
+            else resolve(tx);
+          });
+        })
+      }.bind(this))
     .then(function(tx) {
       console.log("Sending ppp, tx: " + tx);
       return tx;
     });
 };
 
-Web3Writer.prototype.sendCoins = function (recipient, musicoins, credentialsProvider) {
+Web3Writer.prototype.sendCoins = function(recipient, musicoins, credentialsProvider) {
   return this.unlockAccount(credentialsProvider)
     .then((account) => {
-      const params = {to: recipient, from: account, value: this.toIndivisibleUnits(musicoins), gas: 940000};
+      const params = {
+        to: recipient,
+        from: account,
+        value: this.toIndivisibleUnits(musicoins),
+        gas: 940000
+      };
       return new Promise(function(resolve, reject) {
-        return this.web3.eth.sendTransaction(params, function (err, tx) {
+        return this.web3.eth.sendTransaction(params, function(err, tx) {
           if (err) reject(err);
           else resolve(tx);
         });
@@ -179,7 +199,7 @@ Web3Writer.prototype.sendCoins = function (recipient, musicoins, credentialsProv
  * @returns {*|Promise.<tx>} a Promise that resolves to the transaction hash
  */
 // example: 0xc03cfa7500b44f238f8324651df9a3c383bca36e
-Web3Writer.prototype.releaseLicense = function (releaseRequest, credentialsProvider) {
+Web3Writer.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
   const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.PPP, "v0.7");
 
   if (!releaseRequest.owner && credentialsProvider) {
@@ -207,19 +227,28 @@ Web3Writer.prototype.updatePPPLicense = function(releaseRequest, credentialsProv
   releaseRequest.weiPerPlay = this.toIndivisibleUnits(releaseRequest.coinsPerPlay);
   return this.web3Reader.loadLicense(releaseRequest.contractAddress)
     .then(license => {
-    return this.unlockAccount(credentialsProvider)
+      return this.unlockAccount(credentialsProvider)
         .then(account => {
-          const titleUpdate = (license.title != releaseRequest.title)
-            ? contract.updateTitleAsync(releaseRequest.title, {from: account, gas: 120000})
-            : Promise.resolve(null);
+          const titleUpdate = (license.title != releaseRequest.title) ?
+            contract.updateTitleAsync(releaseRequest.title, {
+              from: account,
+              gas: 120000
+            }) :
+            Promise.resolve(null);
 
-          const imageUpdate = (license.imageUrl != releaseRequest.imageUrl)
-            ? contract.updateImageUrlAsync(releaseRequest.imageUrl, {from: account, gas: 120000})
-            : Promise.resolve(null);
+          const imageUpdate = (license.imageUrl != releaseRequest.imageUrl) ?
+            contract.updateImageUrlAsync(releaseRequest.imageUrl, {
+              from: account,
+              gas: 120000
+            }) :
+            Promise.resolve(null);
 
-          const metadataUpdate = (license.metadataUrl != releaseRequest.metadataUrl)
-            ? contract.updateMetadataUrlAsync(releaseRequest.metadataUrl, {from: account, gas: 120000})
-            : Promise.resolve(null);
+          const metadataUpdate = (license.metadataUrl != releaseRequest.metadataUrl) ?
+            contract.updateMetadataUrlAsync(releaseRequest.metadataUrl, {
+              from: account,
+              gas: 120000
+            }) :
+            Promise.resolve(null);
 
           const oldContributors = license.contributors.map(c => c.address);
           const oldShares = license.contributors.map(c => c.shares);
@@ -227,15 +256,17 @@ Web3Writer.prototype.updatePPPLicense = function(releaseRequest, credentialsProv
           const newContributors = releaseRequest.contributors.map(c => c.address);
           const newShares = releaseRequest.contributors.map(c => c.shares);
 
-          const distributionUpdate = !ArrayUtils.equals(newContributors, oldContributors)
-            || !ArrayUtils.equals(newShares, oldShares)
-            || license.weiPerPlay != releaseRequest.weiPerPlay
-            ? contract.updateLicenseAsync(
+          const distributionUpdate = !ArrayUtils.equals(newContributors, oldContributors) ||
+            !ArrayUtils.equals(newShares, oldShares) ||
+            license.weiPerPlay != releaseRequest.weiPerPlay ?
+            contract.updateLicenseAsync(
               releaseRequest.weiPerPlay,
               newContributors,
-              newShares,
-              {from: account, gas: 240000})
-            : Promise.resolve(null);
+              newShares, {
+                from: account,
+                gas: 240000
+              }) :
+            Promise.resolve(null);
 
           return Promise.join(titleUpdate, imageUpdate, metadataUpdate, distributionUpdate, (titleTx, imageTx, metadataTx, distributionTx) => {
             console.log("Updating PPP contract " + license.title + ", " + releaseRequest.contractAddress);
@@ -258,8 +289,7 @@ Web3Writer.prototype.releaseArtistProfile = function(releaseRequest, credentials
   const contractDefinition = this.web3Reader.getContractDefinition(Web3Reader.ContractTypes.ARTIST, "v0.3");
   if (releaseRequest.profileAddress) {
     return this.updateArtistProfile(releaseRequest, credentialsProvider);
-  }
-  else {
+  } else {
     if (!releaseRequest.owner && credentialsProvider) {
       releaseRequest.owner = credentialsProvider.getCredentials().account;
     }
@@ -274,21 +304,23 @@ Web3Writer.prototype.updateArtistProfile = function(releaseRequest, credentialsP
   return this.unlockAccount(credentialsProvider)
     .bind(this)
     .then((account) => {
-      const params = {from: account, gas:120000};
+      const params = {
+        from: account,
+        gas: 120000
+      };
       return contract.updateDetailsAsync(
-          releaseRequest.artistName,
-          releaseRequest.imageUrl,
-          releaseRequest.descriptionUrl,
-          releaseRequest.socialUrl,
-          params)
-      }
-    )
+        releaseRequest.artistName,
+        releaseRequest.imageUrl,
+        releaseRequest.descriptionUrl,
+        releaseRequest.socialUrl,
+        params)
+    })
 };
 
 Web3Writer.prototype.releaseContract = function(contractDefinition, releaseRequest, credentialsProvider) {
   return this.unlockAccount(credentialsProvider)
-    .then(function (account) {
-      return new Promise(function (resolve, reject) {
+    .then(function(account) {
+      return new Promise(function(resolve, reject) {
         const constructorArgs = _extractRequiredProperties(releaseRequest, contractDefinition.constructorArgs);
         const blockNumber = this.web3.eth.blockNumber;
         this.web3.eth.contract(contractDefinition.abi).new(
@@ -310,7 +342,7 @@ Web3Writer.prototype.createAccount = function(pwd) {
   }.bind(this));
 };
 
-Web3Writer.prototype.toIndivisibleUnits = function (musicCoins) {
+Web3Writer.prototype.toIndivisibleUnits = function(musicCoins) {
   return this.web3.toWei(musicCoins, 'ether');
 };
 
@@ -324,13 +356,12 @@ const _extractRequiredProperties = function(sourceObject, names) {
 };
 
 const _createNewContractListener = function(resolve, reject, account, contractDefinition, blockNumber) {
-  return function (e, contract) {
+  return function(e, contract) {
     const label = contractDefinition.type + ", version " + contractDefinition.version;
     if (e) {
       console.log("Failed to deploy " + label + ": blockNumber: " + blockNumber + ": " + e);
       reject(e);
-    }
-    else {
+    } else {
       console.log("Deploying " + label + ", blockNumber: " + blockNumber + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address);
       resolve(contract.transactionHash);
     }

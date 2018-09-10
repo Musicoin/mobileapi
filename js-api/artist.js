@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const request = require('request');
 const User = require('../components/models/core/user');
 const MediaProvider = require('../utils/media-provider');
-const MusicoinAPI =require('../utils/musicoin-api');
+const MusicoinAPI = require('../utils/musicoin-api');
 const FormUtils = require('../utils/form-utils')
 
 function ArtistModule(web3Reader, web3Writer, maxCoinsPerPlay) {
@@ -72,17 +72,27 @@ ArtistModule.prototype.getNewArtists = function(limit, search, genre) {
   }
 
   return query.sort({
-      joinDate: 'desc'
-    }).limit(limit).exec();
+    joinDate: 'desc'
+  }).limit(limit).exec();
 
 };
 
 ArtistModule.prototype.getFeaturedArtists = function(limit) {
   // find recently joined artists that have at least one release
-  let query = User.find({ profileAddress: { $ne: null } })
-    .where({ mostRecentReleaseDate: { $ne: null } });
+  let query = User.find({
+      profileAddress: {
+        $ne: null
+      }
+    })
+    .where({
+      mostRecentReleaseDate: {
+        $ne: null
+      }
+    });
 
-  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
+  return query.sort({
+      joinDate: 'desc'
+    }).limit(limit).exec()
     .then(records => records.map(r => this.convertDbRecordToArtist(r)))
     .then(promises => Promise.all(promises))
 }
@@ -90,21 +100,52 @@ ArtistModule.prototype.getFeaturedArtists = function(limit) {
 ArtistModule.prototype.findArtists = function(limit, search1) {
   var search = sanitize(search1);
 
-  let query = User.find({ profileAddress: { $exists: true, $ne: null } })
-    .where({ mostRecentReleaseDate: { $exists: true, $ne: null } });
+  let query = User.find({
+      profileAddress: {
+        $exists: true,
+        $ne: null
+      }
+    })
+    .where({
+      mostRecentReleaseDate: {
+        $exists: true,
+        $ne: null
+      }
+    });
 
   if (search) {
     query = query.where({
-      $or: [
-        { "draftProfile.artistName": { "$regex": search, "$options": "i" } },
-        { "google.email": { "$regex": search, "$options": "i" } },
-        { "facebook.email": { "$regex": search, "$options": "i" } },
-        { "local.email": { "$regex": search, "$options": "i" } },
+      $or: [{
+          "draftProfile.artistName": {
+            "$regex": search,
+            "$options": "i"
+          }
+        },
+        {
+          "google.email": {
+            "$regex": search,
+            "$options": "i"
+          }
+        },
+        {
+          "facebook.email": {
+            "$regex": search,
+            "$options": "i"
+          }
+        },
+        {
+          "local.email": {
+            "$regex": search,
+            "$options": "i"
+          }
+        },
       ]
     })
   }
 
-  return query.sort({ joinDate: 'desc' }).limit(limit).exec()
+  return query.sort({
+      joinDate: 'desc'
+    }).limit(limit).exec()
     .then(records => records.map(r => {
       return {
         id: r.profileAddress,
@@ -114,7 +155,7 @@ ArtistModule.prototype.findArtists = function(limit, search1) {
     }));
 }
 
-ArtistModule.prototype.convertDbRecordToArtist =  function(record) {
+ArtistModule.prototype.convertDbRecordToArtist = function(record) {
   return this.web3Reader.getArtistByProfile(record.profileAddress)
     .then((artist) => {
       artist.profileAddress = record.profileAddress;
@@ -167,7 +208,7 @@ ArtistModule.prototype.releaseProfile = function(releaseRequest, credentialsProv
 };
 
 ArtistModule.prototype.getBalance = function(address) {
-    return this.web3Reader.getBalanceInMusicoins(address);
+  return this.web3Reader.getBalanceInMusicoins(address);
 }
 
 module.exports = ArtistModule;
