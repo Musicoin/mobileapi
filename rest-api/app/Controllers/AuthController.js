@@ -3,10 +3,8 @@
  *   MODELS
  *
  * */
-
 const User = require('../../../components/models/core/user');
 const ApiUser = require('../../../components/models/core/api-user');
-
 /**
  *   VALIDATION SCHEMAS
  */

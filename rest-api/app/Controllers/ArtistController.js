@@ -31,7 +31,7 @@ class ArtistController {
       if (artists.length === 0) {
         Response.send({
           success: false,
-          message: 'Nothing founded'
+          message: 'Nothing found'
         });
         return;
       }
