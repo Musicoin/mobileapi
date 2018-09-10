@@ -8,23 +8,19 @@ const ApiUser = require('./../../../components/models/core/api-user');
 const Release = require('./../../../components/models/core/release');
 const Playlist = require('./../../../components/models/core/playlist');
 const Package = require('./../../../components/models/core/api-package');
-const ReleaseStats = require('./../../../components/models/core/release-stat');
 const mongoose = require('mongoose');
 
 class GlobalController {
-
   async search(Request, Response) {
-
+    // need to add a direct map from various fields here. TODO. As of now, the
+    // endpoint works though
     try {
       let user = await User.findOne(Request.body);
       let releases = await Release.find(Request.body);
-
       let ReleasesArray = [];
       let ResponseInstance = {};
 
-
       if (releases.length > 0) {
-
         for (let track of releases) {
           ReleasesArray.push({
             title: track.title,
@@ -41,48 +37,29 @@ class GlobalController {
         }
       }
 
-      if (user) {
+      if (typeof user != 'undefined' || typeof user != 'null') {
         let releases = await Release.find({
           artistAddress: user.profileAddress
         });
 
         ResponseInstance = {
-          totalTips: 0,
+          totalTrackTips: 0,
           totalFollowers: 0,
           totalReleases: 0,
           totalPlays: 0
         };
-
-        for (let release of releases) {
-          let stats = await ReleaseStats.aggregate({
-            $match: {
-              release: mongoose.Types.ObjectId(release._id)
-            },
-          }, {
-            $group: {
-              _id: null,
-              tipCount: {
-                $sum: '$tipCount'
-              },
-              playCount: {
-                $sum: '$playCount'
-              },
-            }
-
-          });
-
-          if (stats.length > 0) {
-            ResponseInstance.totalPlays += stats[0].playCount;
-            ResponseInstance.totalTips += stats[0].tipCount;
-          } else {
-            ResponseInstance.totalPlays += release.directPlayCount ? release.directPlayCount : 0;
-            ResponseInstance.totalTips += release.directTipCount ? release.directTipCount : 0;
+        for (var i = 0; i < releases.length; i++) {
+          if (typeof releases[i].directTipCount != 'undefined') {
+            ResponseInstance.totalTrackTips += releases[i].directTipCount;
+          }
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            ResponseInstance.totalPlays += releases[i].directPlayCount;
+          }
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            ResponseInstance.totalReleases += 1;
           }
         }
-
         ResponseInstance.totalReleases = releases.length;
-
-
         ResponseInstance.name = user.draftProfile.artistName;
         ResponseInstance.artistURL = 'https://musicoin.org/nav/artist/' + user.profileAddress;
         ResponseInstance.totalFollowers = user.followerCount;
@@ -102,7 +79,6 @@ class GlobalController {
       })
     }
   }
-
 }
 
 module.exports = GlobalController;
