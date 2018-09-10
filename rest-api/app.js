@@ -75,8 +75,9 @@ app.use('/tx', require('./routes/tx'));
 const rewardMax = config.rewardMax; // config reward for the ppp contract
 const rewardMin = config.rewardMin; // config reward for the ppp contract
 const jsonParser = require('body-parser').json();
-const MusicoinCore = require("./../../mc-core");
+const MusicoinCore = require("../mc-core");
 const musicoinCore = new MusicoinCore(config);
+const Web3Writer = require('../components/blockchain/web3-writer');
 const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
 
 app.post("/rewardmax", jsonParser, (req, res) => {

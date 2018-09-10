@@ -193,46 +193,23 @@ class ReleaseController {
     Release.findOne({
       contractAddress: Request.params.publicKey
     }).then(track => {
-
       if (track) {
-        ReleaseStat.find({
-          release: mongoose.Types.ObjectId(track._id)
-        }).then(releaseStats => {
-
-          let totalTips = 0;
-
-          for (let stat of releaseStats) {
-            totalTips += stat.tipCount;
-          }
-
-          if (totalTips === 0 && track.directTipCount) {
-            totalTips = track.directTipCount;
-          }
-
-          Response.send({
-            success: true,
-            totalTips: totalTips
-          });
-
-        }).catch(Error => {
-          Response.send(400, {
-            success: false,
-            error: Error.message
-          });
+        Response.send({
+          success: true,
+          totalTips: track.directTipCount
         });
       } else {
         Response.send({
           success: false,
-          message: 'Track does not found'
+          message: 'Track not found'
         })
       }
     }).catch(Error => {
-      Response.status(400);
-      Response.send({
+      Response.send(400, {
         success: false,
         error: Error.message
-      })
-    })
+      });
+    });
   }
 
   getTrackPlays(Request, Response) {
