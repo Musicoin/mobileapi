@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const LicenseKey = require('../../../components/models/core/key');
 const Release = require('./../../../components/models/core/release');
-const ReleaseStats = require('./../../../components/models/core/release-stat');
 const User = require('./../../../components/models/core/user');
 const defaultRecords = 20;
 const maxRecords = 100;
@@ -167,8 +166,7 @@ class ArtistController {
           totalReleases: 0,
           totalPlays: 0
         };
-        for (var i = 0 ; i < releases.length ; i ++) {
-          console.log(releases[i].directTipCount);
+        for (var i = 0; i < releases.length; i++) {
           if (typeof releases[i].directTipCount != 'undefined') {
             ResponseInstance.totalTrackTips += releases[i].directTipCount;
           }
@@ -198,91 +196,63 @@ class ArtistController {
     });
   }
 
-  async getArtistPlays(Request, Response) {
-
-    try {
-      Release.find({
-        artistAddress: Request.params.publicKey
-      }).then(async releases => {
-
+  getArtistPlays(Request, Response) {
+    Release.find({
+      artistAddress: Request.params.publicKey
+    }).then(releases => {
+      if (releases.length > 0) {
         let playsCount = 0;
-        for (let release of releases) {
-          let stats = await ReleaseStats.aggregate({
-            $match: {
-              release: mongoose.Types.ObjectId(release._id)
-            },
-          }, {
-            $group: {
-              _id: null,
-              tipCount: {
-                $sum: '$tipCount'
-              },
-              playCount: {
-                $sum: '$playCount'
-              },
-            }
-          });
-          if (stats.length > 0) {
-            playsCount += stats[0].playCount;
-          } else {
-            playsCount += release.directPlayCount ? release.directPlayCount : 0;
+        for (var i = 0; i < releases.length; i++) {
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            playsCount += releases[i].directPlayCount;
           }
         }
-
         Response.send({
           success: true,
           playsCount: playsCount
         });
-      });
-    } catch (Error) {
-      Response.status(400);
+      } else {
+        Response.send({
+          success: false,
+          error: "No Releases Found"
+        });
+      }
+    }).catch(Error => {
       Response.send({
         success: false,
         error: Error.message
       });
-    }
+    });
   }
 
-  async getArtistTips(Request, Response) {
-    try {
-      Release.find({
-        artistAddress: Request.params.publicKey
-      }).then(async releases => {
-        let tipCount = 0;
-        for (let release of releases) {
-          let stats = await ReleaseStats.aggregate({
-            $match: {
-              release: mongoose.Types.ObjectId(release._id)
-            },
-          }, {
-            $group: {
-              _id: null,
-              tipCount: {
-                $sum: '$tipCount'
-              },
-              playCount: {
-                $sum: '$playCount'
-              },
-            }
-          });
-          if (stats.length > 0) {
-            tipCount += stats[0].tipCount;
-          } else {
-            tipCount += release.directTipCount ? release.directTipCount : 0;
+  getArtistTips(Request, Response) {
+    Release.find({
+      artistAddress: Request.params.publicKey
+    }).then(releases => {
+      let tipCount = 0;
+      if (releases.length > 0) {
+        for (var i = 0; i < releases.length; i++) {
+          if (typeof releases[i].directTipCount != 'undefined') {
+            tipCount += releases[i].directTipCount;
+            console.log(tipCount)
           }
         }
         Response.send({
           success: true,
           tipCount: tipCount
         });
-      });
-    } catch (Error) {
-      Response.status(400);
+      } else {
+        Response.send({
+          success: false,
+          error: "No Releases Found"
+        });
+      }
+    }).catch(Error => {
       Response.send({
         success: false,
         error: Error.message
       });
-    }
+    });
   }
 
   async isArtist(Request, Response) {
@@ -345,46 +315,56 @@ class ArtistController {
     })
   }
 
-  async getArtistEarnings(Request, Response) {
+  getArtistEarnings(Request, Response) {
     Release.find({
       artistAddress: Request.params.publicKey
-    }).then(async releases => {
-      let tipCount = 0;
-      let playCount = 0;
-      for (let release of releases) {
-        let stats = await ReleaseStats.aggregate({
-          $match: {
-            release: mongoose.Types.ObjectId(release._id)
-          },
-        }, {
-          $group: {
-            _id: null,
-            tipCount: {
-              $sum: '$tipCount'
-            },
-            playCount: {
-              $sum: '$playCount'
-            },
+    }).then(releases => {
+      if (releases.length > 0) {
+        let ResponseInstance = {
+          totalTrackTips: 0,
+          totalPlays: 0,
+          totalEarnings: 0,
+          totalEarningsInUSD: parseFloat("0")
+        };
+        for (var i = 0; i < releases.length; i++) {
+          if (typeof releases[i].directTipCount != 'undefined') {
+            ResponseInstance.totalTrackTips += releases[i].directTipCount;
           }
-
-        });
-        if (stats.length > 0) {
-          tipCount += stats[0].tipCount;
-          playCount += stats[0].playCount;
-        } else {
-          tipCount += release.directTipCount ? release.directTipCount : 0;
-          playCount += release.directPlayCount ? release.directPlayCount : 0;
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            ResponseInstance.totalPlays += releases[i].directPlayCount;
+          }
         }
+        ResponseInstance.totalEarnings = ResponseInstance.totalTrackTips + ResponseInstance.totalPlays;
+        // now call the coinmarketcap api to get the price of musicoin
+        const rp = require('request-promise');
+        const requestOptions = {
+          method: 'GET',
+          uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=MUSIC',
+          headers: {
+            'X-CMC_PRO_API_KEY': '95edec13-04cd-4e39-9254-c05634bc1b7f'
+          },
+          json: true,
+          gzip: true
+        };
 
+        rp(requestOptions).then(response => {
+          console.log('CMC API price of MUSIC:', response.data, response.data.MUSIC.quote.USD.price);
+          ResponseInstance.totalEarningsInUSD = ResponseInstance.totalEarnings * parseFloat(response.data.MUSIC.quote.USD.price);
+          Response.send(ResponseInstance);
+        }).catch((err) => {
+          console.log('CMC API call error:', err.message);
+          Response.send({
+            success: false,
+            error: "CMC API Error"
+          });
+        });
+      } else {
+        Response.send({
+          success: false,
+          error: "No Releases Found"
+        });
       }
-      Response.send({
-        success: true,
-        tipCount: tipCount,
-        playCount: playCount,
-        earned: (tipCount + playCount)
-      });
     }).catch(Error => {
-      Response.status(400);
       Response.send({
         success: false,
         error: Error.message

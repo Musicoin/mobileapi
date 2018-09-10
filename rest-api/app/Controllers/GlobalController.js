@@ -14,11 +14,17 @@ const mongoose = require('mongoose');
 class GlobalController {
 
   async search(Request, Response) {
+
     try {
       let user = await User.findOne(Request.body);
       let releases = await Release.find(Request.body);
+
+      let ReleasesArray = [];
       let ResponseInstance = {};
+
+
       if (releases.length > 0) {
+
         for (let track of releases) {
           ReleasesArray.push({
             title: track.title,
@@ -62,6 +68,7 @@ class GlobalController {
                 $sum: '$playCount'
               },
             }
+
           });
 
           if (stats.length > 0) {
@@ -72,7 +79,10 @@ class GlobalController {
             ResponseInstance.totalTips += release.directTipCount ? release.directTipCount : 0;
           }
         }
+
         ResponseInstance.totalReleases = releases.length;
+
+
         ResponseInstance.name = user.draftProfile.artistName;
         ResponseInstance.artistURL = 'https://musicoin.org/nav/artist/' + user.profileAddress;
         ResponseInstance.totalFollowers = user.followerCount;
@@ -92,6 +102,7 @@ class GlobalController {
       })
     }
   }
+
 }
 
 module.exports = GlobalController;
