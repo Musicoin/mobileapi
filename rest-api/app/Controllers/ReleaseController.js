@@ -5,7 +5,6 @@
  * */
 
 const Release = require('./../../../components/models/core/release');
-const ReleaseStat = require('./../../../components/models/main/release-stat');
 const Playlist = require('./../../../components/models/core/playlist');
 const User = require('./../../../components/models/core/user');
 const TipHistory = require('./../../../components/models/core/tip-history');

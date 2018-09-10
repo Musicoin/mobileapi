@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const connectionMain = require('./../connections/main');
-const ReleaseStats = require('./release-stat');
 
 const ReleaseSchema = mongoose.Schema({
   tx: String,
@@ -16,10 +15,6 @@ const ReleaseSchema = mongoose.Schema({
     ref: 'User',
     index: true
   },
-  stats: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ReleaseStats'
-  }],
   artistName: String,
   artistAddress: String,
   description: String,
@@ -46,10 +41,5 @@ const ReleaseSchema = mongoose.Schema({
   votes: Object
 });
 
-ReleaseSchema.methods.getStats = async function() {
-  return await ReleaseStats.find({
-    release: this._id
-  });
-};
 // create the model for users and expose it to our app
 module.exports = connectionMain.model('Release', ReleaseSchema);

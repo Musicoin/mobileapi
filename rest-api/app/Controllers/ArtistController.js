@@ -159,54 +159,42 @@ class ArtistController {
   getArtistInfo(Request, Response) {
     Release.find({
       artistAddress: Request.params.publicKey
-    }).then(async releases => {
-      let ResponseInstance = {
-        totalTips: 0,
-        totalFollowers: 0,
-        totalReleases: 0,
-        totalPlays: 0
-      };
-
-      for (let release of releases) {
-        let stats = await ReleaseStats.aggregate({
-          $match: {
-            release: mongoose.Types.ObjectId(release._id)
-          },
-        }, {
-          $group: {
-            _id: null,
-            tipCount: {
-              $sum: '$tipCount'
-            },
-            playCount: {
-              $sum: '$playCount'
-            },
+    }).then(releases => {
+      if (releases.length > 0) {
+        let ResponseInstance = {
+          totalTrackTips: 0,
+          totalFollowers: 0,
+          totalReleases: 0,
+          totalPlays: 0
+        };
+        for (var i = 0 ; i < releases.length ; i ++) {
+          console.log(releases[i].directTipCount);
+          if (typeof releases[i].directTipCount != 'undefined') {
+            ResponseInstance.totalTrackTips += releases[i].directTipCount;
           }
-
-        });
-
-        if (stats.length > 0) {
-          ResponseInstance.totalPlays += stats[0].playCount;
-          ResponseInstance.totalTips += stats[0].tipCount;
-        } else {
-          ResponseInstance.totalPlays += release.directPlayCount ? release.directPlayCount : 0;
-          ResponseInstance.totalTips += release.directTipCount ? release.directTipCount : 0;
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            ResponseInstance.totalPlays += releases[i].directPlayCount;
+          }
+          if (typeof releases[i].directPlayCount != 'undefined') {
+            ResponseInstance.totalReleases += 1;
+          }
         }
+        const artist = User.find({
+          profileAddress: Request.params.publicKey
+        });
+        ResponseInstance.totalFollowers = artist.followerCount;
+        Response.send(ResponseInstance);
+      } else {
+        Response.send({
+          success: false,
+          error: "No Releases Found"
+        });
       }
-
-      ResponseInstance.totalReleases = releases.length;
-
-      const artist = await User.find({
-        profileAddress: Request.params.publicKey
-      });
-      ResponseInstance.totalFollowers = artist.followerCount;
-      Response.send(ResponseInstance);
     }).catch(Error => {
-      Response.status(400);
       Response.send({
         success: false,
         error: Error.message
-      })
+      });
     });
   }
 
