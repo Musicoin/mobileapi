@@ -37,32 +37,6 @@ function getComputedKeyValuePairs(config) {
   };
 }
 
-function getInstanceVariables() {
-  // curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true" -H "Metadata-Flavor: Google" | less
-  return new Promise(function(resolve, reject) {
-      request({
-        url: "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&alt=json",
-        json: true,
-        headers: {
-          "Metadata-Flavor": "Google"
-        }
-      }, function(error, response, result) {
-        if (error) {
-          reject(new Error(`Failed to load instance variables: ${error}`))
-        } else if (response.statusCode != 200) {
-          reject(new Error(`Failed to load instance variables: ${response}`));
-        } else {
-          console.log(`Successfully retrieved values from google metadata service: ${JSON.stringify(result, null, 2)}`);
-          resolve(result);
-        }
-      })
-    }.bind(this))
-    .catch(err => {
-      console.log(`Error getting instance variables: ${err}`)
-      return {}
-    });
-}
-
 function getDefaultKeyValueConfig() {
   const env = process.env;
   return {
@@ -78,6 +52,8 @@ function getDefaultKeyValueConfig() {
     contractOwnerAccount: env.CONTRACT_OWNER_ACCOUNT || "0x6e1d33f195e7fadcc6da8ca9e36d6d4d717cf504",
     orbiterEndpoint: env.ORBITER_ENDPOINT || "https://explorer.musicoin.org",
     maxCoinsPerPlay: env.MAX_COINS_PER_PLAY || 1,
+    rewardMax: env.REWARD_MAX || 250,
+    rewardMin: env.REWARD_MIN || 50,
     sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
     contractVersion: env.CONTRACT_VERSION || "v0.3",
     forwardingAddress: env.FORWARDING_ADDRESS || '0x0',

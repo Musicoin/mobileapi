@@ -11,7 +11,6 @@ const AuthMiddleware = require('./app/Middlewares/AuthMiddleware');
 const mailer = require('express-mailer');
 const config = ConfigUtils.loadConfig(process.argv);
 
-
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -26,9 +25,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
-
 // app.enable('trust proxy');
-
 const store = new MemoryStore();
 
 app.use(session({
@@ -38,7 +35,6 @@ app.use(session({
     return Request.query.clientId;
   }
 }));
-
 
 app.use(function(Request, Response, next) {
   Request.store = store;
@@ -51,7 +47,6 @@ const RateLimiter = new RateLimit({
   delayMs: 0
 });
 
-
 app.set('views', './rest-api/views');
 app.set('view engine', 'pug');
 
@@ -63,7 +58,6 @@ mailer.extend(app, {
   transportMethod: config.MailClient.transportMethod,
   auth: config.MailClient.auth
 });
-
 
 app.use(require('./routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
@@ -84,7 +78,6 @@ app.get('/check/this', (req, res) => {
   })
 });
 
-
 app.listen(config.port, function() {
-  console.log('Listening  on port ' + config.port);
+  console.log('Listening on port ' + config.port);
 });
