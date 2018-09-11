@@ -12,17 +12,19 @@ const mongoose = require('mongoose');
 
 class GlobalController {
   async search(Request, Response) {
-    console.log("CALLING SEARCH ENDPOINT");
-    // need to add a direct map from various fields here. TODO. As of now, the
-    // endpoint works though
     let releases = await Release.find(Request.body);
     let ReleasesArray = [];
-    let ResponseInstance = {};
+    let ResponseInstance = {
+      totalTrackTips: 0,
+      totalFollowers: 0,
+      totalReleases: 0,
+      totalPlays: 0
+    };
 
     var ctr = 0;
     if (releases.length > 0) {
+      console.log("Searching for releases");
       for (var i = 0; i < releases.length; i++) {
-        console.log("I+", i);
         if (typeof releases[i] != 'undefined') {
           ctr = i;
           ReleasesArray.push({
@@ -50,7 +52,6 @@ class GlobalController {
         }).where({
           profileAddress: releases[ctr].artistAddress
         })
-        console.log("ARTS", artist);
         if (typeof artist != 'undefined' || typeof artist != 'null') {
           ResponseInstance = {
             totalTrackTips: 0,
@@ -92,43 +93,71 @@ class GlobalController {
       });
       return
     } else {
-      console.log("GOIGN THE USER WYA")
+      console.log("Searching for users");
+      // lets assume we didn't search via the user field
       let user = await User.findOne(Request.body);
-      if (typeof user != 'undefined' || typeof user != 'null') {
-        let releases = await Release.find({
-          artistAddress: user.profileAddress || ''
+      if (typeof user != null) {
+        let releases = Release.find({
+          artistAddress: user.profileAddress
+        }).then(releases => {
+          console.log("LENGTH", releases.length, user.profileAddress);
+          if (releases.length > 0) {
+            for (var i = 0; i < releases.length; i++) {
+              if (typeof releases[i].directTipCount != 'undefined') {
+                ResponseInstance.totalTrackTips += releases[i].directTipCount;
+              }
+              if (typeof releases[i].directPlayCount != 'undefined') {
+                ResponseInstance.totalPlays += releases[i].directPlayCount;
+              }
+              if (typeof releases[i].directPlayCount != 'undefined') {
+                ResponseInstance.totalReleases += 1;
+              }
+            }
+            ResponseInstance.totalReleases = releases.length;
+            ResponseInstance.name = user.draftProfile.artistName;
+            ResponseInstance.artistURL = 'https://musicoin.org/nav/artist/' + user.profileAddress;
+            ResponseInstance.totalFollowers = user.followerCount;
+            // now we have the user details. Now we have to find the list of releases attached to this guy
+            // if possible
+            // lets take artistAddress as the field because artistName seems to vary between tracks
+            console.log("ResponseInstance", ResponseInstance);
+            for (var i = 0; i < releases.length; i++) {
+              if (typeof releases[i] != 'undefined') {
+                ctr = i;
+                ReleasesArray.push({
+                  title: releases[i].title,
+                  link: 'https://musicion.org/nav/track/' + releases[i].contractAddress,
+                  pppLink: releases[i].tx,
+                  genres: releases[i].genres,
+                  author: releases[i].artistName,
+                  authorLink: 'https://musicoin.org/nav/artist/' + releases[i].artistAddress,
+                  trackImg: releases[i].imageUrl,
+                  trackDescription: releases[i].description,
+                  directTipCount: releases[i].directTipCount,
+                  directPlayCount: releases[i].directPlayCount
+                });
+              }
+            }
+            Response.send({
+              success: true,
+              data: {
+                user: ResponseInstance,
+                releases: ReleasesArray
+              }
+            });
+          }
+        }).catch(Error => {
+          Response.send({
+            success: false,
+            error: Error.message
+          });
         });
-
-        ResponseInstance = {
-          totalTrackTips: 0,
-          totalFollowers: 0,
-          totalReleases: 0,
-          totalPlays: 0
-        };
-        for (var i = 0; i < releases.length; i++) {
-          if (typeof releases[i].directTipCount != 'undefined') {
-            ResponseInstance.totalTrackTips += releases[i].directTipCount;
-          }
-          if (typeof releases[i].directPlayCount != 'undefined') {
-            ResponseInstance.totalPlays += releases[i].directPlayCount;
-          }
-          if (typeof releases[i].directPlayCount != 'undefined') {
-            ResponseInstance.totalReleases += 1;
-          }
-        }
-        ResponseInstance.totalReleases = releases.length;
-        ResponseInstance.name = user.draftProfile.artistName;
-        ResponseInstance.artistURL = 'https://musicoin.org/nav/artist/' + user.profileAddress;
-        ResponseInstance.totalFollowers = user.followerCount;
+      } else {
+        // user is null
+        Response.send({
+          success: false,
+        });
       }
-
-      Response.send({
-        success: true,
-        data: {
-          user: ResponseInstance,
-          releases: ReleasesArray
-        }
-      })
     }
   }
 }

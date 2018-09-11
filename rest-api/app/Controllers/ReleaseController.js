@@ -223,7 +223,7 @@ class ReleaseController {
       } else {
         Response.send({
           success: false,
-          message: 'Track does not found'
+          message: 'Track not found'
         });
       }
     }).catch(Error => {
