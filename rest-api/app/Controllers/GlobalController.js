@@ -95,8 +95,7 @@ class GlobalController {
     } else {
       console.log("Searching for users");
       // lets assume we didn't search via the user field
-      let user = await User.findOne(Request.body);
-      if (typeof user != null) {
+      let user = User.findOne(Request.body).then(user => {
         let releases = Release.find({
           artistAddress: user.profileAddress
         }).then(releases => {
@@ -152,12 +151,12 @@ class GlobalController {
             error: Error.message
           });
         });
-      } else {
-        // user is null
+      }).catch( Error => {
         Response.send({
           success: false,
+          error: Error.message
         });
-      }
+      });
     }
   }
 }
