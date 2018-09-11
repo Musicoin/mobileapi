@@ -12,7 +12,6 @@ const mongoose = require('mongoose');
 
 class GlobalController {
   async search(Request, Response) {
-    let releases = await Release.find(Request.body);
     let ReleasesArray = [];
     let ResponseInstance = {
       totalTrackTips: 0,
@@ -22,8 +21,8 @@ class GlobalController {
     };
 
     var ctr = 0;
-    if (releases.length > 0) {
-      console.log("Searching for releases");
+    Release.find(Request.body).then(releases => {
+      console.log("Searching for a release");
       for (var i = 0; i < releases.length; i++) {
         if (typeof releases[i] != 'undefined') {
           ctr = i;
@@ -92,14 +91,13 @@ class GlobalController {
         }
       });
       return
-    } else {
-      console.log("Searching for users");
+    }).catch(Error => {
+      console.log("Searching for a user");
       // lets assume we didn't search via the user field
       let user = User.findOne(Request.body).then(user => {
         let releases = Release.find({
           artistAddress: user.profileAddress
         }).then(releases => {
-          console.log("LENGTH", releases.length, user.profileAddress);
           if (releases.length > 0) {
             for (var i = 0; i < releases.length; i++) {
               if (typeof releases[i].directTipCount != 'undefined') {
@@ -144,6 +142,11 @@ class GlobalController {
                 releases: ReleasesArray
               }
             });
+          } else {
+            Response.send({
+              success: false,
+              error: "No releases found!"
+            });
           }
         }).catch(Error => {
           Response.send({
@@ -151,13 +154,13 @@ class GlobalController {
             error: Error.message
           });
         });
-      }).catch( Error => {
+      }).catch(Error => {
         Response.send({
           success: false,
           error: Error.message
         });
       });
-    }
+    });
   }
 }
 
