@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const request = require('request');
 const User = require('../components/models/core/user');
 const MediaProvider = require('../utils/media-provider');
+const ComponentRegistry = require("../components/config/component-registry");
 const MusicoinAPI = require('../utils/musicoin-api');
 const FormUtils = require('../utils/form-utils')
 
@@ -17,6 +18,12 @@ ArtistModule.prototype.getArtistByProfile = function(profileAddress) {
 
 ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, musicoins) {
   return this.web3Writer.sendFromProfile(profileAddress, recipient, musicoins);
+};
+
+ArtistModule.prototype.sendTipFromProfile = function(profileAddress, recipient, musicoins, credentialsProvider) {
+  temp = credentialsProvider.isRegistry ? credentialsProvider : new ComponentRegistry(credentialsProvider);
+  this.web3Writer.setCredentials(temp);
+  return this.web3Writer.sendFromProfile(profileAddress, recipient, musicoins, temp);
 };
 
 function sanitize(s) {

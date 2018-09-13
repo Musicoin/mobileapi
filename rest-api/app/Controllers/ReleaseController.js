@@ -350,10 +350,13 @@ class ReleaseController {
           contractAddress: Request.params.publicKey
         })
         .then(async release => {
+          // now we have the release, check tipCount
           if (release) {
             if (!release.directTipCount) {
               release.directTipCount = 0;
             }
+            // now before updating the db, we need to call web3 APIs to actually send coins on the blockchain
+
             release.directTipCount += Number(body.tip);
             release.save();
             await TipHistory.create({

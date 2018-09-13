@@ -99,7 +99,7 @@ Web3Writer.prototype.sendFromProfile = function(profileAddress, recipientAddress
       })
     })
     .then(function(tx) {
-      console.log("Sending payment from from profile, tx: " + tx);
+      console.log("Sending payment from profile, tx: " + tx);
       return tx;
     })
 };
@@ -126,7 +126,6 @@ Web3Writer.prototype.distributeLicenseBalance = function(licenseAddress, credent
       console.log("Distributing balance of " + licenseAddress + ", tx: " + tx);
       return tx;
     });
-
 };
 
 Web3Writer.prototype.ppp = function(licenseAddress, credentialsProvider) {

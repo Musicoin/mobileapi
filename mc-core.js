@@ -1,10 +1,10 @@
 const ComponentRegistry = require("./components/config/component-registry");
 const Web3Writer = require("./components/blockchain/web3-writer.js");
 
-function MusicoinCore(configOrProvider) {
-  this.provider = configOrProvider.isRegistry ?
-    configOrProvider :
-    new ComponentRegistry(configOrProvider);
+function MusicoinCore(credentialsProvider) {
+  this.provider = credentialsProvider.isRegistry ?
+    credentialsProvider :
+    new ComponentRegistry(credentialsProvider);
 }
 
 MusicoinCore.prototype.getArtistModule = function() {

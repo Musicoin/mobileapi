@@ -1,11 +1,11 @@
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'username=varunram1&email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/signup"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'username=varunram1&email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/signup"
 
 {
   "success": true,
   "publicKey": "5b769d9a2088882e67d1c765"
 }
 
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/credentials"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/credentials"
 
 {
   "success": true,
@@ -15,26 +15,26 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Cont
   }
 }
 
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/api/user/delete?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/api/user/delete?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
 
 {
   "token": "7LUFf34slskv8Acy2cVUdTfBzsb6C4225L5PdA8A9NGgAX4gKiv7ViRI5w2CSob9pfqtfbV1UjBuQ4Wo"
 }
 
-curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/api/user/delete/verify/7LUFf34slskv8Acy2cVUdTfBzsb6C4225L5PdA8A9NGgAX4gKiv7ViRI5w2CSob9pfqtfbV1UjBuQ4Wo?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
+curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/api/user/delete/verify/7LUFf34slskv8Acy2cVUdTfBzsb6C4225L5PdA8A9NGgAX4gKiv7ViRI5w2CSob9pfqtfbV1UjBuQ4Wo?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
 
 {
   "success": true
 }
 
-curl -X DELETE -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/api/user/delete?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
+curl -X DELETE -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/api/user/delete?clientId=5b769d9a2088882e67d1c765&clientSecret=Q8kuUcJZgugIQOm8mjyCkfHaddCfpV"
 
 {
   "success": true,
   "message": "User account was successfully deleted"
 }
 
-curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/api/user/ismember/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
+curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/api/user/ismember/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
 
 {
   "success": true,
@@ -42,7 +42,7 @@ curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Contr
   "membershipLevel": 1
 }
 
-curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/api/user/info/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
+curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/api/user/info/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
 
 {
   "createdBy": "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
@@ -59,7 +59,7 @@ curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Contr
   "membershipLevel": 1
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://localhost:3000/release/genres?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://localhost:3000/release/genres?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 [
   "Alternative Rock",
@@ -92,7 +92,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://localhost:3000/release/genres?c
   "Other"
 ]
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/random?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/release/random?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
@@ -111,7 +111,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/rando
   }
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/random?genre=Rock&clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/release/random?genre=Rock&clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
@@ -132,7 +132,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/rando
   }
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/new?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/new?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
@@ -240,7 +240,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/new?cl
   ]
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/details/0x8c6cf658952d77c04de98c8a94c7b3b78d785b9f?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/release/details/0x8c6cf658952d77c04de98c8a94c7b3b78d785b9f?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
@@ -260,13 +260,13 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/detai
   }
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/isartist/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/isartist/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/info/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/info/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "totalTips": 1274,
@@ -274,21 +274,21 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/info/0
   "totalPlays": 5517
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/totaltips/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/totaltips/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
   "tipCount": 1274
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/totalplays/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/totalplays/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
   "playsCount": 5517
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/earnings/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/earnings/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
@@ -297,14 +297,14 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/earnin
   "earned": 6791
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/user/stats?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/user/stats?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "tie": "Free",
   "calls": 45
 }
 
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/authenticate"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/authenticate"
 
 {
   "success": true
@@ -318,21 +318,21 @@ curl -X GET "http://35.232.77.81:3000/release/upvotes/0x8380864d3d725d36fd08b1d7
   "message": "There are no votes of this track"
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/plays/0x8380864d3d725d36fd08b1d77c1733a736b0a486?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/release/plays/0x8380864d3d725d36fd08b1d77c1733a736b0a486?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
   "totalPlays": 1345
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/tips/0x8380864d3d725d36fd08b1d77c1733a736b0a486?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/release/tips/0x8380864d3d725d36fd08b1d77c1733a736b0a486?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
   "totalTips": 555
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/bygenre?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&genre=rock"
+curl -X GET "http://35.232.77.81:3000/release/bygenre?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&genre=rock"
 
 {
   "success": true,
@@ -410,7 +410,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/bygen
   ]
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/top?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&genre=rock"
+curl -X GET "http://35.232.77.81:3000/release/top?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&genre=rock"
 
 {
   "success": true,
@@ -580,7 +580,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/top?c
   ]
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/recent?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+curl -X GET "http://35.232.77.81:3000/release/recent?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -593,7 +593,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/release/recen
   ]
 }
 
-curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/ofweek?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+curl -X GET "http://35.232.77.81:3000/artist/ofweek?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -605,7 +605,7 @@ curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/artist/ofweek
   ]
 }
 
-curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
+curl -X POST -H "Content-Type: application/json" -d '{
     "name": "TESTPLAYSL",
     "user": {
         "email":"varunramganesh@gmail.com",
@@ -622,7 +622,7 @@ curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d
   "creatorUrl": "http://musicoin.org/artist/nav/undefined"
 }
 
-curl -X GET -H "Content-Type: application/json" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/user/playlist/TESTPLAYSL?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+curl -X GET -H "Content-Type: application/json" "http://35.232.77.81:3000/user/playlist/TESTPLAYSL?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -632,7 +632,7 @@ curl -X GET -H "Content-Type: application/json" -H "Cache-Control: no-cache" "ht
   "creatorUrl": "http://musicoin.org/artist/nav/undefined"
 }
 
-curl -X DELETE -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'username=varunram&password=123456789' "http://35.232.77.81:3000/user/playlist/TESTPLAYSL?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+curl -X DELETE -H "Content-Type: application/x-www-form-urlencoded" -d 'username=varunram&password=123456789' "http://35.232.77.81:3000/user/playlist/TESTPLAYSL?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -653,7 +653,7 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'tip=1' "ht
 
 // MVP5 endpoints, 6 endpoints
 
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'artistName=isaac' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'artistName=isaac' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -749,7 +749,7 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Cont
   }
 }
 
-1B. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'profileAddress=0xa41f0291b4466c28f4430512492cd9a06fb76b2c' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1B. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'profileAddress=0xa41f0291b4466c28f4430512492cd9a06fb76b2c' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -766,7 +766,7 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Cont
   }
 }
 
-1C. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'local.email=varunram@musicoin.org' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1C. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'local.email=varunram@musicoin.org' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -776,7 +776,7 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Cont
   }
 }
 
-1D. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'draftProfile.artistName=isaac' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1D. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'draftProfile.artistName=isaac' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 {
   "success": true,
@@ -786,33 +786,33 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Cont
   }
 }
 
-1E. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'directTipCount=100' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1F. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'hideProfile=true' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1G. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'google.email=varunram@musicoin.org' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1H. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'AOWBadge=true' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1I. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'directTipCount=123' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1J. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'genres=Rock' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1K. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'artistName=Isaac Mao' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
-1L. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'directPlayCount=49' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1E. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'directTipCount=100' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1F. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'hideProfile=true' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1G. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'google.email=varunram@musicoin.org' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1H. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'AOWBadge=true' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1I. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'directTipCount=123' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1J. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'genres=Rock' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1K. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'artistName=Isaac Mao' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+1L. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'directPlayCount=49' "http://35.232.77.81:3000/search?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
 
-2. curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/tx/history/0xa41f0291b4466c28f4430512492cd9a06fb76b2c?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
+2. curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/tx/history/0xa41f0291b4466c28f4430512492cd9a06fb76b2c?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj&limit=1"
 
-3. curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/user/balance/0xb03280704dfa5e54f33efb989c39ce0226b30350?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+3. curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/user/balance/0xb03280704dfa5e54f33efb989c39ce0226b30350?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "success": true,
   "balance": 76330.01566096062
 }
 
-4. curl -X GET -H "Cache-Control: no-cache" "http://35.232.77.81:3000/tx/status/0x17e09a88f35b585ad42882ff19b359def20b09556b62a98f0360f0b2bdf3d3ed?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+4. curl -X GET "http://35.232.77.81:3000/tx/status/0x17e09a88f35b585ad42882ff19b359def20b09556b62a98f0360f0b2bdf3d3ed?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "confirmed": true,
   "confirmNumber": 19860
 }
 
-5. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'publicKey=0x2f56d753e4f10f2c88e95c5c147f4f2498beda17&txReceipt=0x17e09a88f35b585ad42882ff19b359def20b09556b62a98f0360f0b2bdf3d3ed' "http://35.232.77.81:3000/user/renew?clientId=5b7d4b7a0b9d416f484d91c5&clientSecret=GEDweFmgXmhbV9QTjUFONqyCcy3aJb"
+5. curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'publicKey=0x2f56d753e4f10f2c88e95c5c147f4f2498beda17&txReceipt=0x17e09a88f35b585ad42882ff19b359def20b09556b62a98f0360f0b2bdf3d3ed' "http://35.232.77.81:3000/user/renew?clientId=5b7d4b7a0b9d416f484d91c5&clientSecret=GEDweFmgXmhbV9QTjUFONqyCcy3aJb"
 
 {
   "success": false,

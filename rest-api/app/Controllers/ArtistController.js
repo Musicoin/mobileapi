@@ -12,10 +12,12 @@ function getLimit(req) {
 
 class ArtistController {
 
-  constructor(_artistModule, _publishCredentialsProvider, _hotWalletCredentialsProvider) {
+  constructor(_artistModule, _accountManager, _publishCredentialsProvider, _hotWalletCredentialsProvider, _contractOwnerAccount) {
     this.artistModule = _artistModule;
     this.publishCredentialsProvider = _publishCredentialsProvider;
     this.hotWalletCredentialsProvider = _hotWalletCredentialsProvider;
+    this.accountManager = _accountManager;
+    this.contractOwnerAccount = _contractOwnerAccount;
   };
 
   getProfileByAddress(Request, Response) {
@@ -194,6 +196,28 @@ class ArtistController {
         error: Error.message
       });
     });
+  }
+
+  tipArtist(Request, Response) {
+    User.find({
+      profileAddress: Request.body.senderAddress
+    }).then(user => {
+      if (typeof user != 'undefined') {
+        // tip this guy
+        this.artistModule.sendFromProfile(Request.body.senderAddress, Request.body.recipientAddress, Request.body.musicoins, this.contractOwnerAccount)
+          .then(function(tx) {
+            Response.send({
+              tx: tx
+            });
+          }).catch(Error => {
+            Response.status(400);
+            Response.send({
+              success: false,
+              error: Error.message
+            });
+          });
+      }
+    })
   }
 
   getArtistPlays(Request, Response) {

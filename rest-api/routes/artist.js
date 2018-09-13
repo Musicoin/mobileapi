@@ -12,6 +12,7 @@ Router.get('/find/', ArtistController.find.bind(ArtistController));
 Router.post('/profile/', ArtistController.profile.bind(ArtistController));
 Router.post('/send/', ArtistController.send.bind(ArtistController));
 Router.post('/ppp/', ArtistController.ppp.bind(ArtistController));
+Router.post('/tipArtist', ArtistController.tipArtist.bind(ArtistController));
 Router.get('/info/:publicKey', ArtistController.getArtistInfo.bind(ArtistController));
 Router.get('/totalplays/:publicKey', ArtistController.getArtistPlays.bind(ArtistController));
 Router.get('/totaltips/:publicKey', ArtistController.getArtistTips.bind(ArtistController));

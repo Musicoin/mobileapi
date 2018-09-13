@@ -2,7 +2,7 @@
 const MusicoinCore = require("./../../mc-core");
 const ConfigUtils = require('./../../components/config/config-utils');
 const config = ConfigUtils.loadConfig(process.argv);
-const contractOwnerAccount = config.contractOwnerAccount;
+const contractOwnerAccount = config.contractOwnerAccount; // this is the credentials provider to deal with unlocking and locking accounts
 const musicoinCore = new MusicoinCore(config);
 
 const Web3Writer = require('./../../components/blockchain/web3-writer');
@@ -21,7 +21,7 @@ const ReleaseModule = require('./Controllers/ReleaseController');
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
 const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
 const licenseModule = new LicenseController(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
-const artistModule = new ArtistController(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
+const artistModule = new ArtistController(musicoinCore.getArtistModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
 const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint, musicoinCore.getWeb3Reader());
 const UserModule = new UserController(musicoinCore.getWeb3Reader(), config);
 
