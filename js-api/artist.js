@@ -21,9 +21,8 @@ ArtistModule.prototype.sendFromProfile = function(profileAddress, recipient, mus
 };
 
 ArtistModule.prototype.sendTipFromProfile = function(profileAddress, recipient, musicoins, credentialsProvider) {
-  temp = credentialsProvider.isRegistry ? credentialsProvider : new ComponentRegistry(credentialsProvider);
-  this.web3Writer.setCredentials(temp);
-  return this.web3Writer.sendFromProfile(profileAddress, recipient, musicoins, temp);
+  console.log("AT SENDTIPFROMPROFILE")
+  return this.web3Writer.sendFromProfile(profileAddress, recipient, musicoins, credentialsProvider);
 };
 
 function sanitize(s) {

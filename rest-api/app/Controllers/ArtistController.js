@@ -12,12 +12,14 @@ function getLimit(req) {
 
 class ArtistController {
 
-  constructor(_artistModule, _accountManager, _publishCredentialsProvider, _hotWalletCredentialsProvider, _contractOwnerAccount) {
+  constructor(_artistModule, _credProvider, _accountManager, _publishCredentialsProvider, _hotWalletCredentialsProvider, _contractOwnerAccount) {
     this.artistModule = _artistModule;
     this.publishCredentialsProvider = _publishCredentialsProvider;
     this.hotWalletCredentialsProvider = _hotWalletCredentialsProvider;
     this.accountManager = _accountManager;
     this.contractOwnerAccount = _contractOwnerAccount;
+    console.log("OKAY< HERE", _credProvider);
+    this.credProvider = _credProvider;
   };
 
   getProfileByAddress(Request, Response) {
@@ -109,7 +111,8 @@ class ArtistController {
       });
   }
 
-  send(Request) {
+  send(Request, Response) {
+    console.log("CALLIGN SEND ROUTE");
     this.artistModule.sendFromProfile(Request.body.profileAddress, Request.body.recipientAddress, Request.body.musicoins)
       .then(function(tx) {
         Response.send({
@@ -199,12 +202,14 @@ class ArtistController {
   }
 
   tipArtist(Request, Response) {
+    // user should pass their email + pwd to check
     User.find({
       profileAddress: Request.body.senderAddress
     }).then(user => {
-      if (typeof user != 'undefined') {
+      if (typeof user != 'undefined') { // we should check whether it matches against the email, pwd combination
         // tip this guy
-        this.artistModule.sendFromProfile(Request.body.senderAddress, Request.body.recipientAddress, Request.body.musicoins, this.contractOwnerAccount)
+        console.log("Calling tipArtist endpoint");
+        this.artistModule.sendTipFromProfile(Request.body.senderAddress, Request.body.recipientAddress, Request.body.musicoins, this.credProvider)
           .then(function(tx) {
             Response.send({
               tx: tx

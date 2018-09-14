@@ -10,7 +10,7 @@ Router.get('/new/', ArtistController.getNewArtists.bind(ArtistController));
 Router.get('/featured/', ArtistController.getFeaturedArtists.bind(ArtistController));
 Router.get('/find/', ArtistController.find.bind(ArtistController));
 Router.post('/profile/', ArtistController.profile.bind(ArtistController));
-Router.post('/send/', ArtistController.send.bind(ArtistController));
+Router.post('/send', ArtistController.send.bind(ArtistController));
 Router.post('/ppp/', ArtistController.ppp.bind(ArtistController));
 Router.post('/tipArtist', ArtistController.tipArtist.bind(ArtistController));
 Router.get('/info/:publicKey', ArtistController.getArtistInfo.bind(ArtistController));

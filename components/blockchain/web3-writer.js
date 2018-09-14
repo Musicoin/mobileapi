@@ -31,6 +31,7 @@ Web3Writer.prototype.unlockAccount = function(provider) {
   if (!provider)
     throw new Error("You must provide a credentials provider or call setCredentialsProvider before sending transactions");
 
+  console.log("DEBUG", provider.getCredentials());
   return provider.getCredentials()
     .bind(this)
     .then(function(credentials) {
@@ -75,6 +76,8 @@ Web3Writer.prototype.tipLicense = function(licenseAddress, weiTipAmount, credent
 };
 
 Web3Writer.prototype.sendFromProfile = function(profileAddress, recipientAddress, musicoins, credentialsProvider) {
+  console.log("AT SENDFROMPROFILE")
+  console.log("CRED PROVIDER", credentialsProvider);
   const weiAmount = this.toIndivisibleUnits(musicoins);
   return this.web3Reader.getBalanceInMusicoins(profileAddress)
     .bind(this)

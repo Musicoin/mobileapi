@@ -7,6 +7,9 @@ function MusicoinCore(credentialsProvider) {
     new ComponentRegistry(credentialsProvider);
 }
 
+MusicoinCore.prototype.getCredentials1 = function() {
+  return this.provider;
+};
 MusicoinCore.prototype.getArtistModule = function() {
   return this.provider.getArtistModule()
 };
