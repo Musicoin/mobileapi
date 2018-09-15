@@ -13,7 +13,7 @@ screen -S gmc ./go-musicoin/build/bin/gmc --rpc --rpcapi=eth,net,web3,personal -
 screen -S ipfs ./go-ipfs/ipfs daemon --init=true --migrate=true
 ```
 
-`node rest-api/app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
+`node app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
 
 Requires environment variables to be set in .env
 

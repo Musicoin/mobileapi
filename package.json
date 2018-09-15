@@ -1,8 +1,8 @@
 {
-  "name": "Musicoin-core",
+  "name": "Musicoin-API",
   "version": "0.0.0",
   "private": true,
-  "main": "mc-core.js",
+  "main": "./modules/mc-core.js",
   "dependencies": {
     "bcrypt-nodejs": "*",
     "bignumber.js": "^2.4.0",
@@ -32,11 +32,5 @@
     "tmp": "0.0.29",
     "tunnel-ssh": "^4.1.4",
     "web3": "^0.17.0-beta"
-  },
-  "devDependencies": {
-    "mocha": "^5.2.0"
-  },
-  "scripts": {
-    "test": "mocha test"
   }
 }

@@ -12,7 +12,7 @@ const stream = require('stream');
 const algorithm = 'aes-256-ctr';
 const tmp = require('tmp');
 const StreamUtils = require("./stream-utils");
-const IPFSResource = require('../components/models/core/ipfs-resource');
+const IPFSResource = require('../db/core/ipfs-resource');
 // Supported formats
 const RAW = "ipfs://";
 const ENCRYPTED = "eipfs://";
