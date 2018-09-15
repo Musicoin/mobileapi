@@ -2,7 +2,7 @@ const express = require('express');
 const Router = express.Router();
 const {
   licenseModule
-} = require('./../app/Kernel');
+} = require('../Kernel');
 
 Router.get('/detail/:address', licenseModule.getDetails.bind(licenseModule));
 Router.get('/getaudiourl/:address', licenseModule.getAudioUrlByAddress.bind(licenseModule));
