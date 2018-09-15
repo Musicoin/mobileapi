@@ -13,6 +13,7 @@ Router.get('/tips/:publicKey', releaseModule.getTrackTips.bind(releaseModule));
 Router.get('/bygenre', releaseModule.getTracksByGenre.bind(releaseModule));
 Router.get('/top', releaseModule.getTopTracks.bind(releaseModule));
 Router.get('/recent', releaseModule.getRecentTracks.bind(releaseModule));
+
 Router.post('/tip/:publicKey', releaseModule.tipTrack.bind(releaseModule));
 
 module.exports = Router;

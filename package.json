@@ -2,7 +2,7 @@
   "name": "Musicoin-API",
   "version": "0.0.0",
   "private": true,
-  "main": "./modules/mc-core.js",
+  "main": "./modules/coreModule.js",
   "dependencies": {
     "bcrypt-nodejs": "*",
     "bignumber.js": "^2.4.0",

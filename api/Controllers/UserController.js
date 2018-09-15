@@ -11,7 +11,7 @@ const Package = require('../../db/core/api-package');
 /**
  *   VALIDATION SCHEMAS
  */
-const UserSchema = require('../ValidatorSchemas/UserSchema');
+const UserSchema = require('../ValidatorSchema/UserSchema');
 /**
  *  LIBS
  *

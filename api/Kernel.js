@@ -1,5 +1,5 @@
-const MusicoinCore = require("../modules/mc-core");
-const ConfigUtils = require('../config/config-utils');
+const MusicoinCore = require("../modules/coreModule");
+const ConfigUtils = require('../config/config');
 
 const config = ConfigUtils.loadConfig(process.argv);
 const contractOwnerAccount = config.contractOwnerAccount; // this is the credentials provider to deal with unlocking and locking accounts
@@ -7,7 +7,7 @@ const musicoinCore = new MusicoinCore(config);
 musicoinCore.setCredentials(config.publishingAccount, config.publishingAccountPassword); // dumb?
 
 const Web3Writer = require('../modules/blockchain/web3-writer');
-const AccountManager = require("../modules/account-manager");
+const AccountManager = require("../modules/accountManager");
 const accountManager = new AccountManager();
 const ArtistController = require('./Controllers/ArtistController');
 const LicenseController = require('./Controllers/LicenseController');

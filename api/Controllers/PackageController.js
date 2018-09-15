@@ -8,7 +8,7 @@ const Validator = new ValidatorClass();
 /*
  *   VALIDATION SCHEMAS
  */
-const PackageSchema = require('../ValidatorSchemas/PackageSchema');
+const PackageSchema = require('../ValidatorSchema/PackageSchema');
 
 class PackageController {
 
@@ -25,7 +25,6 @@ class PackageController {
         name: Request.body.name,
         limitApiCalls: Request.body.limitApiCalls
       }).then(Package => {
-
         Response.send({
           success: true,
           data: Package

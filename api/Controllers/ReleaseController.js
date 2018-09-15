@@ -12,7 +12,7 @@ const TipHistory = require('../../db/core/tip-history');
 /**
  *   VALIDATION SCHEMAS
  */
-const ReleaseSchema = require('../ValidatorSchemas/ReleaseSchema');
+const ReleaseSchema = require('../ValidatorSchema/ReleaseSchema');
 
 /**
  *  LIBS

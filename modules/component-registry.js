@@ -1,9 +1,9 @@
 const Web3Reader = require('./blockchain/web3-reader');
 const Web3Writer = require('./blockchain/web3-writer');
-const ArtistModule = require('./artist');
-const LicenseModule = require('./license');
-const TxModule = require('./tx');
-const UserModule = require('./user');
+const ArtistModule = require('./artistModule');
+const LicenseModule = require('./licenseModule');
+const TxModule = require('./txModule');
+const UserModule = require('./userModule');
 const Web3 = require('web3');
 
 function ComponentRegistry(config) {

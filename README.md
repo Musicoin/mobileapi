@@ -1,4 +1,4 @@
-Musicoin core
+Musicoin API
 ===============
 
 To get setup, run `npm install`
@@ -15,6 +15,6 @@ screen -S ipfs ./go-ipfs/ipfs daemon --init=true --migrate=true
 
 `node app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
 
-Requires environment variables to be set in .env
+Requires environment variables to be set (refer config.js)
 
 Documentation over at developers.musicoin.org and docs/

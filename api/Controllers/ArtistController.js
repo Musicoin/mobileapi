@@ -18,7 +18,6 @@ class ArtistController {
     this.hotWalletCredentialsProvider = _hotWalletCredentialsProvider;
     this.accountManager = _accountManager;
     this.contractOwnerAccount = _contractOwnerAccount;
-    console.log("OKAY< HERE", _credProvider);
     this.credProvider = _credProvider;
   };
 

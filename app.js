@@ -5,9 +5,9 @@ const {
 } = require('express-session');
 const app = express();
 const bodyParser = require('body-parser');
-const ConfigUtils = require('./config/config-utils');
+const ConfigUtils = require('./config/config');
 const RateLimit = require('express-rate-limit');
-const AuthMiddleware = require('./api/Middlewares/AuthMiddleware');
+const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const mailer = require('express-mailer');
 const mongoose = require("mongoose");
 const config = ConfigUtils.loadConfig(process.argv);

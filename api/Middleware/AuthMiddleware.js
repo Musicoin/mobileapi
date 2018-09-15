@@ -6,7 +6,7 @@ const {
 const mongoose = require('mongoose');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
-const AuthSchema = require('../ValidatorSchemas/AuthSchema');
+const AuthSchema = require('../ValidatorSchema/AuthSchema');
 
 class AuthMiddleware {
 

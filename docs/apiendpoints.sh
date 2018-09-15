@@ -1,11 +1,11 @@
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'username=varunram1&email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/signup"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'username=varunram1&email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/signup"
 
 {
   "success": true,
   "publicKey": "5b769d9a2088882e67d1c765"
 }
 
-curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/auth/credentials"
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'email=varunramganesh@gmail.com&password=123456789' "http://35.232.77.81:3000/credentials"
 
 {
   "success": true,
@@ -42,7 +42,7 @@ curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.
   "membershipLevel": 1
 }
 
-curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/api/user/info/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
+curl -X GET -H "Content-Type: application/x-www-form-urlencoded" "http://35.232.77.81:3000/api/user/about/5b76a19e2088882e67d1c767?clientId=5b76a19e2088882e67d1c767&clientSecret=bpbGaiLjpbKwYw737nHFrGh6f7XWpt"
 
 {
   "createdBy": "0xf527a9a52b77f6c04471914ad57c31a8ae104d71",
@@ -266,7 +266,7 @@ curl -X GET "http://35.232.77.81:3000/artist/isartist/0xb1a1ca710934e70e56848328
   "success": true
 }
 
-curl -X GET "http://35.232.77.81:3000/artist/info/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/artist/about/0xb1a1ca710934e70e56848328a1ee75e0754c2664?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "totalTips": 1274,
@@ -817,4 +817,42 @@ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'artistName
 {
   "success": false,
   "message": "Block height greater then 1000"
+}
+
+curl -X GET -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" "http://35.232.77.81:3000/package/list?clientId=5b7d4b7a0b9d416f484d91c5&clientSecret=GEDweFmgXmhbV9QTjUFONqyCcy3aJb"
+
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "5b7e9fd4bfb61a4767b282c5",
+      "name": "Free",
+      "__v": 0,
+      "limitApiCalls": 500
+    },
+    {
+      "_id": "5b7e9fe0bfb61a4767b282c6",
+      "name": "Developer",
+      "__v": 0,
+      "limitApiCalls": 10000
+    },
+    {
+      "_id": "5b7e9ff1bfb61a4767b282c7",
+      "name": "Entrprise",
+      "__v": 0,
+      "limitApiCalls": 100000
+    }
+  ]
+}
+
+curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'limitApiCalls=10&name=test' "http://35.232.77.81:3000/package/create?clientId=5b7d4b7a0b9d416f484d91c5&clientSecret=GEDweFmgXmhbV9QTjUFONqyCcy3aJb"
+
+{
+  "success": true,
+  "data": {
+    "__v": 0,
+    "name": "test1",
+    "_id": "5b9ca1d1b60dbd78d9e97b6e",
+    "limitApiCalls": 10
+  }
 }

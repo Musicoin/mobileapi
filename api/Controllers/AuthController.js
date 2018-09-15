@@ -8,7 +8,7 @@ const ApiUser = require('../../db/core/api-user');
 /**
  *   VALIDATION SCHEMAS
  */
-const AuthSchema = require('../ValidatorSchemas/AuthSchema');
+const AuthSchema = require('../ValidatorSchema/AuthSchema');
 /**
  *  LIBS
  *

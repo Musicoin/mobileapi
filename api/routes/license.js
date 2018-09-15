@@ -14,6 +14,7 @@ Router.get('/details', licenseModule.getDetailsByAddresses.bind(licenseModule));
 Router.get('/find', licenseModule.find.bind(licenseModule));
 // Not in documentation
 Router.get('/ppp/:address', licenseModule.getPppByAddress.bind(licenseModule));
+
 Router.post('/distributeBalance/', licenseModule.distributeBalance.bind(licenseModule));
 Router.post('/update', licenseModule.update.bind(licenseModule));
 Router.post('/', licenseModule.getAll.bind(licenseModule));
