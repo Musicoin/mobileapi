@@ -297,7 +297,7 @@ curl -X GET "http://35.232.77.81:3000/artist/earnings/0xb1a1ca710934e70e56848328
   "earned": 6791
 }
 
-curl -X GET "http://35.232.77.81:3000/user/stats?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
+curl -X GET "http://35.232.77.81:3000/user/usage/stats?clientId=5b7f94e7dcb73452b7c582c1&clientSecret=iOWSTmgrCtulcjwue2eF7aZjvlZVUj"
 
 {
   "tie": "Free",

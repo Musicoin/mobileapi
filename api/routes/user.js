@@ -11,7 +11,7 @@ Router.delete('/playlist/:name', Kernel.userModule.deletePlaylist.bind(Kernel.us
 Router.get('/balance/:address', Kernel.userModule.getBalance.bind(Kernel.userModule));
 
 Router.post('/renew', Kernel.userModule.renewMember.bind(Kernel.userModule));
-Router.post('/delete', Kernel.userModule.deleteUserAccount.bind(Kernel.userModule));
+Router.post('/delete', Kernel.userModule.generateToken.bind(Kernel.userModule));
 Router.post('/playlist', Kernel.userModule.createPlaylist.bind(Kernel.userModule));
 
 Router.delete('/delete', Kernel.userModule.deleteUserAccount.bind(Kernel.userModule));

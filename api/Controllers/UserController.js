@@ -134,76 +134,49 @@ class UserController {
     }
   }
 
-  signMessage(Request, Response) {
-    this.web3.signMessage(Request.body.address, this.web3.encryptMessage(Request.body.message)).then(res => {
-      Response.send({
-        res: res
-      });
-    }).catch(Error => {
-      Response.send({
-        error: Error.message
-      })
-    })
-  }
+  async generateToken(Request, Response) {
+    const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
+    const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
+    const deletingToken = this.deletingTokenGenerate(80);
+    Request.session.deletingToken = deletingToken;
+    Request.store.set(Request.query.clientId, Request.session);
+    Response.send({
+      token: Request.session.deletingToken
+    });
 
+    console.log("SENT DELETING TOKEN", Request.session.deletingToken);
+  }
   async deleteUserAccount(Request, Response) {
     const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
     const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
-    if (Request.method === 'POST') {
-      const deletingToken = this.deletingTokenGenerate(80);
-      Request.session.deletingToken = deletingToken;
-      Request.store.set(Request.query.clientId, Request.session);
-
-      Response.mailer.send('deleting', {
-        domain: process.env.DOMAIN,
-        to: user.local.email,
-        deletingToken: deletingToken,
-        subject: 'User Deletion Request',
-        clientId: Request.session.user.clientId,
-        clientSecret: Request.session.user.clientSecret
-      }, function(Error) {
-        if (Error) {
-          Response.status(400);
-          Response.send({
-            success: false,
-            error: Error
-          });
-          return;
-        }
-      });
-
-      Response.send({
-        token: Request.session.deletingToken
-      });
-    } else if (Request.method === 'DELETE') {
-      if (Request.session.deletable) {
-        try {
-          await user.remove();
-          await ApiUserAccount.remove();
-          Request.session.destroy();
-          Response.send({
-            success: true,
-            message: 'User account was successfully deleted'
-          });
-        } catch (Error) {
-          Response.status(400);
-          Response.send({
-            success: false,
-            message: Error.message
-          });
-        }
-      } else {
+    if (Request.session.deletable) {
+      try {
+        await user.remove();
+        await ApiUserAccount.remove();
+        Request.session.destroy();
+        Response.send({
+          success: true,
+          message: 'Account was successfully deleted'
+        });
+      } catch (Error) {
         Response.status(400);
         Response.send({
           success: false,
-          message: 'Deleting in not verified'
-        })
+          message: Error.message
+        });
       }
+    } else {
+      Response.status(400);
+      Response.send({
+        success: false,
+        message: 'Verify deletion with token before deletion'
+      })
     }
   }
 
   verifyUserAccountDeleting(Request, Response) {
     let token = Request.params.token;
+    console.log("CHKTHIS", Request.session);
     if (token === Request.session.deletingToken) {
       Request.session.deletable = true;
       Response.send({
@@ -211,7 +184,7 @@ class UserController {
       });
     } else {
       Response.send({
-        success: true,
+        success: false,
         error: 'Wrong deletable token'
       });
     }
