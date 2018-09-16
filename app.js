@@ -51,15 +51,6 @@ const RateLimiter = new RateLimit({
 app.set('views', './api/views');
 app.set('view engine', 'pug');
 
-mailer.extend(app, {
-  from: config.MailClient.email,
-  host: config.MailClient.host,
-  secureConnection: true,
-  port: config.MailClient.port,
-  transportMethod: config.MailClient.transportMethod,
-  auth: config.MailClient.auth
-});
-
 app.use(require('./api/routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
 app.use('/', AuthMiddleware.checkTokens(store), RateLimiter);

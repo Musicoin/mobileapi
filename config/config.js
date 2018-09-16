@@ -57,16 +57,6 @@ function getDefaultKeyValueConfig() {
     sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
     contractVersion: env.CONTRACT_VERSION || "v0.3",
     forwardingAddress: env.FORWARDING_ADDRESS || '0x0',
-    MailClient: {
-      email: "sample@gmail.com",
-      host: "smtp.gmail.com",
-      port: 465,
-      transportMethod: "SMTP",
-      auth: {
-        "user": "sample@gmail.com",
-        "pass": "sample"
-      }
-    }
   };
 }
 
