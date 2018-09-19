@@ -398,6 +398,52 @@ class UserController {
     })
   }
 
+  getPlaylistWithSongs(Request, Response) {
+    var songs1 = [];
+    Playlist.findOne({
+      name: Request.params.name
+    }).then(playlist => {
+      // now we need to get all the songs and then return them as an object
+      console.log("SEETHIS", playlist.songs.length);
+      for (var i = 0; i < playlist.songs.length; i++) {
+        console.log("I=", i);
+        let track = Release.findOne({
+          contractAddress: playlist.songs[i]
+        }).populate('artist').then(track => {
+          console.log(track.title, track.contractAddress, track.tx);
+          songs1.push({
+            title: track.title,
+            link: 'https://musicion.org/nav/track/' + track.contractAddress,
+            pppLink: track.tx,
+            genres: track.genres,
+            author: track.artistName,
+            authorLink: 'https://musicoin.org/nav/artist/' + track.artistAddress,
+            trackImg: track.imageUrl,
+            trackDescription: track.description,
+            directTipCount: track.directTipCount,
+            directPlayCount: track.directPlayCount
+          });
+          if ((i == 2) && (songs1.length == playlist.songs.length)) {
+            // weird hack, but works
+            Response.send({
+              success: true,
+              playlistName: playlist.name,
+              playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
+              creatorName: playlist.user.name,
+              creatorUrl: playlist.user.profileAddress ? 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress : null,
+              songs: songs1
+            });
+          }
+        });
+      }
+    }).catch(Error => {
+      Response.send({
+        success: false,
+        message: Error.message
+      })
+    });
+  }
+
   deletePlaylist(Request, Response) {
     Playlist.findOne({
       name: Request.params.name

@@ -307,6 +307,51 @@ class ReleaseController {
       });
   }
 
+  getTopTracksByGenre(Request, Response) {
+    Release.find()
+      .sort({
+        directTipCount: 'desc'
+      })
+      //.limit(this.limit(Number(Request.query.limit)))
+      .then(releases => {
+        var lim = 0;
+        if (releases.length > 1000) { // DoS limit
+          lim = 1000;
+        } else {
+          lim = releases.length;
+        }
+        if (Request.query.limit > 100) {
+          Request.query.limit = 100;
+        }
+        let ReleasesArray = [];
+        console.log("LIM", lim, "RELASE$SArrya")
+        for (var i = 0; i < lim ; i++) {
+          console.log(i, "<-INDEX")
+          if (releases[i].genres.indexOf(Request.query.genre) > -1) {
+            ReleasesArray.push({
+              title: releases[i].title,
+              link: 'https://musicion.org/nav/track/' + releases[i].contractAddress,
+              pppLink: releases[i].tx,
+              genres: releases[i].genres,
+              author: releases[i].artistName,
+              authorLink: 'https://musicoin.org/nav/artist/' + releases[i].artistAddress,
+              trackImg: releases[i].imageUrl,
+              trackDescription: releases[i].description,
+              directTipCount: releases[i].directTipCount,
+              directPlayCount: releases[i].directPlayCount
+            });
+          }
+          if (ReleasesArray.length == Request.query.limit) {
+            break;
+          }
+        }
+        Response.send({
+          success: true,
+          data: ReleasesArray
+        });
+      });
+  }
+
   getRecentTracks(Request, Response) {
     Release.find({})
       .sort({
