@@ -6,15 +6,15 @@ function AccountManager() {
 /**
  * Deducts the specified amount from the client's account, if they have sufficient balance.
  *
- * @param clientID The clientID of the user that is paying
+ * @param email The email of the user that is paying
  * @param amount The amount to subtract from the user's balance
  * @returns {Promise<Boolean>} A promise that resolves to true if the amount was subtracted from the user's balance.  An exception
  * will be thrown if the balance is insufficient.
  */
-AccountManager.prototype.pay = function(clientID, amount) {
+AccountManager.prototype.pay = function(email, amount) {
   return new Promise(function(resolve, reject) {
     APIUser.findOneAndUpdate({
-        clientID: clientID,
+        email: email,
         balance: {
           $gte: amount.toNumber()
         }
@@ -29,8 +29,8 @@ AccountManager.prototype.pay = function(clientID, amount) {
 
         // To ensure the balance doesn't go negative, the balance must be included in the query.
         // However,this means it is not possible to tell WHY no user was found.  It could be an invalid
-        // clientID or an insufficient balance.
-        reject(new Error("Insufficient funds (or user not found): " + clientID));
+        // email or an insufficient balance.
+        reject(new Error("Insufficient funds (or user not found): " + email));
       }
     )
   })
@@ -40,52 +40,52 @@ AccountManager.prototype.getAPIUserCount = function() {
   return APIUser.count().exec();
 };
 
-AccountManager.prototype.getBalance = function(clientID) {
+AccountManager.prototype.getBalance = function(email) {
   return APIUser.findOne({
-      clientID: clientID
+      email: email
     }).exec()
     .then(function(record) {
-      if (!record) throw new Error(`Balance check failed: clientId not found`);
+      if (!record) throw new Error(`Balance check failed: email not found`);
       return {
         balance: record.balance
       }
     });
 };
 
-AccountManager.prototype.validateClient = function(clientID) {
+AccountManager.prototype.validateClient = function(email) {
   return new Promise(function(resolve, reject) {
     APIUser.findOne({
-        clientID: clientID
+        email: email
       },
       function(err, apiUser) {
         if (err) return reject(err);
         if (apiUser) return resolve(true);
-        reject(new Error("User not found: " + clientID));
+        reject(new Error("User not found: " + email));
       }
     )
   })
 };
 
-AccountManager.prototype.deposit = function(clientID, amount) {
+AccountManager.prototype.deposit = function(email, amount) {
   return new Promise(function(resolve, reject) {
     APIUser.findOneAndUpdate({
-        clientID: clientID
+        email: email
       }, {
         $inc: amount
       },
       function(err, apiUser) {
         if (err) return reject(err);
         if (apiUser) return resolve(true);
-        reject(new Error("User not found: " + clientID));
+        reject(new Error("User not found: " + email));
       }
     )
   })
 };
 
-AccountManager.prototype.createAccount = function(clientID, name) {
+AccountManager.prototype.createAccount = function(email, name) {
   return new Promise(function(resolve, reject) {
     const newUser = new APIUser();
-    newUser.clientID = clientID;
+    newUser.email = email;
     newUser.name = name;
     newUser.balance = 0;
     newUser.save(function(err) {

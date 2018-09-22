@@ -1,8 +1,12 @@
 /signup
-/credentials
-/authenticate
+/clientsecret
+/authtoken
+/timeout
+/verify
 /search
 /delete
+/getsongsbya
+/getsongsbyn
 
 /package/list
 /package/create
@@ -46,6 +50,7 @@
 /release/top
 /release/recent
 /release/tip/:publicKey
+/release/topbygenre
 
 /tx/detail/:hash
 /tx/raw/:hash
@@ -53,8 +58,9 @@
 /tx/status/:hash
 /tx/history/:address
 
-/playlist/:name (get, delete)
-/playlist
+/user/playlist/:name (get, delete)
+/user/playlist
+/user/plsongs
 
 /user/delete/verify/:token
 /user/ismember

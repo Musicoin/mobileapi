@@ -1,8 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const {
-  MemoryStore
-} = require('express-session');
 const app = express();
 const bodyParser = require('body-parser');
 const ConfigUtils = require('./config/config');
@@ -26,22 +23,6 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
-// app.enable('trust proxy');
-const store = new MemoryStore();
-
-app.use(session({
-  secret: config.sessionSecretKey,
-  store: store,
-  genid: function(Request) {
-    return Request.query.clientId;
-  }
-}));
-
-app.use(function(Request, Response, next) {
-  Request.store = store;
-  next();
-});
-
 const RateLimiter = new RateLimit({
   windowMs: 1000,
   max: 1,
@@ -53,7 +34,7 @@ app.set('view engine', 'pug');
 
 app.use(require('./api/routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
-app.use('/', AuthMiddleware.checkTokens(store), RateLimiter);
+app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
 app.use('/', require('./api/routes/global'));
 app.use('/user', require('./api/routes/user'));
 app.use('/package', require('./api/routes/package'));

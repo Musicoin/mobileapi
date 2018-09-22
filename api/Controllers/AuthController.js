@@ -16,6 +16,8 @@ const AuthSchema = require('../ValidatorSchema/AuthSchema');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 const bcrypt = require('bcrypt-nodejs');
+const mongoose = require('mongoose');
+const crypto = require('crypto');
 /**
  *  AUTH CONTROLLER
  *
@@ -24,16 +26,6 @@ const bcrypt = require('bcrypt-nodejs');
  *
  * */
 class AuthController {
-
-  /**
-   *
-   *
-   * @return Object()
-   *
-   *          success: Boolean
-   *          publicKey: String
-   *
-   * */
 
   registerNewUser(req, res) {
 
@@ -46,30 +38,33 @@ class AuthController {
 
     if (errors === true) {
       User.create({
-        local: body
-      }).then(user => {
-        ApiUser.create({
-          clientId: user._id,
-          clientSecret: $this.clientSecretGenerate(30)
-        }).then(ApiUser => {
-          res.send({
-            success: true,
-            publicKey: ApiUser.clientId
+        // only local auth supported for now, other stuff later
+          local: body
+        }).then(user => {
+          ApiUser.create({
+            // the api user doesn't clientId since he has an accessToken
+            email: body.email,
+            clientSecret: this.randomTokenGenerate(30)
+          }).then(apiuser => {
+            res.send({
+              success: true,
+            });
+          }).catch(Error => {
+            res.status(400);
+            res.send({
+              success: false,
+              error: Error
+            })
           });
-        }).catch(Error => {
+        })
+        .catch(Error => {
+          console.log("ERR1");
           res.status(400);
           res.send({
             success: false,
             error: Error
-          })
+          });
         });
-      }).catch(Error => {
-        res.status(400);
-        res.send({
-          success: false,
-          error: Error
-        });
-      });
     } else {
       res.send(errors);
     }
@@ -91,7 +86,11 @@ class AuthController {
           });
         }
       });
-    } else {}
+    } else {
+      Response.send({
+        success: false
+      });
+    }
   }
 
   getAPICredentials(Request, Response) {
@@ -102,20 +101,17 @@ class AuthController {
       }).then(user => {
         if (user && bcrypt.compareSync(Request.body.password, user.local.password)) {
           ApiUser.findOne({
-            clientId: user._id
+            email: Request.body.email
           }).then(apiUser => {
             if (apiUser) {
               Response.send({
                 success: true,
-                apiuser: {
-                  clientId: apiUser.clientId,
-                  clientSecret: apiUser.clientSecret
-                }
+                clientSecret: apiUser.clientSecret
               });
             } else {
               Response.send({
                 success: false,
-                error: 'Api user account does not found'
+                error: 'Api User Account not found'
               });
             }
           })
@@ -123,7 +119,7 @@ class AuthController {
           Response.send(401);
           Response.send({
             success: false,
-            error: 'Unauthorized'
+            error: 'Invalid Credentials'
           });
         }
       });
@@ -131,27 +127,89 @@ class AuthController {
       Response.send(Errors);
     }
   }
-  /**
-   *
-   * @get
-   *
-   * count -> Number - length of generated key
-   *
-   * @return
-   *
-   * result -> String - random clientSecretKey
-   *
-   * */
-  clientSecretGenerate(count) {
-    let result = '';
-    let words = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-    let max_position = words.length - 1;
-    for (let i = 0; i < count; ++i) {
-      let position = Math.floor(Math.random() * max_position);
-      result = result + words.substring(position, position + 1);
-    }
-    return result;
+
+  randomTokenGenerate(count) {
+    return crypto.randomBytes(count).toString('hex');
   }
+
+  async genTokenTest(Request, Response) {
+    User.findOne({
+      "local.email": Request.body.email,
+    }).then(user => {
+      ApiUser.findOne({
+        email: Request.body.email
+      }).then(user1 => {
+        if (user1.clientSecret == Request.body.clientSecret) {
+          const accessToken = this.randomTokenGenerate(40);
+          user1.timeout = Date.now();
+          user1.accessToken = accessToken; // save it here TODO
+          console.log("USER1", user1);
+          user1.save(function(err, dummy) {
+            if (err) {
+              console.log(err);
+              Response.send({
+                success: false,
+                error: 'Client Secrets dont match'
+              });
+            } else {
+              Response.send({
+                success: true,
+                accessToken: accessToken
+              });
+            }
+          });
+        } else {
+          Response.send({
+            success: false,
+            error: 'Client Secrets dont match'
+          });
+        }
+      }).catch(Error => {
+        Response.send({
+          success: false,
+          error: Error
+        });
+      });
+    }).catch(Error => {
+      Response.send({
+        success: false,
+        error: Error
+      });
+    });
+  }
+
+  async getTokenValidity(Request, Response) {
+    ApiUser.findOne({
+      email: Request.body.email
+    }).then(user1 => {
+      if (user1.accessToken == Request.body.accessToken) {
+        if (Date.now() - user1.timeout > 3600 * 1000) {
+          // error out
+          Response.send({
+            success: false,
+            error: 'Access Token timed out'
+          });
+        } else {
+          var timeElapsed = (Date.now() - user1.timeout) / 1000; // ms to s
+          Response.send({
+            timeout: timeElapsed
+          });
+        }
+      } else {
+        console.log(user1.accessToken, Request.body.accessToken);
+        Response.send({
+          success: false,
+          error: 'Invalid Access Token'
+        });
+      }
+    }).catch(Error => {
+      Response.send({
+        success: false,
+        error: Error
+      });
+    });
+  }
+
 }
 
 module.exports = new AuthController();

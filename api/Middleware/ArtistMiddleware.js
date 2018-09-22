@@ -16,7 +16,7 @@ class ArtistMiddleware {
         }
       })
       .where({
-        profileAddress: Request.query.clientId
+        profileAddress: Request.query.profileAddress
       })
       .exec()
       .then(user => {

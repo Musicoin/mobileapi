@@ -64,6 +64,7 @@ class ReleaseController {
   }
 
   getGenres(Request, Response) {
+    console.log("Calling route?")
     Response.send(knownGenres);
   }
 
@@ -405,7 +406,7 @@ class ReleaseController {
             release.directTipCount += Number(body.tip);
             release.save();
             await TipHistory.create({
-              user: Request.query.clientId,
+              user: Request.query.email,
               release: release._id,
               tipCount: body.tip,
               date: Date.now()

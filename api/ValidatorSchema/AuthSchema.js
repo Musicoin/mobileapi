@@ -23,13 +23,13 @@ const Login = {
 };
 
 const SignIn = {
-  clientId: {
+  email: {
     type: "string",
-    min: 10
+    min: 3
   },
   clientSecret: {
     type: "string",
-    length: 30
+    length: 60
   }
 };
 

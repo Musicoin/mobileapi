@@ -2,15 +2,22 @@ const mongoose = require('mongoose');
 const coreConnection = require('./../connections/core');
 // define the schema for our user model
 const userSchema = mongoose.Schema({
-  clientId: {
+  email: {
     type: Object,
     unique: true,
-    required: true
   },
   clientSecret: {
     type: String,
     unique: true,
     required: true
+  },
+  accessToken: {
+    type: String,
+    unique: true,
+  },
+  timeout: {
+    type: Number,
+    unique: 3600,
   },
   limitApiCalls: {
     type: Number,
@@ -25,9 +32,9 @@ const userSchema = mongoose.Schema({
     min: 0,
     default: 0
   },
-  tie: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'ApiPackage'
+  tier: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ApiPackage'
   }
 });
 

@@ -1,8 +1,4 @@
 const ApiUser = require('../../db/core/api-user');
-const {
-  Store
-} = require('express-session');
-
 const mongoose = require('mongoose');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
@@ -10,111 +6,50 @@ const AuthSchema = require('../ValidatorSchema/AuthSchema');
 
 class AuthMiddleware {
 
-  checkTokens(store) {
+  checkTimeouts() {
+    console.log("STUCK IN CHECK TIMEOUTS")
     return (Request, Response, next) => {
-      const $this = this;
-      store.get(Request.query.clientId, function(error, session) {
-        /*
-         *
-         * Handle which watch in user current api calls count
-         *
-         * */
-        let valid = Validator.validate(Request.query, AuthSchema.signin);
-
-        if (valid !== true) {
+      ApiUser.findOne({
+        email: Request.query.email
+      }).then(user1 => {
+        console.log("Found user1 in checktimeouts", user1)
+        if (user1.accessToken != Request.query.accessToken) {
+          // error out
+          console.log("Client Secrets don't match", user1.clientSecret, Request.query.clientSecret)
           Response.send({
             success: false,
-            error: valid
+            error: 'Invalid Credentials'
           });
-          return;
-        }
-
-        if (session) {
-          if (session.user.clientSecret === Request.query.clientSecret) {
-            if (session.user.calls > session.user.limitApiCalls) {
-              Request.session.destroy();
-              Response.send({
-                success: false,
-                error: 'You have exceeded an API call limit'
-              });
-            } else {
-              if ((session.user.calls % 1) === 0) {
-                $this.updateApiCallcount(session.user.clientId, session.user.calls);
-              }
-              Request.session.user.calls++;
-              next();
-            }
-          } else {
-            Response.status(401);
-            Response.send({
-              success: false,
-              error: 'Wrong key pare'
-            })
-          }
+        } else if (Date.now() - user1.timeout > 3600 * 1000) {
+          // error out
+          console.log("Didn't find user1 in checktimeouts")
+          Response.send({
+            success: false,
+            error: 'Access Token Expired'
+          });
         } else {
-          let valid = Validator.validate(Request.query, AuthSchema.signin);
-          if (valid === true) {
-            let clientId = mongoose.Types.ObjectId(Request.query.clientId);
-            ApiUser.findOne({
-              clientId: clientId
-            }).then(user => {
-              if (user && user.clientSecret === Request.query.clientSecret) {
-                /*
-                 *  if secret key are the same, then we start count API calls
-                 * */
-                if (user.calls >= user.limitApiCalls) {
-                  Request.session.destroy();
-                  Response.send({
-                    success: false,
-                    error: 'You have exceeded an API call limit'
-                  });
-                  console.log('session destroy');
-                } else {
-                  console.log('session created');
-                  Request.session.user = user;
-                  if (!Request.session.user.calls || Request.session.user.calls === 0) {
-                    Request.session.user.calls = 1;
-                  }
-                  Request.session.user.calls++;
-                  store.set(Request.query.clientId, Request.session);
-                  next();
-                }
-              } else {
-                Request.session.destroy();
-                Response.status(401);
-                Response.send({
-                  success: false,
-                  error: 'Wrong key pare'
-                })
-              }
-            }).catch(Error => {
-              Response.status(400);
-              Response.send({
-                success: false,
-                error: Error.message
-              });
-            });
-          } else {
-            Response.send({
-              success: false,
-              error: valid
-            });
-          }
+          this.updateApiCallcount(Request.query.email, user1.calls + 1);
+          next();
         }
+      }).catch(Error => {
+        // error out
+        console.log("Errored out in checktimeouts")
+        Response.send({
+          success: false,
+          error: Error
+        });
       });
     }
   }
 
-  updateApiCallcount(userClientId, calls) {
-    console.log(userClientId, calls);
-    let clientId = mongoose.Types.ObjectId(userClientId);
+  updateApiCallcount(email, calls) {
     ApiUser.findOne({
-      clientId: clientId
+      email: email
     }).then(user => {
       user.update({
         calls: calls
       }).then(user => {
-        console.log('User ' + userClientId + ' calls modified');
+        console.log('User ' + email + 'now has made ' + calls + ' calls');
       });
     })
   }

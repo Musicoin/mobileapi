@@ -19,6 +19,7 @@ const UserSchema = require('../ValidatorSchema/UserSchema');
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
 const async = require('async');
+const crypto = require('crypto');
 
 
 const ValidatorClass = require('fastest-validator');
@@ -135,19 +136,21 @@ class UserController {
   }
 
   async generateToken(Request, Response) {
-    const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
-    const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
-    const deletingToken = this.deletingTokenGenerate(80);
+    const user = await User.findOne({
+      email: Request.query.email
+    });
+    const deletingToken = this.randomTokenGenerate(40);
     Request.session.deletingToken = deletingToken;
-    Request.store.set(Request.query.clientId, Request.session);
+    Request.store.set(Request.query.email, Request.session);
     Response.send({
       token: Request.session.deletingToken
     });
-
-    console.log("SENT DELETING TOKEN", Request.session.deletingToken);
   }
+
   async deleteUserAccount(Request, Response) {
-    const user = await User.findById(mongoose.Types.ObjectId(Request.session.user.clientId));
+    const user = await User.findOne({
+      email: Request.session.user.email
+    });
     const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
     if (Request.session.deletable) {
       try {
@@ -176,7 +179,6 @@ class UserController {
 
   verifyUserAccountDeleting(Request, Response) {
     let token = Request.params.token;
-    console.log("CHKTHIS", Request.session);
     if (token === Request.session.deletingToken) {
       Request.session.deletable = true;
       Response.send({
@@ -193,7 +195,9 @@ class UserController {
   isMember(Request, Response) {
 
     try {
-      User.findById(mongoose.Types.ObjectId(Request.query.clientId)).then(user => {
+      User.findOne({
+        email: Request.query.email
+      }).then(user => {
         if (user) {
           let joinDate = new Date(user.joinDate);
           let now = new Date();
@@ -226,7 +230,9 @@ class UserController {
   }
 
   getUserInfo(Request, Response) {
-    User.findById(Request.query.clientId).then(async user => {
+    User.findOne({
+      email: Request.query.email
+    }).then(async user => {
       if (!user) {
         Response.status(400);
         Response.send({
@@ -279,7 +285,7 @@ class UserController {
       }
 
       const apiUser = await ApiUser.findOne({
-        clientId: user._id
+        email: user.local.email
       });
 
       ResponseInstance.balance = apiUser.balance;
@@ -296,50 +302,34 @@ class UserController {
   }
 
   apiGetUsageStats(Request, Response) {
-    Request.store.get(Request.query.clientId, function(Error, Session) {
-
-      if (!Error && Session) {
-        ApiUser.findOne({
-          clientId: mongoose.Types.ObjectId(Session.user.clientId)
-        }).populate('tie').then(async apiuser => {
-          if (apiuser) {
-            if (apiuser.tie !== undefined) {
-              Response.send({
-                tie: apiuser.tie.name,
-                calls: Session.user.calls
-              });
-            } else {
-              const Tie = await Package.findOne({
-                name: 'Free'
-              });
-              Response.send({
-                tie: Tie.name,
-                calls: Session.user.calls
-              });
-            }
-          }
-        }).catch(Error => {
-          Response.status(400);
+    ApiUser.findOne({
+      email: Request.query.email
+    }).populate('tier').then(apiuser => {
+      if (apiuser) {
+        if (apiuser.tier !== undefined) {
           Response.send({
-            success: false,
-            error: Error.message
-          })
-        });
-      } else {
-        Response.send(Error)
+            tier: apiuser.tier.name,
+            calls: apiuser.calls
+          });
+        } else {
+          Response.send({
+            // if no tier is assigned, he's on the free tier
+            tier: 'Free Tier',
+            calls: apiuser.calls
+          });
+        }
       }
-    })
+    }).catch(Error => {
+      Response.status(400);
+      Response.send({
+        success: false,
+        error: Error.message
+      })
+    });
   }
 
-  deletingTokenGenerate(count) {
-    let result = '';
-    let words = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-    let max_position = words.length - 1;
-    for (let i = 0; i < count; ++i) {
-      let position = Math.floor(Math.random() * max_position);
-      result = result + words.substring(position, position + 1);
-    }
-    return result;
+  randomTokenGenerate(count) {
+    return crypto.randomBytes(count).toString('hex');
   }
 
   createPlaylist(Request, Response) {
