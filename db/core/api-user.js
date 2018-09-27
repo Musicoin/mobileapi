@@ -8,16 +8,13 @@ const userSchema = mongoose.Schema({
   },
   clientSecret: {
     type: String,
-    unique: true,
     required: true
   },
   accessToken: {
     type: String,
-    unique: true,
   },
   timeout: {
     type: Number,
-    unique: 3600,
   },
   limitApiCalls: {
     type: Number,

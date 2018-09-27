@@ -44,7 +44,8 @@ class AuthController {
           ApiUser.create({
             // the api user doesn't clientId since he has an accessToken
             email: body.email,
-            clientSecret: this.randomTokenGenerate(30)
+            clientSecret: this.randomTokenGenerate(30),
+            timeout: 3600
           }).then(apiuser => {
             res.send({
               success: true,
