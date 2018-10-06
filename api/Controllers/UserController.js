@@ -334,44 +334,40 @@ class UserController {
 
   createPlaylist(Request, Response) {
     User.findOne({
-      "local.email": Request.body.user.email,
+      "local.email": Request.query.email,
     }).then(user => {
-      if (user && bcrypt.compareSync(Request.body.user.password, user.local.password)) {
-        Playlist.create({
-          name: Request.body.name,
-          user: {
-            email: user.local.email,
-            profileAddress: user.profileAddress,
-            userId: user._id,
-            name: user.local.username
-          },
-          songs: Request.body.songs
-        }).then(playlist => {
-          Response.send({
-            success: true,
-            playlistName: playlist.name,
-            playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
-            creatorName: playlist.user.name,
-            creatorUrl: 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress
-          })
-        }).catch(Error => {
-          Response.send({
-            success: false,
-            message: Error.message
-          })
-        })
-      } else {
+      console.log("COOL");
+      Playlist.create({
+        name: Request.body.name,
+        user: {
+          email: user.local.email,
+          profileAddress: user.profileAddress,
+          userId: user._id,
+          name: user.local.username
+        },
+        songs: Request.body.songs
+      }).then(playlist => {
         Response.send({
-          success: false
-        });
-      }
+          success: true,
+          playlistName: playlist.name,
+          playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
+          creatorName: playlist.user.name,
+          creatorUrl: 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress
+        })
+      }).catch(Error => {
+        Response.send({
+          success: false,
+          message: Error.message
+        })
+      })
     });
   }
 
   getPlaylist(Request, Response) {
     Playlist.findOne({
-      name: Request.params.name
+      name: Request.query.name
     }).then(playlist => {
+      console.log("SONGS", playlist.songs);
       Response.send({
         success: true,
         playlistName: playlist.name,
@@ -436,30 +432,22 @@ class UserController {
 
   deletePlaylist(Request, Response) {
     Playlist.findOne({
-      name: Request.params.name
+      name: Request.query.name
     }).populate('user.userId').then(playlist => {
-
       if (playlist) {
-        if (playlist.user.userId.local.username === Request.body.username && bcrypt.compareSync(Request.body.password, playlist.user.userId.local.password)) {
-          playlist.remove();
-          Response.send({
-            success: true,
-            playlistName: playlist.name,
-            playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
-            creatorName: playlist.user.name,
-            creatorUrl: 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress
-          });
-        } else {
-          Response.status(401);
-          Response.send({
-            success: false,
-            message: 'Invalid credentials'
-          });
-        }
+        playlist.remove();
+        Response.send({
+          success: true,
+          playlistName: playlist.name,
+          playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
+          creatorName: playlist.user.name,
+          creatorUrl: 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress
+        });
       } else {
+        Response.status(401);
         Response.send({
           success: false,
-          message: 'Playlist does not found'
+          message: 'Invalid credentials'
         });
       }
     }).catch(Error => {
