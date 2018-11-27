@@ -18,6 +18,8 @@ const Validator = new ValidatorClass();
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const TIMEOUT = require('../constant').timeout;
+
 /**
  *  AUTH CONTROLLER
  *
@@ -184,7 +186,7 @@ class AuthController {
       email: Request.body.email
     }).then(user1 => {
       if (user1.accessToken == Request.body.accessToken) {
-        if (Date.now() - user1.timeout > 3600 * 1000) {
+        if (Date.now() - user1.timeout > TIMEOUT) {
           // error out
           Response.send({
             success: false,
