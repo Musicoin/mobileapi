@@ -148,7 +148,6 @@ class UserController {
   }
 
   async deleteUserAccount(Request, Response) {
-    console.log("session: ",Request.session);
     const user = await User.findOne({
       "local.email": Request.session.user.email
     });
@@ -180,7 +179,6 @@ class UserController {
 
   verifyUserAccountDeleting(Request, Response) {
     let token = Request.params.token;
-    console.log('token:',token,"session:",Request.session);
     if (token === Request.session.deletingToken) {
       Request.session.deletable = true;
       Response.send({
