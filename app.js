@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const app = express();
@@ -31,6 +32,14 @@ const RateLimiter = new RateLimit({
 
 app.set('views', './api/views');
 app.set('view engine', 'pug');
+
+app.use(session({
+  name: "musicoin-api",
+  secret: 'mcapi',
+  cookie: {
+      maxAge: 60000
+  }
+}))
 
 app.use(require('./api/routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
