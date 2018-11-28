@@ -48,7 +48,8 @@ class AuthMiddleware {
       email: email
     }).then(user => {
       user.update({
-        calls: calls
+        calls: calls,
+        timeout: Date.now()
       }).then(user => {
         console.log('User ' + email + 'now has made ' + calls + ' calls');
       });
