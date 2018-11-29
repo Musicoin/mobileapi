@@ -162,6 +162,76 @@ class GlobalController {
     });
   }
 
+  async searchV1(Request, Response) {
+
+    try {
+      const keyword = Request.body.keyword;
+
+      const reg = new RegExp(keyword ? keyword : "", "i");
+
+      const releases = await Release.find({
+        $or: [{
+            title: {
+              $regex: reg
+            }
+          },
+          {
+            author: {
+              $regex: reg
+            }
+          },
+          {
+            genres: {
+              $regex: reg
+            }
+          }
+        ]
+      }).exec();
+
+      const ResponseInstance = {
+        totalTrackTips: 0,
+        totalReleases: 0,
+        totalPlays: 0
+      };
+
+      const ReleasesArray = releases.filter(release => release !== undefined).map(release => {
+
+        const directTipCount = release.directTipCount || 0;
+        const directPlayCount = release.directPlayCount || 0;
+
+
+        ResponseInstance.totalTrackTips += directPlayCount;
+        ResponseInstance.totalPlays += directPlayCount;
+        return {
+          title: release.title,
+          link: 'https://musicion.org/nav/track/' + release.contractAddress,
+          pppLink: release.tx,
+          genres: release.genres,
+          author: release.artistName,
+          authorLink: 'https://musicoin.org/nav/artist/' + release.artistAddress,
+          trackImg: release.imageUrl,
+          trackDescription: release.description,
+          directTipCount: directPlayCount,
+          directPlayCount: directPlayCount
+        }
+      });
+
+      ResponseInstance.totalReleases = ReleasesArray.length;
+      Response.send({
+        success: true,
+        data: {
+          mate: ResponseInstance,
+          releases: ReleasesArray
+        }
+      });
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+
+  }
+
   async getAllSongsByName(Request, Response) {
 
     let ReleasesArray = [];
