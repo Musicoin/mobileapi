@@ -2,11 +2,28 @@ const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
   type Query {
-    user: User
+    search(keyword: String,limit: Int!): Search
   },
-  type User{
-    id: Int!
-    name: String
+  type Artist{
+    name: String,
+    profileAddress: String,
+    releaseCount: Int!
+  },
+  type Release{
+    title: String,
+    link: String,
+    pppLink: String,
+    genres: String,
+    author: String,
+    authorLink: String,
+    trackImg: String,
+    trackDescription: String,
+    directTipCount: Int!,
+    directPlayCount: Int!
+  },
+  type Search{
+    artists: [Artist],
+    releases: [Release]
   }
 `;
 
