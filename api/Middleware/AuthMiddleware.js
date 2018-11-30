@@ -36,7 +36,7 @@ class AuthMiddleware {
         console.log("Errored out in checktimeouts")
         Response.send({
           success: false,
-          error: Error
+          error: Error.message
         });
       });
     }
