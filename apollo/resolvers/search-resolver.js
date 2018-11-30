@@ -63,9 +63,6 @@ async function search(parent, args, context, info) {
           }
         },
         {
-          $limit: limit
-        },
-        {
           $group: {
             "_id": "$artistAddress",
             "name": {
@@ -78,6 +75,9 @@ async function search(parent, args, context, info) {
               $sum: 1
             }
           }
+        },
+        {
+          $limit: limit
         }
       ]).exec();
 
