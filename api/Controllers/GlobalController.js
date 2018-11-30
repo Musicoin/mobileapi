@@ -164,19 +164,18 @@ class GlobalController {
 
   async searchV1(Request, Response) {
 
+    const keyword = Request.body.keyword;
+
+    const reg = new RegExp(keyword ? keyword : "", "i");
+
+    let ReleasesArray = [];
+    let UsersArray = [];
+
+    // search releases
     try {
-      const keyword = Request.body.keyword;
-
-      const reg = new RegExp(keyword ? keyword : "", "i");
-
       const releases = await Release.find({
         $or: [{
             title: {
-              $regex: reg
-            }
-          },
-          {
-            author: {
               $regex: reg
             }
           },
@@ -188,20 +187,11 @@ class GlobalController {
         ]
       }).exec();
 
-      const ResponseInstance = {
-        totalTrackTips: 0,
-        totalReleases: 0,
-        totalPlays: 0
-      };
-
-      const ReleasesArray = releases.filter(release => release !== undefined).map(release => {
+      // filter the releases and conversion result
+      ReleasesArray = releases.filter(release => release !== undefined).map(release => {
 
         const directTipCount = release.directTipCount || 0;
         const directPlayCount = release.directPlayCount || 0;
-
-
-        ResponseInstance.totalTrackTips += directPlayCount;
-        ResponseInstance.totalPlays += directPlayCount;
         return {
           title: release.title,
           link: 'https://musicion.org/nav/track/' + release.contractAddress,
@@ -211,24 +201,49 @@ class GlobalController {
           authorLink: 'https://musicoin.org/nav/artist/' + release.artistAddress,
           trackImg: release.imageUrl,
           trackDescription: release.description,
-          directTipCount: directPlayCount,
+          directTipCount: directTipCount,
           directPlayCount: directPlayCount
         }
       });
-
-      ResponseInstance.totalReleases = ReleasesArray.length;
-      Response.send({
-        success: true,
-        data: {
-          mate: ResponseInstance,
-          releases: ReleasesArray
-        }
-      });
     } catch (error) {
-      Response.status(500).json({
-        error: error.message
-      })
+      console.log("search release error:", error.message)
     }
+
+    // search users
+    try {
+      // search artist from releases
+      const users = await Release.aggregate([
+        {$match: {
+          artistName: {
+            $regex: reg
+          }
+        }},
+        {$group: {
+          "_id": "$artistAddress",
+          "name": {$first: "$artistName"},
+          "profileAddress": {$first: "$artistAddress"},
+          "releaseCount": {$sum: 1}
+        }}
+      ]).exec();
+
+      // conversion result
+      UsersArray = users.map(user => {
+        return {
+          name: user.name,
+          profileAddress: user.profileAddress,
+          releaseCount: user.releaseCount
+        }
+      })
+    } catch (error) {
+      console.log("search user error:", error.message)
+    }
+
+
+    Response.send({
+      success: true,
+      releases: ReleasesArray,
+      users: UsersArray
+    });
 
   }
 
