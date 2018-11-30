@@ -165,6 +165,8 @@ class GlobalController {
   async searchV1(Request, Response) {
 
     const keyword = Request.body.keyword;
+    const _limit = Request.body.limit;
+    const limit = _limit ? Number(_limit) : 10;
 
     const reg = new RegExp(keyword ? keyword : "", "i");
 
@@ -185,7 +187,7 @@ class GlobalController {
             }
           }
         ]
-      }).exec();
+      }).limit(limit).exec();
 
       // filter the releases and conversion result
       ReleasesArray = releases.filter(release => release !== undefined).map(release => {
@@ -213,17 +215,30 @@ class GlobalController {
     try {
       // search artist from releases
       const users = await Release.aggregate([
-        {$match: {
-          artistName: {
-            $regex: reg
+        {
+          $match: {
+            artistName: {
+              $regex: reg
+            }
           }
-        }},
-        {$group: {
-          "_id": "$artistAddress",
-          "name": {$first: "$artistName"},
-          "profileAddress": {$first: "$artistAddress"},
-          "releaseCount": {$sum: 1}
-        }}
+        },
+        {
+          $limit: limit
+        },
+        {
+          $group: {
+            "_id": "$artistAddress",
+            "name": {
+              $first: "$artistName"
+            },
+            "profileAddress": {
+              $first: "$artistAddress"
+            },
+            "releaseCount": {
+              $sum: 1
+            }
+          }
+        }
       ]).exec();
 
       // conversion result
