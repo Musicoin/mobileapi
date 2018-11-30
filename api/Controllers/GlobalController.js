@@ -223,9 +223,6 @@ class GlobalController {
           }
         },
         {
-          $limit: limit
-        },
-        {
           $group: {
             "_id": "$artistAddress",
             "name": {
@@ -238,6 +235,9 @@ class GlobalController {
               $sum: 1
             }
           }
+        },
+        {
+          $limit: limit
         }
       ]).exec();
 
@@ -257,7 +257,7 @@ class GlobalController {
     Response.send({
       success: true,
       releases: ReleasesArray,
-      users: UsersArray
+      artists: UsersArray
     });
 
   }
