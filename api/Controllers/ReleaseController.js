@@ -437,6 +437,34 @@ class ReleaseController {
       })
     }
   }
+
+  async getRandomTracks(Request, Response) {
+    try {
+      const limit = this.limit(Number(Request.query.limit));
+      // use $sample to find the random releases
+      const release = await Release.aggregate([{
+        $sample: {
+          size: limit
+        }
+      }]).exec();
+
+      const tracks = release.map(track => {
+        return {
+          artistName: track.artistName,
+          artistProfile: 'https://musicoin.org/nav/artist/' + track.artistAddress,
+          trackURL: 'https://musicion.org/nav/track/' + track.contractAddress
+        }
+      })
+      Response.send({
+        success: true,
+        data: tracks
+      });
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
 }
 
 module.exports = new ReleaseController();
