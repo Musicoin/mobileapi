@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 const AuthSchema = require('../ValidatorSchema/AuthSchema');
+const TIMEOUT = require('../constant').timeout;
 
 class AuthMiddleware {
 
@@ -20,7 +21,7 @@ class AuthMiddleware {
             success: false,
             error: 'Invalid Credentials'
           });
-        } else if (Date.now() - user1.timeout > 3600 * 1000) {
+        } else if (Date.now() - user1.timeout > TIMEOUT) {
           // error out
           console.log("Didn't find user1 in checktimeouts")
           Response.send({
@@ -47,7 +48,8 @@ class AuthMiddleware {
       email: email
     }).then(user => {
       user.update({
-        calls: calls
+        calls: calls,
+        timeout: Date.now()
       }).then(user => {
         console.log('User ' + email + 'now has made ' + calls + ' calls');
       });
