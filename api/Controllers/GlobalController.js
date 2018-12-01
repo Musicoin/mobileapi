@@ -262,9 +262,9 @@ class GlobalController {
       totalReleases: 0,
       totalPlays: 0
     };
-    User.findOne({
-      artistName: Request.query.artistName
-    }).then(user => {
+    let user = User.findOne(
+      artistName: req.query.artistName
+    ).then(user => {
       console.log("USER FOUND", user);
       if ((typeof user != 'null') && (typeof user != 'undefined')) {
         let releases = Release.find({
