@@ -84,7 +84,7 @@ class ArtistController {
     });
   }
 
-  profile(Request, Response) {
+  profile(Request) {
     this.publishCredentialsProvider.getCredentials()
       .then(function(credentials) {
         const releaseRequest = {

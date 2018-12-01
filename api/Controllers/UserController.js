@@ -136,12 +136,12 @@ class UserController {
   }
 
   async generateToken(Request, Response) {
-    const user = await ApiUser.findOne({
+    const user = await User.findOne({
       email: Request.query.email
     });
     const deletingToken = this.randomTokenGenerate(40);
     Request.session.deletingToken = deletingToken;
-    Request.session.user = user;
+    Request.store.set(Request.query.email, Request.session);
     Response.send({
       token: Request.session.deletingToken
     });
@@ -149,7 +149,7 @@ class UserController {
 
   async deleteUserAccount(Request, Response) {
     const user = await User.findOne({
-      "local.email": Request.session.user.email
+      email: Request.session.user.email
     });
     const ApiUserAccount = await ApiUser.findById(mongoose.Types.ObjectId(Request.session.user._id));
     if (Request.session.deletable) {
@@ -196,7 +196,7 @@ class UserController {
 
     try {
       User.findOne({
-        "local.email": Request.query.email
+        email: Request.query.email
       }).then(user => {
         if (user) {
           let joinDate = new Date(user.joinDate);
@@ -231,7 +231,7 @@ class UserController {
 
   getUserInfo(Request, Response) {
     User.findOne({
-      "local.email": Request.query.email
+      email: Request.query.email
     }).then(async user => {
       if (!user) {
         Response.status(400);
@@ -365,7 +365,7 @@ class UserController {
 
   getPlaylist(Request, Response) {
     Playlist.findOne({
-      name: Request.params.name
+      name: Request.query.name
     }).then(playlist => {
       console.log("SONGS", playlist.songs);
       Response.send({
@@ -384,51 +384,55 @@ class UserController {
     })
   }
 
-  async getPlaylistWithSongs(Request, Response) {
-    try{
-      let songs1 = [];
-      const playlist = await Playlist.findOne({
-        name: Request.params.name
-      }).exec();
-      const results = await Promise.all(playlist.songs.map(item => {
-        return Release.findOne({
-          contractAddress: item
-        }).populate('artist').exec();
-      }));
-
-      songs1 = results.map(track => {
-        return {
-          title: track.title,
-          link: 'https://musicion.org/nav/track/' + track.contractAddress,
-          pppLink: track.tx,
-          genres: track.genres,
-          author: track.artistName,
-          authorLink: 'https://musicoin.org/nav/artist/' + track.artistAddress,
-          trackImg: track.imageUrl,
-          trackDescription: track.description,
-          directTipCount: track.directTipCount,
-          directPlayCount: track.directPlayCount
-        }
-      })
-      Response.send({
-        success: true,
-        playlistName: playlist.name,
-        playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
-        creatorName: playlist.user.name,
-        creatorUrl: playlist.user.profileAddress ? 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress : null,
-        songs: songs1
-      });
-    }catch(error){
+  getPlaylistWithSongs(Request, Response) {
+    var songs1 = [];
+    Playlist.findOne({
+      name: Request.params.name
+    }).then(playlist => {
+      // now we need to get all the songs and then return them as an object
+      console.log("SEETHIS", playlist.songs.length);
+      for (var i = 0; i < playlist.songs.length; i++) {
+        console.log("I=", i);
+        let track = Release.findOne({
+          contractAddress: playlist.songs[i]
+        }).populate('artist').then(track => {
+          console.log(track.title, track.contractAddress, track.tx);
+          songs1.push({
+            title: track.title,
+            link: 'https://musicion.org/nav/track/' + track.contractAddress,
+            pppLink: track.tx,
+            genres: track.genres,
+            author: track.artistName,
+            authorLink: 'https://musicoin.org/nav/artist/' + track.artistAddress,
+            trackImg: track.imageUrl,
+            trackDescription: track.description,
+            directTipCount: track.directTipCount,
+            directPlayCount: track.directPlayCount
+          });
+          if ((i == 2) && (songs1.length == playlist.songs.length)) {
+            // weird hack, but works
+            Response.send({
+              success: true,
+              playlistName: playlist.name,
+              playlistUrl: 'http://musicoin.org/playlist/' + playlist.name,
+              creatorName: playlist.user.name,
+              creatorUrl: playlist.user.profileAddress ? 'http://musicoin.org/artist/nav/' + playlist.user.profileAddress : null,
+              songs: songs1
+            });
+          }
+        });
+      }
+    }).catch(Error => {
       Response.send({
         success: false,
-        message: error.message
+        message: Error.message
       })
-    }
+    });
   }
 
   deletePlaylist(Request, Response) {
     Playlist.findOne({
-      name: Request.params.name
+      name: Request.query.name
     }).populate('user.userId').then(playlist => {
       if (playlist) {
         playlist.remove();
