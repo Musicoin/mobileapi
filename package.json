@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "main": "./modules/coreModule.js",
-  "scripts": {
-    "start": "nodemon app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545"
-  },
   "dependencies": {
     "bcrypt-nodejs": "*",
     "bignumber.js": "^2.4.0",
