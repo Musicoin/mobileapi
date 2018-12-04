@@ -7,7 +7,8 @@ const {
 Router.get('/genres', releaseModule.getGenres.bind(releaseModule));
 Router.get('/details/:publicKey', releaseModule.getTrackDetails.bind(releaseModule));
 Router.get('/random', releaseModule.getRandomTrack.bind(releaseModule));
-Router.get('/v1.0/random', releaseModule.getRandomTracks.bind(releaseModule));
+Router.get('/v1.0/random', releaseModule.getRandomTrackV1.bind(releaseModule));
+Router.get('/v1.0/randoms', releaseModule.getRandomTracks.bind(releaseModule));
 Router.get('/upvotes/:publicKey', releaseModule.getTrackUpVotes.bind(releaseModule));
 Router.get('/plays/:publicKey', releaseModule.getTrackPlays.bind(releaseModule));
 Router.get('/tips/:publicKey', releaseModule.getTrackTips.bind(releaseModule));
