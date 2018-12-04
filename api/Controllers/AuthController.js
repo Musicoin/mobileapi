@@ -51,6 +51,8 @@ class AuthController {
           }).then(apiuser => {
             res.send({
               success: true,
+              clientSecret: apiuser.clientSecret,
+              id: apiuser._id
             });
           }).catch(Error => {
             res.status(400);
