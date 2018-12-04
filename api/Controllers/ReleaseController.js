@@ -157,6 +157,48 @@ class ReleaseController {
     });
   }
 
+  async getRandomTrackV1(Request, Response) {
+
+    let where = {};
+    const genre = Request.query.genre;
+    if (genre) {
+      if (knownGenres.indexOf(genre) !== -1) {
+        where.genres = genre;
+      } else {
+        return Response.status(400).json({
+          success: false,
+          message: 'This genre is not available'
+        });
+      }
+    }
+
+    try {
+      const total = await Release.count(where);
+      const randomSkip = Math.floor(Math.random() * total);
+
+      const track = await Release.findOne(where).skip(randomSkip).exec();
+      Response.status(200).json({
+        success: true,
+        data: {
+          title: track.title,
+          link: 'https://musicion.org/nav/track/' + track.contractAddress,
+          pppLink: track.tx,
+          genres: track.genres,
+          author: track.artistName,
+          authorLink: 'https://musicoin.org/nav/artist/' + track.artistAddress,
+          trackImg: track.imageUrl,
+          trackDescription: track.description,
+          directTipCount: track.directTipCount,
+          directPlayCount: track.directPlayCount
+        }
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
   getTrackUpVotes(Request, Response) {
     Release.findOne({
       contractAddress: Request.params.publicKey
@@ -326,7 +368,7 @@ class ReleaseController {
         }
         let ReleasesArray = [];
         console.log("LIM", lim, "RELASE$SArrya")
-        for (var i = 0; i < lim ; i++) {
+        for (var i = 0; i < lim; i++) {
           console.log(i, "<-INDEX")
           if (releases[i].genres.indexOf(Request.query.genre) > -1) {
             ReleasesArray.push({
@@ -434,6 +476,34 @@ class ReleaseController {
       Response.send({
         success: false,
         error: validate
+      })
+    }
+  }
+
+  async getRandomTracks(Request, Response) {
+    try {
+      const limit = this.limit(Number(Request.query.limit));
+      // use $sample to find the random releases
+      const release = await Release.aggregate([{
+        $sample: {
+          size: limit
+        }
+      }]).exec();
+
+      const tracks = release.map(track => {
+        return {
+          artistName: track.artistName,
+          artistProfile: 'https://musicoin.org/nav/artist/' + track.artistAddress,
+          trackURL: 'https://musicion.org/nav/track/' + track.contractAddress
+        }
+      })
+      Response.send({
+        success: true,
+        data: tracks
+      });
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
       })
     }
   }
