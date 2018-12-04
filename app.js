@@ -9,6 +9,7 @@ const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const mailer = require('express-mailer');
 const mongoose = require("mongoose");
 const config = ConfigUtils.loadConfig(process.argv);
+const apollo = require('./apollo/server');
 
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,6 +45,9 @@ app.use(session({
 app.use(require('./api/routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
 app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
+
+apollo.config(app);
+
 app.use('/', require('./api/routes/global'));
 app.use('/user', require('./api/routes/user'));
 app.use('/package', require('./api/routes/package'));
