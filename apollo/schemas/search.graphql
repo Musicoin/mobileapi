@@ -10,7 +10,7 @@ type Release {
   title: String,
   link: String,
   pppLink: String,
-  genres: String,
+  genres: [String],
   author: String,
   authorLink: String,
   trackImg: String,
