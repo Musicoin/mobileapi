@@ -268,4 +268,8 @@ Web3Reader.prototype.getWeb3 = function() {
   return this.web3;
 };
 
+Web3Reader.prototype.getBlockNumber = function() {
+  return this.web3.eth.blockNumber;
+};
+
 module.exports = Web3Reader;

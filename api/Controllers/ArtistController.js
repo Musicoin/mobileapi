@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const LicenseKey = require('../../db/core/key');
 const Release = require('../../db/core/release');
 const User = require('../../db/core/user');
+const rp = require('request-promise');
 const defaultRecords = 20;
 const maxRecords = 100;
 
@@ -60,7 +61,7 @@ class ArtistController {
     });
   }
 
-  getFeaturedArtists(Request) {
+  getFeaturedArtists(Request, Response) {
     this.artistModule.getFeaturedArtists(getLimit(Request)).then(res => {
       Response.send(res);
     }).catch(Error => {
@@ -72,7 +73,7 @@ class ArtistController {
     });
   }
 
-  find(Request) {
+  find(Request, Response) {
     this.artistModule.findArtists(getLimit(Request), Request.query.term).then(res => {
       Response.send(res);
     }).catch(Error => {
@@ -85,8 +86,10 @@ class ArtistController {
   }
 
   profile(Request, Response) {
+    const artistModule = this.artistModule;
     this.publishCredentialsProvider.getCredentials()
       .then(function(credentials) {
+        console.log("credentials",credentials);
         const releaseRequest = {
           profileAddress: Request.body.profileAddress,
           owner: credentials.account,
@@ -96,7 +99,7 @@ class ArtistController {
           descriptionUrl: Request.body.descriptionUrl
         };
         console.log("Got profile POST request: " + JSON.stringify(releaseRequest));
-        return this.artistModule.releaseProfile(releaseRequest)
+        return artistModule.releaseProfile(releaseRequest)
       }).then(function(tx) {
         Response.send({
           tx: tx
@@ -202,9 +205,12 @@ class ArtistController {
 
   tipArtist(Request, Response) {
     // user should pass their email + pwd to check
-    User.find({
+    User.findOne({
       profileAddress: Request.body.senderAddress
     }).then(user => {
+
+      console.log("tip user",user);
+
       if (typeof user != 'undefined') { // we should check whether it matches against the email, pwd combination
         // tip this guy
         console.log("Calling tipArtist endpoint");
@@ -364,7 +370,6 @@ class ArtistController {
         }
         ResponseInstance.totalEarnings = ResponseInstance.totalTrackTips + ResponseInstance.totalPlays;
         // now call the coinmarketcap api to get the price of musicoin
-        const rp = require('request-promise');
         const requestOptions = {
           method: 'GET',
           uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=MUSIC',

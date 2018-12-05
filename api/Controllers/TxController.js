@@ -48,13 +48,19 @@ class TxController {
       let web3 = this.web3.getWeb3();
 
       let currentBlock = web3.eth.blockNumber;
-      let confirmNumber = Number(currentBlock - res.receipt.blockNumber);
-
-      if (res && confirmNumber >= 100) {
-        Response.send({
-          confirmed: true,
-          NumberOfConfirmations: confirmNumber
-        })
+      
+      if (res && res.receipt) {
+        let confirmNumber = Number(currentBlock - res.receipt.blockNumber);
+        if(confirmNumber >= 100){
+          Response.send({
+            confirmed: false
+          })
+        }else{
+          Response.send({
+            confirmed: true,
+            NumberOfConfirmations: confirmNumber
+          })
+        }
       } else {
         Response.send({
           confirmed: false
@@ -73,9 +79,11 @@ class TxController {
     // let myaccount = '0x2f56d753e4f10f2c88e95c5c147f4f2498beda17';
     let myaccount = Request.params.address;
     let txs = [];
+    if(currentBlock<1000){
+      return Response.send(txs);
+    }
     for (let i = currentBlock - 1000; i < currentBlock; i++) {
       let block = web3.eth.getBlock(i, true);
-
       if (block && block.transactions.length > 0) {
         console.log('block = ' + (currentBlock - i));
         block.transactions.forEach(function(tx) {

@@ -30,8 +30,15 @@ class LicenseController {
     })
   }
 
-  getNewReleases(Request, Response) {
-    this.licenseModule.getNewReleases(getLimit(Request))
+  async getNewReleases(Request, Response) {
+    try {
+      const releases = await this.licenseModule.getNewReleases(getLimit(Request));
+      Response.status(200).json(releases)
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
   }
 
   getTopPlayed(Request, Response) {
@@ -55,7 +62,7 @@ class LicenseController {
   }
 
   getDetailsByAddresses(Request, Response) {
-    this.licenseModule.getTrackDetailsByIds(Request.query.addresses).then(res => {
+    this.licenseModule.getTrackDetailsByIds(Request.query.addresses, getLimit(Request)).then(res => {
       Response.send(res)
     });
   }
@@ -68,7 +75,7 @@ class LicenseController {
 
   getPppByAddress(Request, Response) {
     const context = {};
-    const l = licenseModule.getLicense(Request.params.address);
+    const l = this.licenseModule.getLicense(Request.params.address);
     const k = new Promise(function(resolve, reject) {
       LicenseKey.findOne({
         licenseAddress: Request.params.address
