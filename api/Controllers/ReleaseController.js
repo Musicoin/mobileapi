@@ -447,8 +447,11 @@ class ReleaseController {
 
             release.directTipCount += Number(body.tip);
             release.save();
+            const user = await User.findOne({
+              "local.email": Request.query.email
+            }).exec();
             await TipHistory.create({
-              user: Request.query.email,
+              user: user._id,
               release: release._id,
               tipCount: body.tip,
               date: Date.now()
