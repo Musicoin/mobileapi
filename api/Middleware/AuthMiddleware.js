@@ -14,19 +14,19 @@ class AuthMiddleware {
         email: Request.query.email
       }).then(user1 => {
         console.log("Found user1 in checktimeouts", user1)
-        if (user1.accessToken != Request.query.accessToken) {
+        if (user1 === null || user1.accessToken != Request.query.accessToken) {
           // error out
-          console.log("Client Secrets don't match", user1.clientSecret, Request.query.clientSecret)
+          console.log("Invalid Credentials")
           Response.send({
-            success: false,
-            error: 'Invalid Credentials'
+            status: "error",
+            message: 'Invalid Credentials'
           });
         } else if (Date.now() - user1.timeout > TIMEOUT) {
           // error out
-          console.log("Didn't find user1 in checktimeouts")
+          console.log("Access Token Expired")
           Response.send({
-            success: false,
-            error: 'Access Token Expired'
+            status: "error",
+            message: 'Access Token Expired'
           });
         } else {
           this.updateApiCallcount(Request.query.email, user1.calls + 1);
@@ -36,8 +36,8 @@ class AuthMiddleware {
         // error out
         console.log("Errored out in checktimeouts")
         Response.send({
-          success: false,
-          error: Error.message
+          status: "error",
+          message: Error.message
         });
       });
     }
