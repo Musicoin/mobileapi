@@ -24,6 +24,32 @@ class LicenseController {
     })
   }
 
+  async getDetailV1(Request, Response){
+    const address = Request.params.address;
+    console.log("license address: ",address);
+    if(!address){
+      return Response.status(400).json({
+        status: "error",
+        message: "license address is required."
+      })
+    }
+
+    try {
+      const result = await this.licenseModule.getLicense(address);
+      if (result) {
+        Response.status(200).json(result)
+      }else{
+        Response.status(400).json({
+          error: `not found license: ${address}`
+        })
+      }
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
   getAudioUrlByAddress(Request, Response) {
     this.licenseModule.getAudioLicense(Request.params.address).then(res => {
       Response.send(res)

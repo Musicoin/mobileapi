@@ -20,7 +20,7 @@ Router.get('/ofweek', ArtistController.getArtistOfWeek.bind(ArtistController));
 Router.post('/profile/', ArtistController.profile.bind(ArtistController));
 Router.post('/send', ArtistController.send.bind(ArtistController));
 Router.post('/ppp/', ArtistController.ppp.bind(ArtistController));
-Router.post('/ppp/v1.0', ArtistController.pppV1.bind(ArtistController));
+Router.post('/ppp/v1', ArtistController.pppV1.bind(ArtistController));
 Router.post('/tipArtist', ArtistController.tipArtist.bind(ArtistController));
 
 module.exports = Router;

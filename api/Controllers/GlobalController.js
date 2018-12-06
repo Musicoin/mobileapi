@@ -11,6 +11,11 @@ const Package = require('../../db/core/api-package');
 const mongoose = require('mongoose');
 
 class GlobalController {
+
+  constructor(_artistModule) {
+    this.artistModule = _artistModule;
+  }
+
   async search(Request, Response) {
     let ReleasesArray = [];
     let ResponseInstance = {
@@ -164,9 +169,12 @@ class GlobalController {
 
   async searchV1(Request, Response) {
 
+    const artistModule = this.artistModule;
+
     const keyword = Request.body.keyword;
     const _limit = Request.body.limit;
-    const limit = _limit ? Number(_limit) : 10;
+    let limit = _limit ? Number(_limit) : 10;
+    limit = limit > 20 ? 20 : limit;
 
     const reg = new RegExp(keyword ? keyword : "", "i");
 
@@ -214,8 +222,7 @@ class GlobalController {
     // search users
     try {
       // search artist from releases
-      const users = await Release.aggregate([
-        {
+      const users = await Release.aggregate([{
           $match: {
             artistName: {
               $regex: reg
@@ -242,13 +249,21 @@ class GlobalController {
       ]).exec();
 
       // conversion result
-      UsersArray = users.map(user => {
-        return {
-          name: user.name,
-          profileAddress: user.profileAddress,
-          releaseCount: user.releaseCount
-        }
-      })
+      UsersArray = await Promise.all(users.map(user => {
+        return new Promise((resolve, reject) => {
+
+          // load artist
+          artistModule.getArtistByProfile(user.profileAddress).then(res => {
+            resolve({
+              name: user.name,
+              profileAddress: user.profileAddress,
+              imageUrl: res.imageUrl,
+              releaseCount: user.releaseCount
+            })
+          }).catch(error => reject(error));
+
+        })
+      }));
     } catch (error) {
       console.log("search user error:", error.message)
     }

@@ -14,7 +14,6 @@ const LicenseController = require('./Controllers/LicenseController');
 const TxController = require('./Controllers/TxController');
 const UserController = require('./Controllers/UserController');
 const GlobalController = require('./Controllers/GlobalController');
-const GlobalModule = new GlobalController();
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
 const ReleaseModule = require('./Controllers/ReleaseController');
@@ -27,6 +26,7 @@ const licenseModule = new LicenseController(musicoinCore.getLicenseModule(), acc
 const artistModule = new ArtistController(musicoinCore.getArtistModule(), paymentAccountCredentialsProvider, accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider);
 const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint, musicoinCore.getWeb3Reader());
 const UserModule = new UserController(musicoinCore.getWeb3Reader(), config);
+const GlobalModule = new GlobalController(musicoinCore.getArtistModule());
 
 module.exports = {
   licenseModule: licenseModule,
