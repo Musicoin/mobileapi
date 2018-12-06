@@ -88,8 +88,8 @@ class ArtistController {
   profile(Request, Response) {
     const artistModule = this.artistModule;
     this.publishCredentialsProvider.getCredentials()
-      .then(function(credentials) {
-        console.log("credentials",credentials);
+      .then(function (credentials) {
+        console.log("credentials", credentials);
         const releaseRequest = {
           profileAddress: Request.body.profileAddress,
           owner: credentials.account,
@@ -100,7 +100,7 @@ class ArtistController {
         };
         console.log("Got profile POST request: " + JSON.stringify(releaseRequest));
         return artistModule.releaseProfile(releaseRequest)
-      }).then(function(tx) {
+      }).then(function (tx) {
         Response.send({
           tx: tx
         });
@@ -116,7 +116,7 @@ class ArtistController {
   send(Request, Response) {
     console.log("CALLIGN SEND ROUTE");
     this.artistModule.sendFromProfile(Request.body.profileAddress, Request.body.recipientAddress, Request.body.musicoins)
-      .then(function(tx) {
+      .then(function (tx) {
         Response.send({
           tx: tx
         });
@@ -160,6 +160,24 @@ class ArtistController {
           error: Error.message
         });
       });
+  }
+
+  async pppV1(Request, Response) {
+    try {
+      const res = await this.artistModule.pppFromProfile(Request.body.profileAddress, Request.body.licenseAddress, this.hotWalletCredentialsProvider);
+      if(res){
+        Response.status(200).json(res)
+      }else{
+        Response.status(400).json({
+          error: "payment rejected."
+        })
+      }
+
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
   }
 
   getArtistInfo(Request, Response) {
@@ -209,13 +227,13 @@ class ArtistController {
       profileAddress: Request.body.senderAddress
     }).then(user => {
 
-      console.log("tip user",user);
+      console.log("tip user", user);
 
       if (typeof user != 'undefined') { // we should check whether it matches against the email, pwd combination
         // tip this guy
         console.log("Calling tipArtist endpoint");
         this.artistModule.sendTipFromProfile(Request.body.senderAddress, Request.body.recipientAddress, Request.body.musicoins, this.credProvider)
-          .then(function(tx) {
+          .then(function (tx) {
             Response.send({
               tx: tx
             });

@@ -483,7 +483,7 @@ class ReleaseController {
     }
   }
 
-  async getRandomTracks(Request, Response) {
+  async getRandomTracksV1(Request, Response) {
     try {
       const limit = this.limit(Number(Request.query.limit));
       // use $sample to find the random releases
