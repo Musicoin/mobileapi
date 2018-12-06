@@ -27,7 +27,7 @@ app.use(bodyParser.raw());
 
 const RateLimiter = new RateLimit({
   windowMs: 1000,
-  max: 1,
+  max: 100,
   delayMs: 0
 });
 
