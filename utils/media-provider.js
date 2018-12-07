@@ -56,9 +56,9 @@ MediaProvider.prototype.resolveIpfsUrl = function(url) {
     return "";
   const parsed = this._parseIpfsUrl(url);
   if (parsed.err)
-    throw new Error("Could not parse URL: " + url);
+    return "";
   // we have to proxy ipfs locally
-  return "/media/" + encryptText(parsed.hash, () => "TESTING@(*@$");
+  return "https://musicoin.org/media/" + encryptText(parsed.hash, () => "TESTING@(*@$");
 };
 MediaProvider.prototype.readJsonFromIpfs = function(url) {
   return this.readTextFromIpfs(url)

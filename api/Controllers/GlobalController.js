@@ -4,11 +4,10 @@
  *
  * */
 const User = require('../../db/core/user');
-const ApiUser = require('../../db/core/api-user');
 const Release = require('../../db/core/release');
-const Playlist = require('../../db/core/playlist');
-const Package = require('../../db/core/api-package');
-const mongoose = require('mongoose');
+const Constant = require('../constant');
+const MediaProvider = require('../../utils/media-provider-instance');
+
 
 class GlobalController {
 
@@ -204,12 +203,12 @@ class GlobalController {
         const directPlayCount = release.directPlayCount || 0;
         return {
           title: release.title,
-          link: 'https://musicion.org/nav/track/' + release.contractAddress,
-          pppLink: release.tx,
+          link: Constant.TRACK_BASE_URL + release.contractAddress,
+          tx: release.tx,
           genres: release.genres,
           author: release.artistName,
-          authorLink: 'https://musicoin.org/nav/artist/' + release.artistAddress,
-          trackImg: release.imageUrl,
+          authorLink: Constant.ARTIST_BASE_URL + release.artistAddress,
+          trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
           trackDescription: release.description,
           directTipCount: directTipCount,
           directPlayCount: directPlayCount
@@ -256,8 +255,8 @@ class GlobalController {
           artistModule.getArtistByProfile(user.profileAddress).then(res => {
             resolve({
               name: user.name,
-              profileAddress: user.profileAddress,
-              imageUrl: res.imageUrl,
+              profileUrl: Constant.ARTIST_BASE_URL+user.profileAddress,
+              imageUrl: MediaProvider.resolveIpfsUrl(res.imageUrl),
               releaseCount: user.releaseCount
             })
           }).catch(error => reject(error));
