@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const ConfigUtils = require('./config/config');
 const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
-const mailer = require('express-mailer');
 const mongoose = require("mongoose");
 const config = ConfigUtils.loadConfig(process.argv);
 const apollo = require('./apollo/server');
@@ -42,7 +41,7 @@ app.use(session({
   }
 }))
 
-app.use(require('./api/routes/auth'));
+app.use("/",require('./api/routes/auth'));
 mongoose.connect(config.keyCoreDatabaseUrl);
 app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
 
