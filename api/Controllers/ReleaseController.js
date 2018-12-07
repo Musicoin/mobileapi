@@ -8,6 +8,7 @@ const Release = require('../../db/core/release');
 const Playlist = require('../../db/core/playlist');
 const User = require('../../db/core/user');
 const TipHistory = require('../../db/core/tip-history');
+const ReleaseModel = require('../data/release-model');
 
 /**
  *   VALIDATION SCHEMAS
@@ -105,6 +106,29 @@ class ReleaseController {
     })
   }
 
+  async getTrackDetailV1(Request, Response) {
+    try {
+      const release = await Release.findOne({
+        contractAddress: Request.params.publicKey
+      }).exec();
+      if (release) {
+        Response.status(200).json({
+          success: true,
+          data: ReleaseModel.responseData(release)
+        })
+      } else {
+        Response.status(200).json({
+          success: false,
+          message: 'Track does not found'
+        })
+      }
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
   getRandomTrack(Request, Response) {
 
     let where = {};
@@ -179,18 +203,7 @@ class ReleaseController {
       const track = await Release.findOne(where).skip(randomSkip).exec();
       Response.status(200).json({
         success: true,
-        data: {
-          title: track.title,
-          link: 'https://musicion.org/nav/track/' + track.contractAddress,
-          pppLink: track.tx,
-          genres: track.genres,
-          author: track.artistName,
-          authorLink: 'https://musicoin.org/nav/artist/' + track.artistAddress,
-          trackImg: track.imageUrl,
-          trackDescription: track.description,
-          directTipCount: track.directTipCount,
-          directPlayCount: track.directPlayCount
-        }
+        data: ReleaseModel.responseData(track)
       })
     } catch (error) {
       Response.status(500).json({
@@ -314,6 +327,31 @@ class ReleaseController {
       })
   }
 
+  async getTracksByGenreV1(Request, Response) {
+    const genre = Request.query.genre;
+    const limit = this.limit(Number(Request.query.limit));
+    const filter = {};
+    if (genre && knownGenres.indexOf(genre) !== -1) {
+      filter.genres = genre;
+    } else {
+      return Response.status(400).json({
+        success: false,
+        message: 'This genre is not available'
+      });
+    }
+    try {
+      const releases = await Release.find(filter).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
   getTopTracks(Request, Response) {
     Release.find()
       .sort({
@@ -348,6 +386,23 @@ class ReleaseController {
           error: Error.message
         })
       });
+  }
+
+  async getTopTracksV1(Request, Response) {
+    const limit = this.limit(Number(Request.query.limit));
+    try {
+      const releases = await Release.find({}).sort({
+        directTipCount: 'desc'
+      }).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      });
+    }
   }
 
   getTopTracksByGenre(Request, Response) {
@@ -395,6 +450,35 @@ class ReleaseController {
       });
   }
 
+  async getTopTracksByGenreV1(Request, Response) {
+
+    const genre = Request.query.genre;
+    const limit = this.limit(Number(Request.query.limit));
+    const filter = {};
+    if (genre && knownGenres.indexOf(genre) !== -1) {
+      filter.genres = genre;
+    } else {
+      return Response.status(400).json({
+        success: false,
+        message: 'This genre is not available'
+      });
+    }
+
+    try {
+      const releases = await Release.find(filter).sort({
+        directTipCount: 'desc'
+      }).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
   getRecentTracks(Request, Response) {
     Release.find({})
       .sort({
@@ -424,6 +508,24 @@ class ReleaseController {
         });
       });
   }
+
+  async getRecentTracksV1(Request, Response) {
+    const limit = this.limit(Number(Request.query.limit));
+    try {
+      const releases = await Release.find({}).sort({
+        releaseDate: 'desc'
+      }).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
 
   tipTrack(Request, Response) {
 
@@ -487,22 +589,16 @@ class ReleaseController {
     try {
       const limit = this.limit(Number(Request.query.limit));
       // use $sample to find the random releases
-      const release = await Release.aggregate([{
+      const releases = await Release.aggregate([{
         $sample: {
           size: limit
         }
       }]).exec();
 
-      const tracks = release.map(track => {
-        return {
-          artistName: track.artistName,
-          artistProfile: 'https://musicoin.org/nav/artist/' + track.artistAddress,
-          trackURL: 'https://musicion.org/nav/track/' + track.contractAddress
-        }
-      })
+      const tracks = ReleaseModel.responseList(releases);
       Response.send({
         success: true,
-        data: tracks
+        releases: tracks
       });
     } catch (error) {
       Response.status(500).json({

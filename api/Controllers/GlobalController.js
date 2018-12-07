@@ -7,6 +7,7 @@ const User = require('../../db/core/user');
 const Release = require('../../db/core/release');
 const Constant = require('../constant');
 const MediaProvider = require('../../utils/media-provider-instance');
+const ReleaseModel = require('../data/release-model');
 
 
 class GlobalController {
@@ -197,23 +198,7 @@ class GlobalController {
       }).limit(limit).exec();
 
       // filter the releases and conversion result
-      ReleasesArray = releases.filter(release => release !== undefined).map(release => {
-
-        const directTipCount = release.directTipCount || 0;
-        const directPlayCount = release.directPlayCount || 0;
-        return {
-          title: release.title,
-          link: Constant.TRACK_BASE_URL + release.contractAddress,
-          tx: release.tx,
-          genres: release.genres,
-          author: release.artistName,
-          authorLink: Constant.ARTIST_BASE_URL + release.artistAddress,
-          trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
-          trackDescription: release.description,
-          directTipCount: directTipCount,
-          directPlayCount: directPlayCount
-        }
-      });
+      ReleasesArray = ReleaseModel.responseList(releases);
     } catch (error) {
       console.log("search release error:", error.message)
     }
