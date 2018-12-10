@@ -6,6 +6,7 @@ const ArtistMiddleware = require('../Middleware/ArtistMiddleware');
 const ArtistController = Kernel.artistModule;
 
 Router.get('/profile/:address', ArtistController.getProfileByAddress.bind(ArtistController));
+Router.get('/profile/v1/:address', ArtistController.getProfileByAddressV1.bind(ArtistController));
 Router.get('/new/', ArtistController.getNewArtists.bind(ArtistController));
 Router.get('/featured/', ArtistController.getFeaturedArtists.bind(ArtistController));
 Router.get('/find/', ArtistController.find.bind(ArtistController));

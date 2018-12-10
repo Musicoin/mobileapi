@@ -5,6 +5,7 @@ const User = require('../../db/core/user');
 const rp = require('request-promise');
 const defaultRecords = 20;
 const maxRecords = 100;
+const ArtistModel = require('../data/artist-model');
 
 
 function getLimit(req) {
@@ -25,6 +26,12 @@ class ArtistController {
   getProfileByAddress(Request, Response) {
     this.artistModule.getArtistByProfile(Request.params.address).then(res => {
       Response.send(res);
+    });
+  }
+
+  getProfileByAddressV1(Request, Response) {
+    this.artistModule.getArtistByProfile(Request.params.address).then(artist => {
+      Response.send(ArtistModel.responseData(artist));
     });
   }
 
