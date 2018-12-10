@@ -18,7 +18,7 @@ const Validator = new ValidatorClass();
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const TIMEOUT = require('../constant').timeout;
+const TIMEOUT = require('../constant').TIMEOUT;
 
 /**
  *  AUTH CONTROLLER

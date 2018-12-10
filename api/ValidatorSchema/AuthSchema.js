@@ -33,8 +33,20 @@ const SignIn = {
   }
 };
 
+const AccessToken = {
+  email: {
+    type: "string",
+    min: 3
+  },
+  accessToken: {
+    type: "string",
+    length: 80
+  }
+}
+
 module.exports = {
   signup: SignUp,
   signin: SignIn,
-  login: Login
+  login: Login,
+  AccessToken
 };

@@ -1,14 +1,13 @@
-const User = require('../../db/core/user');
-const ApiUser = require('../../db/core/api-user');
+const User = require('../../../db/core/user');
+const ApiUser = require('../../../db/core/api-user');
 
-const AuthSchema = require('../ValidatorSchema/AuthSchema');
+const AuthSchema = require('../../ValidatorSchema/AuthSchema');
 
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 const bcrypt = require('bcrypt-nodejs');
-const mongoose = require('mongoose');
 const crypto = require('crypto');
-const TIMEOUT = require('../constant').timeout;
+const TIMEOUT = require('../../constant').TIMEOUT;
 
 /**
  * generate token
@@ -22,7 +21,7 @@ function randomTokenGenerate(count) {
  * response error
  * @param Response 
  */
-function responseError(Response) {
+function responseError(Response, error) {
   Response.status(500).json({
     error: error.message
   })
@@ -66,162 +65,181 @@ async function registerNewUser(Request, Response) {
 
   } catch (error) {
 
-    responseError(Response);
+    responseError(Response, error);
 
   }
 }
 
+/**
+ * authenticate user
+ * @param email
+ * @param password
+ */
 async function authenticateUser(Request, Response) {
 
-try {
-  // validate request params
-  const validResult = Validator.validate(Request.body, AuthSchema.login);
-  if (validResult !== true) {
-    return Response.status(400).json(validResult);
-  }
-  User.findOne({
-    "local.email": Request.body.email,
-  }).then(user => {
+  try {
+    // validate request params
+    const validResult = Validator.validate(Request.body, AuthSchema.login);
+    if (validResult !== true) {
+      return Response.status(400).json(validResult);
+    }
+
+    const user = await User.findOne({
+      "local.email": Request.body.email,
+    }).exec();
+
     if (user && bcrypt.compareSync(Request.body.password, user.local.password)) {
-      Response.send({
+      Response.status(200).json({
         success: true
       })
     } else {
-      Response.send({
+      Response.status(200).json({
         success: false
-      });
+      })
     }
-  });
-} catch (error) {
-  
-}
-  
-  
+  } catch (error) {
+    responseError(Response, error);
+  }
+
 }
 
-class AuthController {
+/**
+ * get client secret
+ * @param {*} email 
+ * @param {*} password 
+ */
+async function getClientSecret(Request, Response) {
 
-
-
-  
-
-  getAPICredentials(Request, Response) {
-    let Errors = Validator.validate(Request.body, AuthSchema.login);
-    if (Errors === true) {
-      User.findOne({
-        "local.email": Request.body.email,
-      }).then(user => {
-        if (user && bcrypt.compareSync(Request.body.password, user.local.password)) {
-          ApiUser.findOne({
-            email: Request.body.email
-          }).then(apiUser => {
-            if (apiUser) {
-              Response.send({
-                success: true,
-                clientSecret: apiUser.clientSecret
-              });
-            } else {
-              Response.send({
-                success: false,
-                error: 'Api User Account not found'
-              });
-            }
-          })
-        } else {
-          Response.send(401);
-          Response.send({
-            success: false,
-            error: 'Invalid Credentials'
-          });
-        }
-      });
-    } else {
-      Response.send(Errors);
+  try {
+    // validate request params
+    const validResult = Validator.validate(Request.body, AuthSchema.login);
+    if (validResult !== true) {
+      return Response.status(400).json(validResult);
     }
-  }
-
-  randomTokenGenerate(count) {
-    return crypto.randomBytes(count).toString('hex');
-  }
-
-  async genTokenTest(Request, Response) {
-    User.findOne({
-      "local.email": Request.body.email,
-    }).then(user => {
-      ApiUser.findOne({
-        email: Request.body.email
-      }).then(user1 => {
-        if (user1.clientSecret == Request.body.clientSecret) {
-          const accessToken = this.randomTokenGenerate(40);
-          user1.timeout = Date.now();
-          user1.accessToken = accessToken; // save it here TODO
-          console.log("USER1", user1);
-          user1.save(function (err, dummy) {
-            if (err) {
-              console.log(err);
-              Response.send({
-                success: false,
-                error: 'Client Secrets dont match'
-              });
-            } else {
-              Response.send({
-                success: true,
-                accessToken: accessToken
-              });
-            }
-          });
-        } else {
-          Response.send({
-            success: false,
-            error: 'Client Secrets dont match'
-          });
-        }
-      }).catch(Error => {
-        Response.send({
-          success: false,
-          error: Error
-        });
+    // find user
+    const user = await User.findOne({
+      "local.email": Request.body.email
+    }).exec();
+    if (!user && !bcrypt.compareSync(Request.body.password, user.local.password)) {
+      return Response.status(401).json({
+        error: 'Invalid Credentials'
       });
-    }).catch(Error => {
-      Response.send({
-        success: false,
-        error: Error
-      });
-    });
-  }
-
-  async getTokenValidity(Request, Response) {
-    ApiUser.findOne({
+    }
+    // find api user
+    const apiUser = await ApiUser.findOne({
       email: Request.body.email
-    }).then(user1 => {
-      if (user1.accessToken == Request.body.accessToken) {
-        if (Date.now() - user1.timeout > TIMEOUT) {
-          // error out
-          Response.send({
-            success: false,
-            error: 'Access Token timed out'
-          });
-        } else {
-          var timeElapsed = (Date.now() - user1.timeout) / 1000; // ms to s
-          Response.send({
-            timeout: timeElapsed
-          });
-        }
-      } else {
-        console.log(user1.accessToken, Request.body.accessToken);
-        Response.send({
-          success: false,
-          error: 'Invalid Access Token'
-        });
-      }
-    }).catch(Error => {
-      Response.send({
-        success: false,
-        error: Error
-      });
-    });
-  }
+    }).exec();
 
+    if (!apiUser) {
+      return Response.status(401).json({
+        error: 'Api User Account not found'
+      });
+    }
+
+    Response.status(200).json({
+      success: true,
+      clientSecret: apiUser.clientSecret
+    });
+  } catch (error) {
+    responseError(Response, error);
+  }
 }
 
-module.exports = new AuthController();
+/**
+ * get access token 
+ * @param {*} email 
+ * @param {*} clientSecret 
+ */
+async function getAccessToken(Request, Response) {
+
+  try {
+    // validate request params
+    const validResult = Validator.validate(Request.body, AuthSchema.signin);
+    if (validResult !== true) {
+      return Response.status(400).json(validResult);
+    }
+    // find user
+    const user = await User.findOne({
+      "local.email": Request.body.email
+    }).exec();
+    if (!user) return Response.status(400).json({
+      error: "user not found"
+    });
+    // find api user
+    const apiUser = await ApiUser.findOne({
+      email: Request.body.email
+    }).exec();
+    if (!apiUser || apiUser.clientSecret !== Request.body.clientSecret) {
+      return Response.status(400).json({
+        error: "Client Secrets dont match"
+      });
+    }
+    // generate access token
+    const accessToken = randomTokenGenerate(40);
+    apiUser.timeout = Date.now();
+    apiUser.accessToken = accessToken;
+    // update api user
+    await apiUser.save();
+    Response.status(200).json({
+      success: true,
+      accessToken: accessToken
+    });
+  } catch (error) {
+    responseError(Response, error);
+  }
+}
+
+/**
+ * validate token timeout
+ * @param {*} email 
+ * @param {*} accessToken 
+ */
+async function getTokenValidity(Request, Response) {
+
+  try {
+    // validate request params
+    const validResult = Validator.validate(Request.body, AuthSchema.AccessToken);
+    if (validResult !== true) {
+      return Response.status(400).json(validResult);
+    }
+    // find api user
+    const user = await ApiUser.findOne({
+      email: Request.body.email
+    }).exec();
+    if (!user) {
+      return Response.status(400).json({
+        error: "user not found"
+      });
+    }
+
+    if (user.accessToken !== Request.body.accessToken) {
+      return Response.status(400).json({
+        error: "Invalid Access Token"
+      });
+    }
+    const now = Date.now();
+    const timeElapsed = TIMEOUT+user.timeout-now;
+    if(timeElapsed<0){
+      return Response.status(403).json({
+        error: 'Access Token timed out'
+      });
+    }
+
+    Response.status(200).json({
+      success: true,
+      expried: timeElapsed
+    })
+
+  } catch (error) {
+    responseError(Response, error);
+  }
+}
+
+
+module.exports = {
+  registerNewUser,
+  authenticateUser,
+  getClientSecret,
+  getAccessToken,
+  getTokenValidity
+}
