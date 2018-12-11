@@ -8,6 +8,7 @@ function responseData(release) {
   const directTipCount = release.directTipCount || 0;
   const directPlayCount = release.directPlayCount || 0;
   return {
+    trackId: release.contractAddress,
     title: release.title,
     link: Constant.TRACK_BASE_URL + release.contractAddress,
     tx: release.tx,
