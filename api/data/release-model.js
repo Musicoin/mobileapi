@@ -1,5 +1,8 @@
 const Constant = require('../constant');
 const MediaProvider = require('../../utils/media-provider-instance');
+const RESOURCE_BASE_URL = "https://musicoin.org/";
+const URLUtil = require('../../utils/url-utils');
+const TIMEOUT = 3*60*1000;
 
 function responseData(release) {
   const directTipCount = release.directTipCount || 0;
@@ -12,6 +15,7 @@ function responseData(release) {
     author: release.artistName,
     authorLink: Constant.ARTIST_BASE_URL + release.artistAddress,
     trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
+    trackUrl: RESOURCE_BASE_URL+"ppp/"+URLUtil.createExpiringLink(release.contractAddress,TIMEOUT),
     trackDescription: release.description,
     directTipCount: directTipCount,
     directPlayCount: directPlayCount
@@ -19,7 +23,7 @@ function responseData(release) {
 }
 
 function responseList(releases) {
-  return releases.filter(release => release !== undefined).map(responseData);
+  return releases.filter(release => release && release.contractAddress).map(responseData);
 }
 
 module.exports = {
