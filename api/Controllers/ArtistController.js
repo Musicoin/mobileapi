@@ -31,7 +31,7 @@ class ArtistController {
 
   getProfileByAddressV1(Request, Response) {
     this.artistModule.getArtistByProfile(Request.params.address).then(artist => {
-      Response.send(ArtistModel.responseData(artist));
+      Response.send(ArtistModel.responseData(Request.params.address, artist));
     });
   }
 

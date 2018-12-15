@@ -239,6 +239,7 @@ class GlobalController {
           // load artist
           artistModule.getArtistByProfile(user.profileAddress).then(res => {
             resolve({
+              artistId: user.profileAddress,
               name: user.name,
               profileUrl: Constant.ARTIST_BASE_URL+user.profileAddress,
               imageUrl: MediaProvider.resolveIpfsUrl(res.imageUrl),

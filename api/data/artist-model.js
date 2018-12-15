@@ -1,8 +1,8 @@
-const Constant = require('../constant');
 const MediaProvider = require('../../utils/media-provider-instance');
 
-function responseData(artist) {
+function responseData(address, artist) {
   return {
+    artistId: address,
     createdBy: artist.createdBy,
     forwardingAddress: artist.forwardingAddress,
     descriptionUrl: MediaProvider.resolveIpfsUrl(artist.descriptionUrl),
@@ -18,8 +18,8 @@ function responseData(artist) {
   }
 }
 
-function responseList(artists) {
-  return artists.filter(artist => artist !== undefined).map(responseData);
+function responseList(address, artists) {
+  return artists.filter(artist => artist !== undefined).map(artist=>responseData(address, artist));
 }
 
 module.exports = {
