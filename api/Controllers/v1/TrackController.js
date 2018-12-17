@@ -10,11 +10,7 @@ async function downloadTrack(Request, Response) {
       licenseAddress: address
     }).exec();
   
-    if(!licenseKey){
-      return Response.status(400).json({
-        error: "license key not found"
-      })
-    }
+    const key = licenseKey?licenseKey.key:"";
   
     // load license
     const license = await LicenseModule.getLicense(address);
@@ -32,7 +28,7 @@ async function downloadTrack(Request, Response) {
       })
     }
   
-    const resource = await MediaProvider.fetchIpfsResource(resourceUrl, licenseKey.key);
+    const resource = await MediaProvider.fetchIpfsResource(resourceUrl, key || "");
 
     Response.sendSeekable(resource.stream, {
       type: { contentType: "audio/mpeg" },
