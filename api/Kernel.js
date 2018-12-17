@@ -36,5 +36,6 @@ module.exports = {
   authModule: authModule,
   releaseModule: ReleaseModule,
   userModule: UserModule,
-  globalController: GlobalModule
+  globalController: GlobalModule,
+  musicoinCore
 };

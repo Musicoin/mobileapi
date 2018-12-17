@@ -146,9 +146,8 @@ class LicenseController {
       // load license
       const license = await this.licenseModule.getLicense(Request.params.address);
       if (!license) {
-        return Response.status(200).json({
-          status: "error",
-          message: `license not found: ${Request.params.address}`
+        return Response.status(400).json({
+          error: `license not found: ${Request.params.address}`
         })
       }
       // find license key
@@ -156,9 +155,8 @@ class LicenseController {
         licenseAddress: Request.params.address
       }).exec();
       if (!licenseKey) {
-        return Response.status(200).json({
-          status: "error",
-          message: `license key not found: ${Request.params.address}`
+        return Response.status(400).json({
+          error: `license key not found: ${Request.params.address}`
         })
       }
       // pay to license

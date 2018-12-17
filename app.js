@@ -43,6 +43,8 @@ app.use(session({
 
 app.use("/",require('./api/routes/auth'));
 app.use("/v1",require('./api/routes/v1/auth'));
+app.use("/v1/track",require('./api/routes/v1/track'));
+
 mongoose.connect(config.keyCoreDatabaseUrl);
 app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
 

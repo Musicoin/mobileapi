@@ -130,6 +130,30 @@ MediaProvider.prototype.getIpfsResource = function(resourceUrl, keyProvider) {
     }
   }.bind(this));
 };
+
+MediaProvider.prototype.fetchIpfsResource = function(resourceUrl, key) {
+  return new bluebird_1.Promise(function(resolve, reject) {
+    const options = this._parseIpfsUrl(resourceUrl);
+    if (options.err)
+      return reject(options.err);
+    const request = http.get(options.ipfsUrl, function(proxyRes) {
+      try {
+        const headers = proxyRes.headers;
+        let stream = proxyRes;
+        stream = options.decrypt ? stream.pipe(crypto.createDecipher(algorithm, key)) : stream;
+        stream = options.unzip ? stream.pipe(zlib.createGunzip()) : stream;
+        resolve({
+          headers: headers,
+          stream: stream
+        });
+      } catch (e) {
+          reject(e);
+      }
+    });
+    request.on('error', reject);
+  }.bind(this));
+};
+
 MediaProvider.prototype.getKnownIPFSHashes = function(since, offset, limit) {
   return IPFSResource.find({
       dateAdded: {
