@@ -22,6 +22,7 @@ Router.get('/bygenre/v1', releaseModule.getTracksByGenreV1.bind(releaseModule));
 Router.get('/top/v1', releaseModule.getTopTracksV1.bind(releaseModule));
 Router.get('/topbygenre/v1', releaseModule.getTopTracksByGenreV1.bind(releaseModule));
 Router.get('/recent/v1', releaseModule.getRecentTracksV1.bind(releaseModule));
+Router.get('/byartist/v1', releaseModule.getTracksByAritstV1.bind(releaseModule));
 
 Router.post('/tip/:publicKey', releaseModule.tipTrack.bind(releaseModule));
 

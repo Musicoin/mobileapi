@@ -526,6 +526,32 @@ class ReleaseController {
     }
   }
 
+  async getTracksByAritstV1(Request, Response) {
+    console.log(Request.query);
+    const limit = this.limit(Number(Request.query.limit));
+    const aritstId = Request.query.aritstId;
+    if(!aritstId){
+      return Response.status(400).json({
+        error: "artistId is required."
+      });
+    }
+    try {
+      const releases = await Release.find({
+        artistAddress: aritstId
+      }).sort({
+        releaseDate: 'desc'
+      }).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
 
   tipTrack(Request, Response) {
 
