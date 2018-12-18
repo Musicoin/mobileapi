@@ -76,26 +76,24 @@ Web3Reader.prototype.loadLicense = function (licenseAddress) {
     const tempContract = this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
     const version = tempContract.contractVersion();
     console.log("contractVersion: ", version);
-    return this.getContractDefinition(ContractTypes.PPP, version)
-      .then(function (definition) {
-        console.log("getContractDefinition : ", definition.codeHash);
-        const licensePromise = this.loadContract(licenseAddress, definition.abi);
-        // extracting the arrays takes some extra work
-        const c = Promise.promisifyAll(this.web3.eth.contract(definition.abi).at(licenseAddress));
-        const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
-        const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
-        return Promise.join(licensePromise, contributorPromise, royaltyPromise,
-          function (licenseObject, contributors, royalties) {
-            licenseObject.contributors = contributors;
-            licenseObject.royalties = royalties;
+    const definition = this.getContractDefinition(ContractTypes.PPP, version);
+    console.log("getContractDefinition : ", definition.codeHash);
+    const licensePromise = this.loadContract(licenseAddress, definition.abi);
+    // extracting the arrays takes some extra work
+    const c = Promise.promisifyAll(this.web3.eth.contract(definition.abi).at(licenseAddress));
+    const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
+    const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
+    return Promise.join(licensePromise, contributorPromise, royaltyPromise,
+      function (licenseObject, contributors, royalties) {
+        licenseObject.contributors = contributors;
+        licenseObject.royalties = royalties;
 
-            // for convenience, do the conversion to "coins" from wei
-            licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
-            licenseObject.totalEarnedCoins = this.web3.fromWei(licenseObject.totalEarned, 'ether');
-            licenseObject.address = licenseAddress;
-            return licenseObject;
-          }.bind(this));
-      })
+        // for convenience, do the conversion to "coins" from wei
+        licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
+        licenseObject.totalEarnedCoins = this.web3.fromWei(licenseObject.totalEarned, 'ether');
+        licenseObject.address = licenseAddress;
+        return licenseObject;
+      }.bind(this));
   } catch (error) {
     console.log("load license error:", error.message);
     return Promise.reject(error);
