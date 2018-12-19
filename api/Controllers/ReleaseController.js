@@ -131,7 +131,9 @@ class ReleaseController {
 
   getRandomTrack(Request, Response) {
 
-    let where = {};
+    let where = {
+      state: 'published' 
+    };
     if (Request.query.genre) {
       if (knownGenres.indexOf(Request.query.genre) !== -1) {
         where.genres = Request.query.genre;
@@ -293,7 +295,8 @@ class ReleaseController {
   getTracksByGenre(Request, Response) {
 
     Release.find({
-        genres: Request.query.genre
+        genres: Request.query.genre,
+        state: 'published' 
       })
       .limit(this.limit(Number(Request.query.limit)))
       .then(releases => {
@@ -330,7 +333,9 @@ class ReleaseController {
   async getTracksByGenreV1(Request, Response) {
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
-    const filter = {};
+    const filter = {
+      state: 'published' 
+    };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
     } else {
@@ -353,7 +358,9 @@ class ReleaseController {
   }
 
   getTopTracks(Request, Response) {
-    Release.find()
+    Release.find({
+      state: 'published' 
+    })
       .sort({
         directTipCount: 'desc'
       })
@@ -391,7 +398,9 @@ class ReleaseController {
   async getTopTracksV1(Request, Response) {
     const limit = this.limit(Number(Request.query.limit));
     try {
-      const releases = await Release.find({}).sort({
+      const releases = await Release.find({
+        state: 'published' 
+      }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
       Response.status(200).json({
@@ -406,7 +415,9 @@ class ReleaseController {
   }
 
   getTopTracksByGenre(Request, Response) {
-    Release.find()
+    Release.find({
+      state: 'published' 
+    })
       .sort({
         directTipCount: 'desc'
       })
@@ -454,7 +465,9 @@ class ReleaseController {
 
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
-    const filter = {};
+    const filter = {
+      state: 'published' 
+    };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
     } else {
@@ -480,7 +493,9 @@ class ReleaseController {
   }
 
   getRecentTracks(Request, Response) {
-    Release.find({})
+    Release.find({
+      state: 'published' 
+    })
       .sort({
         releaseDate: 'desc'
       })
@@ -512,7 +527,7 @@ class ReleaseController {
   async getRecentTracksV1(Request, Response) {
     const limit = this.limit(Number(Request.query.limit));
     try {
-      const releases = await Release.find({}).sort({
+      const releases = await Release.find({state: 'published' }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
       Response.status(200).json({
@@ -537,7 +552,8 @@ class ReleaseController {
     }
     try {
       const releases = await Release.find({
-        artistAddress: aritstId
+        artistAddress: aritstId,
+        state: 'published' 
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();

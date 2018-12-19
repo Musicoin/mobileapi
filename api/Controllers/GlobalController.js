@@ -184,6 +184,7 @@ class GlobalController {
     // search releases
     try {
       const releases = await Release.find({
+        state: 'published' ,
         $or: [{
             title: {
               $regex: reg
