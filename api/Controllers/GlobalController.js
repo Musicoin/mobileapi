@@ -8,7 +8,7 @@ const Release = require('../../db/core/release');
 const Constant = require('../constant');
 const MediaProvider = require('../../utils/media-provider-instance');
 const ReleaseModel = require('../data/release-model');
-
+const ArtistModel = require('../data/artist-model');
 
 class GlobalController {
 
@@ -239,13 +239,7 @@ class GlobalController {
 
           // load artist
           artistModule.getArtistByProfile(user.profileAddress).then(res => {
-            resolve({
-              artistId: user.profileAddress,
-              name: user.name,
-              profileUrl: Constant.ARTIST_BASE_URL+user.profileAddress,
-              imageUrl: MediaProvider.resolveIpfsUrl(res.imageUrl),
-              releaseCount: user.releaseCount
-            })
+            resolve(ArtistModel.responseData(user.profileAddress, res));
           }).catch(error => reject(error));
 
         })
