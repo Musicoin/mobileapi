@@ -346,6 +346,39 @@ class GlobalController {
     });
   }
 
+  async publishRelease(req, res){
+	try{
+		const releaseArray = req.body.releases;
+		const mode = req.body.mode;
+		if(mode === "info"){
+			const info = await Release.find({contractAddress: { $in: releaseArray }}).exec();
+			return res.status(200).json({
+				status: "success",
+				releases: info.map(val=>{
+					return {
+						address: val.contractAddress,
+						state: val.state
+					}
+				})
+			})
+		}else if(mode === "all"){
+			await Release.update({state: "error"},{$set:{state: "published"}},{multi: true});
+		return res.status(200).json({
+			status: "success"
+		})
+	
+		}
+		await Release.update({contractAddress: {$in: releaseArray}},{$set:{state: "published"}},{multi: true});
+		res.status(200).json({
+			status: "success"
+		})
+	}catch(error){
+		res.status(500).json({
+			error: error.message
+		})
+	}
+  }
+
   async getAllSongs(Request, Response) {
     // this endpoint should accept a string (artistName) to find the artist's songs
     // this can also be the profile address I guess, should work pretty okay
