@@ -5,8 +5,6 @@
  * */
 const User = require('../../db/core/user');
 const Release = require('../../db/core/release');
-const Constant = require('../constant');
-const MediaProvider = require('../../utils/media-provider-instance');
 const ReleaseModel = require('../data/release-model');
 const ArtistModel = require('../data/artist-model');
 
@@ -240,7 +238,8 @@ class GlobalController {
           // load artist
           artistModule.getArtistByProfile(user.profileAddress).then(res => {
             resolve(ArtistModel.responseData(user.profileAddress, res));
-          }).catch(error => reject(error));
+          })
+          .catch(error => reject(error));
 
         })
       }));

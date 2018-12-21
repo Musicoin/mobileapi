@@ -6,6 +6,7 @@ const rp = require('request-promise');
 const defaultRecords = 20;
 const maxRecords = 100;
 const ArtistModel = require('../data/artist-model');
+const MediaProvider = require('../../utils/media-provider-instance');
 
 
 function getLimit(req) {
@@ -29,10 +30,22 @@ class ArtistController {
     });
   }
 
-  getProfileByAddressV1(Request, Response) {
-    this.artistModule.getArtistByProfile(Request.params.address).then(artist => {
-      Response.send(ArtistModel.responseData(Request.params.address, artist));
-    });
+  async getProfileByAddressV1(Request, Response) {
+    try {
+      const address = Request.params.address;
+      const artist = await this.artistModule.getArtistByProfile(address);
+      const descUrl = MediaProvider.getIpfsHash(artist.descriptionUrl);
+      const desc = await MediaProvider.fetchTextFromIpfs("ipfs://"+descUrl);
+      Response.status(200).json({
+        ...ArtistModel.responseData(address, artist),
+        description: desc
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+
   }
 
   getNewArtists(Request, Response) {
