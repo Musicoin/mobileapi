@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const ConfigUtils = require('./config/config');
 const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
-const mongoose = require("mongoose");
 const config = ConfigUtils.loadConfig(process.argv);
 const apollo = require('./apollo/server');
 
@@ -45,8 +44,9 @@ app.use("/",require('./api/routes/auth'));
 app.use("/v1",require('./api/routes/v1/auth'));
 app.use("/v1/track",require('./api/routes/v1/track'));
 
-mongoose.connect(config.keyCoreDatabaseUrl);
 app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
+
+app.use("/v1/artist", require("./api/routes/v1/artist"));
 
 apollo.config(app);
 

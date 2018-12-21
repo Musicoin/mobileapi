@@ -2,10 +2,10 @@ const MediaProvider = require('../../utils/media-provider-instance');
 
 function responseData(address, artist) {
   return {
-    artistId: address,
+    profileAddress: address,
     createdBy: artist.createdBy,
     forwardingAddress: artist.forwardingAddress,
-    descriptionUrl: MediaProvider.resolveIpfsUrl(artist.descriptionUrl),
+    descriptionHash: MediaProvider.getIpfsHash(artist.descriptionUrl),
     artistName: artist.artistName,
     owner: artist.owner,
     contractVersion: artist.contractVersion,
