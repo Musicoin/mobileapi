@@ -132,7 +132,8 @@ class ReleaseController {
   getRandomTrack(Request, Response) {
 
     let where = {
-      state: 'published' 
+      state: 'published' ,
+      state4app:{$ne:"error"}
     };
     if (Request.query.genre) {
       if (knownGenres.indexOf(Request.query.genre) !== -1) {
@@ -296,7 +297,8 @@ class ReleaseController {
 
     Release.find({
         genres: Request.query.genre,
-        state: 'published' 
+        state: 'published' ,
+        state4app:{$ne:"error"}
       })
       .limit(this.limit(Number(Request.query.limit)))
       .then(releases => {
@@ -334,7 +336,8 @@ class ReleaseController {
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
-      state: 'published' 
+      state: 'published' ,
+      state4app: {$ne:"error"}
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -359,7 +362,8 @@ class ReleaseController {
 
   getTopTracks(Request, Response) {
     Release.find({
-      state: 'published' 
+      state: 'published' ,
+      state4app: {$ne:"error"}
     })
       .sort({
         directTipCount: 'desc'
@@ -399,7 +403,8 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     try {
       const releases = await Release.find({
-        state: 'published' 
+        state: 'published' ,
+        state4app: {$ne: "error"}
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -414,59 +419,36 @@ class ReleaseController {
     }
   }
 
-  getTopTracksByGenre(Request, Response) {
-    Release.find({
-      state: 'published' 
-    })
-      .sort({
+ async getTopTracksByGenre(Request, Response) {
+     const limit = this.limit(Number(Request.query.limit));
+    try {
+      const releases = await Release.find({
+        state: 'published' ,
+        state4app: {$ne: "error"}
+      }).sort({
         directTipCount: 'desc'
+      }).limit(limit).exec();
+      Response.status(200).json({
+        success: true,
+        releases: ReleaseModel.responseList(releases)
       })
-      //.limit(this.limit(Number(Request.query.limit)))
-      .then(releases => {
-        var lim = 0;
-        if (releases.length > 1000) { // DoS limit
-          lim = 1000;
-        } else {
-          lim = releases.length;
-        }
-        if (Request.query.limit > 100) {
-          Request.query.limit = 100;
-        }
-        let ReleasesArray = [];
-        console.log("LIM", lim, "RELASE$SArrya")
-        for (var i = 0; i < lim; i++) {
-          console.log(i, "<-INDEX")
-          if (releases[i].genres.indexOf(Request.query.genre) > -1) {
-            ReleasesArray.push({
-              title: releases[i].title,
-              link: 'https://musicion.org/nav/track/' + releases[i].contractAddress,
-              pppLink: releases[i].tx,
-              genres: releases[i].genres,
-              author: releases[i].artistName,
-              authorLink: 'https://musicoin.org/nav/artist/' + releases[i].artistAddress,
-              trackImg: releases[i].imageUrl,
-              trackDescription: releases[i].description,
-              directTipCount: releases[i].directTipCount,
-              directPlayCount: releases[i].directPlayCount
-            });
-          }
-          if (ReleasesArray.length == Request.query.limit) {
-            break;
-          }
-        }
-        Response.send({
-          success: true,
-          data: ReleasesArray
-        });
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
       });
-  }
+    }
+ 
+   }
 
   async getTopTracksByGenreV1(Request, Response) {
 
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
-      state: 'published' 
+      state: 'published', 
+      state4app:{
+        $ne: "error"
+      }
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -494,7 +476,8 @@ class ReleaseController {
 
   getRecentTracks(Request, Response) {
     Release.find({
-      state: 'published' 
+      state: 'published', 
+      state4app:{$ne:"error"}
     })
       .sort({
         releaseDate: 'desc'
@@ -527,9 +510,10 @@ class ReleaseController {
   async getRecentTracksV1(Request, Response) {
     const limit = this.limit(Number(Request.query.limit));
     try {
-      const releases = await Release.find({state: 'published' }).sort({
+      const releases = await Release.find({state: 'published',state4app:{$ne:"error"} }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
+      console.log("releases: ",releases);
       Response.status(200).json({
         success: true,
         releases: ReleaseModel.responseList(releases)
@@ -544,7 +528,7 @@ class ReleaseController {
   async getTracksByAritstV1(Request, Response) {
     console.log(Request.query);
     const limit = this.limit(Number(Request.query.limit));
-    const aritstId = Request.query.aritstId;
+    const aritstId = Request.params.address;
     if(!aritstId){
       return Response.status(400).json({
         error: "artistId is required."
@@ -553,7 +537,8 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         artistAddress: aritstId,
-        state: 'published' 
+        state: 'published',
+        state4app:{$ne:"error"} 
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
