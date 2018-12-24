@@ -17,14 +17,14 @@ class AuthMiddleware {
         if (user1 === null || user1.accessToken != Request.query.accessToken) {
           // error out
           console.log("Invalid Credentials")
-          Response.send({
+          Response.status(401).send({
             status: "error",
             message: 'Invalid Credentials'
           });
         } else if (Date.now() - user1.timeout > TIMEOUT) {
           // error out
           console.log("Access Token Expired")
-          Response.send({
+          Response.status(401).send({
             status: "error",
             message: 'Access Token Expired'
           });
@@ -35,7 +35,7 @@ class AuthMiddleware {
       }).catch(Error => {
         // error out
         console.log("Errored out in checktimeouts")
-        Response.send({
+        Response.status(500).send({
           status: "error",
           message: Error.message
         });
