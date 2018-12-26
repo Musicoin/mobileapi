@@ -156,7 +156,9 @@ async function getAccessToken(Request, Response) {
     // validate request params
     const validResult = Validator.validate(Request.body, AuthSchema.signin);
     if (validResult !== true) {
-      return Response.status(400).json(validResult);
+      return Response.status(400).json({
+        error: validResult[0]? validResult[0].message : "params invalid."
+      });
     }
     // find user
     const user = await User.findOne({
@@ -165,6 +167,12 @@ async function getAccessToken(Request, Response) {
     if (!user) return Response.status(400).json({
       error: "user not found"
     });
+
+    if (!bcrypt.compareSync(Request.body.password, user.local.password)) {
+      return Response.status(401).json({
+        error: 'Password is wrong.'
+      });
+    }
     // find api user
     const apiUser = await ApiUser.findOne({
       email: Request.body.email
