@@ -5,11 +5,12 @@
  * */
 
 const Release = require('../../db/core/release');
+const ReleaseStats = require('../../db/core/release-stats');
+const TrackMessage = require('../../db/core/track-message');
 const Playlist = require('../../db/core/playlist');
 const User = require('../../db/core/user');
 const TipHistory = require('../../db/core/tip-history');
 const ReleaseModel = require('../data/release-model');
-
 /**
  *   VALIDATION SCHEMAS
  */
@@ -19,9 +20,18 @@ const ReleaseSchema = require('../ValidatorSchema/ReleaseSchema');
  *  LIBS
  *
  * */
-const mongoose = require('mongoose');
+const moment = require('moment');
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
+const uuidV4 = require('uuid/v4');
+const emailUtil = require("../../utils/email");
+const renderFile = require("ejs").renderFile;
+const path = require("path");
+const NOTIFICATION_HTML = path.join(__dirname, "../views/message.ejs");
+
+const renderMessage = function (params, callback) {
+  return renderFile(NOTIFICATION_HTML, params, callback);
+}
 
 const knownGenres = [
   "Alternative Rock",
@@ -54,7 +64,27 @@ const knownGenres = [
   "Other"
 ];
 
+const DatePeriodStart = [
+  "day",
+  "week",
+  "month",
+  "year",
+  "all"
+];
+
 class ReleaseController {
+
+  constructor(ArtistModule,PaymentCredentials) {
+
+    this.ArtistModule = ArtistModule;
+    this.PaymentCredentials = PaymentCredentials;
+
+    this.tipTrackV1 = this.tipTrackV1.bind(this);
+    this.getUserEmail = this.getUserEmail.bind(this);
+    this.updateReleaseStats = this.updateReleaseStats.bind(this);
+    this._updateReleaseStats = this._updateReleaseStats.bind(this);
+    this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
+  }
 
   limit(limit) {
     if (limit && limit > 0) {
@@ -132,8 +162,10 @@ class ReleaseController {
   getRandomTrack(Request, Response) {
 
     let where = {
-      state: 'published' ,
-      state4app:{$ne:"error"}
+      state: 'published',
+      state4app: {
+        $ne: "error"
+      }
     };
     if (Request.query.genre) {
       if (knownGenres.indexOf(Request.query.genre) !== -1) {
@@ -297,8 +329,10 @@ class ReleaseController {
 
     Release.find({
         genres: Request.query.genre,
-        state: 'published' ,
-        state4app:{$ne:"error"}
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        }
       })
       .limit(this.limit(Number(Request.query.limit)))
       .then(releases => {
@@ -336,8 +370,10 @@ class ReleaseController {
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
-      state: 'published' ,
-      state4app: {$ne:"error"}
+      state: 'published',
+      state4app: {
+        $ne: "error"
+      }
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -362,9 +398,11 @@ class ReleaseController {
 
   getTopTracks(Request, Response) {
     Release.find({
-      state: 'published' ,
-      state4app: {$ne:"error"}
-    })
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        }
+      })
       .sort({
         directTipCount: 'desc'
       })
@@ -403,8 +441,10 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     try {
       const releases = await Release.find({
-        state: 'published' ,
-        state4app: {$ne: "error"}
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        }
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -419,12 +459,14 @@ class ReleaseController {
     }
   }
 
- async getTopTracksByGenre(Request, Response) {
-     const limit = this.limit(Number(Request.query.limit));
+  async getTopTracksByGenre(Request, Response) {
+    const limit = this.limit(Number(Request.query.limit));
     try {
       const releases = await Release.find({
-        state: 'published' ,
-        state4app: {$ne: "error"}
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        }
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -437,16 +479,16 @@ class ReleaseController {
         error: error.message
       });
     }
- 
-   }
+
+  }
 
   async getTopTracksByGenreV1(Request, Response) {
 
     const genre = Request.query.genre;
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
-      state: 'published', 
-      state4app:{
+      state: 'published',
+      state4app: {
         $ne: "error"
       }
     };
@@ -476,9 +518,11 @@ class ReleaseController {
 
   getRecentTracks(Request, Response) {
     Release.find({
-      state: 'published', 
-      state4app:{$ne:"error"}
-    })
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        }
+      })
       .sort({
         releaseDate: 'desc'
       })
@@ -513,10 +557,18 @@ class ReleaseController {
       const errFilePath = "/var/www/mcorg/running-master/musicoin-streaming/log/streaming-error-address.log";
       const errFileContent = require('fs').readFileSync(errFilePath).toString();
       const errArray = errFileContent.split("\n");
-      const releases = await Release.find({state: 'published',state4app:{$ne:"error"}, contractAddress:{$nin: errArray} }).sort({
+      const releases = await Release.find({
+        state: 'published',
+        state4app: {
+          $ne: "error"
+        },
+        contractAddress: {
+          $nin: errArray
+        }
+      }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
-      console.log("releases: ",releases);
+      console.log("releases: ", releases);
       Response.status(200).json({
         success: true,
         releases: ReleaseModel.responseList(releases)
@@ -532,7 +584,7 @@ class ReleaseController {
     console.log(Request.query);
     const limit = this.limit(Number(Request.query.limit));
     const aritstId = Request.params.address;
-    if(!aritstId){
+    if (!aritstId) {
       return Response.status(400).json({
         error: "artistId is required."
       });
@@ -541,7 +593,9 @@ class ReleaseController {
       const releases = await Release.find({
         artistAddress: aritstId,
         state: 'published',
-        state4app:{$ne:"error"} 
+        state4app: {
+          $ne: "error"
+        }
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
@@ -556,6 +610,149 @@ class ReleaseController {
     }
   }
 
+  async tipTrackV1(Request, Response) {
+    const trackAddress = Request.body.trackAddress;
+
+    if (!trackAddress) {
+      return Response.status(400).json({
+        error: "track address is required."
+      })
+    }
+
+    const amount = Request.body.musicoins || 10;
+
+    try {
+      // find track
+      const release = await Release.findOne({
+        contractAddress: trackAddress
+      }).exec();
+      if (!release) {
+        return Response.status(400).json({
+          error: "Track not found: " + trackAddress
+        })
+      }
+      console.log("find track complete: ", trackAddress);
+      // send tip amount to track address
+      const paymentCredentials = await this.PaymentCredentials.getCredentials();
+      const paymentAccount = paymentCredentials.account;
+      const tx = await this.ArtistModule.sendTipFromProfile(paymentAccount, trackAddress, amount, this.PaymentCredentials);
+      console.log("payment tip complete: ", tx);
+      // increase tip count
+      const tipCount = release.directTipCount || 0;
+      release.directTipCount = tipCount + amount;
+      await release.save();
+      console.log("update tip count complete: ", tipCount);
+
+      // update release stats
+      await this.updateReleaseStats(release._id, amount);
+      console.log("update release duration complete");
+      const senderName = "UBI$MUSIC";
+      const amountUnit = amount === 1 ? "coin" : "coins";
+      const message = `${senderName} tipped ${amount} ${amountUnit} on "${release.title}"`;
+      // find track srtist
+      const artist = await User.findOne({
+        prodileAddress: release.artistAddress
+      }).exec();
+      console.log("artist: ", artist);
+      const email = this.getUserEmail(artist);
+      // send email to artist
+      if (email) {
+        const notification = {
+          trackName: release.title || "",
+          actionUrl: `https://musicoin.org/nav/thread-page?thread=${uuidV4()}`,
+          message: message,
+          senderName: senderName
+        };
+
+        renderMessage(notification, (err, html) => {
+          if (!err) {
+            const emailContent = {
+              from: "musicoin@musicoin.org",
+              to: email,
+              subject: `${senderName} commented on ${release.title}`,
+              html: html
+            }
+
+            emailUtil.send(emailContent).then(result => {
+              console.log("email send complete: ", result);
+            });
+          }
+        })
+      }
+      
+      // insert a track message to db
+      await TrackMessage.create({
+        artistAddress: release.artistAddress,
+        contractAddress: trackAddress,
+        senderAddress: paymentAccount,
+        release: release._id,
+        artist: artist?artist._id:null,
+        message: message,
+        replyToMessage: null,
+        replyToSender: null,
+        threadId: null,
+        messageType: "tip",
+        tips: amount
+      });
+
+      Response.status(200).json({
+        tx: tx
+      });
+
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
+  getUserEmail(user) {
+    if (!user) return null;
+    if (user.preferredEmail) return user.preferredEmail;
+    if (user.google && user.google.email) return user.google.email;
+    if (user.facebook && user.facebook.email) return user.facebook.email;
+    if (user.twitter && user.twitter.email) return user.twitter.email;
+    if (user.local && user.local.email) return user.local.email;
+    if (user.invite && user.invite.invitedAs) return user.invite.invitedAs;
+    return null;
+  }
+
+  async updateReleaseStats(releaseId, amount) {
+    const updatePromise = this._updateReleaseStats;
+    const now = Date.now();
+    return Promise.all(DatePeriodStart.map(duration => {
+      return updatePromise(releaseId, now, duration, amount)
+    }));
+  }
+
+  _updateReleaseStats(releaseId, startDate, duration, amount) {
+    const where = {
+      release: releaseId,
+      startDate: this.getDatePeriodStart(startDate, duration),
+      duration
+    }
+
+    const updateParams = {
+      $inc: {
+        tipCount: amount
+      }
+    }
+
+    const options = {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true
+    };
+    return ReleaseStats.findOneAndUpdate(
+      where,
+      updateParams,
+      options
+    ).exec();
+  }
+
+  getDatePeriodStart(startDate, duration) {
+    return duration === "all" ? 0 : moment(startDate).startOf(duration);
+  }
 
   tipTrack(Request, Response) {
 
@@ -638,4 +835,4 @@ class ReleaseController {
   }
 }
 
-module.exports = new ReleaseController();
+module.exports = ReleaseController;
