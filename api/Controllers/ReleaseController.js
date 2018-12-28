@@ -29,8 +29,10 @@ const renderFile = require("ejs").renderFile;
 const path = require("path");
 const NOTIFICATION_HTML = path.join(__dirname, "../views/message.ejs");
 
+const UBIMUSIC_ACCOUNT = "0x576b3db6f9df3fe83ea3f6fba9eca8c0ee0e4915";
+
 const renderMessage = function (params, callback) {
-  return renderFile(NOTIFICATION_HTML, params, callback);
+  return renderFile(NOTIFICATION_HTML, {notification: params}, callback);
 }
 
 const knownGenres = [
@@ -74,9 +76,10 @@ const DatePeriodStart = [
 
 class ReleaseController {
 
-  constructor(ArtistModule,PaymentCredentials) {
+  constructor(ArtistModule,PublishCredentials,PaymentCredentials) {
 
     this.ArtistModule = ArtistModule;
+    this.PublishCredentials = PublishCredentials;
     this.PaymentCredentials = PaymentCredentials;
 
     this.tipTrackV1 = this.tipTrackV1.bind(this);
@@ -631,41 +634,47 @@ class ReleaseController {
           error: "Track not found: " + trackAddress
         })
       }
-      console.log("find track complete: ", trackAddress);
+
+      // find abimusic
+      const sender = await User.findOne({
+        profileAddress: UBIMUSIC_ACCOUNT
+      }).exec();
+      if(!sender){
+        return Response.status(400).json({
+          error: "UBIMUSIC not found: " + UBIMUSIC_ACCOUNT
+        })
+      }
+
       // send tip amount to track address
-      const paymentCredentials = await this.PaymentCredentials.getCredentials();
-      const paymentAccount = paymentCredentials.account;
-      const tx = await this.ArtistModule.sendTipFromProfile(paymentAccount, trackAddress, amount, this.PaymentCredentials);
-      console.log("payment tip complete: ", tx);
+      const tx = await this.ArtistModule.sendTipFromProfile(UBIMUSIC_ACCOUNT, trackAddress, amount, this.PaymentCredentials);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + amount;
       await release.save();
-      console.log("update tip count complete: ", tipCount);
 
       // update release stats
       await this.updateReleaseStats(release._id, amount);
-      console.log("update release duration complete");
-      const senderName = "UBI$MUSIC";
+      const senderName = sender.draftProfile.artistName;
       const amountUnit = amount === 1 ? "coin" : "coins";
       const message = `${senderName} tipped ${amount} ${amountUnit} on "${release.title}"`;
+      const threadId = uuidV4();
       // find track srtist
       const artist = await User.findOne({
-        prodileAddress: release.artistAddress
+        profileAddress: release.artistAddress
       }).exec();
-      console.log("artist: ", artist);
       const email = this.getUserEmail(artist);
       // send email to artist
       if (email) {
         const notification = {
           trackName: release.title || "",
-          actionUrl: `https://musicoin.org/nav/thread-page?thread=${uuidV4()}`,
+          actionUrl: `https://musicoin.org/nav/thread-page?thread=${threadId}`,
           message: message,
           senderName: senderName
         };
 
         renderMessage(notification, (err, html) => {
-          if (!err) {
+          console.log("email error: ",err);
+          if (html) {
             const emailContent = {
               from: "musicoin@musicoin.org",
               to: email,
@@ -684,13 +693,14 @@ class ReleaseController {
       await TrackMessage.create({
         artistAddress: release.artistAddress,
         contractAddress: trackAddress,
-        senderAddress: paymentAccount,
+        senderAddress: UBIMUSIC_ACCOUNT,
         release: release._id,
         artist: artist?artist._id:null,
+        sender: sender._id,
         message: message,
         replyToMessage: null,
         replyToSender: null,
-        threadId: null,
+        threadId: threadId,
         messageType: "tip",
         tips: amount
       });
@@ -709,10 +719,10 @@ class ReleaseController {
   getUserEmail(user) {
     if (!user) return null;
     if (user.preferredEmail) return user.preferredEmail;
+    if (user.local && user.local.email) return user.local.email;
     if (user.google && user.google.email) return user.google.email;
     if (user.facebook && user.facebook.email) return user.facebook.email;
     if (user.twitter && user.twitter.email) return user.twitter.email;
-    if (user.local && user.local.email) return user.local.email;
     if (user.invite && user.invite.invitedAs) return user.invite.invitedAs;
     return null;
   }
