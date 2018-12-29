@@ -17,6 +17,7 @@ Router.get('/isartist/:publicKey', ArtistController.isArtist.bind(ArtistControll
 Router.get('/isverified/:publicKey', ArtistController.isArtistVerified.bind(ArtistController));
 Router.get('/earnings/:publicKey', ArtistController.getArtistEarnings.bind(ArtistController));
 Router.get('/ofweek', ArtistController.getArtistOfWeek.bind(ArtistController));
+Router.get('/ofweek/v1', ArtistController.getArtistOfWeekV1.bind(ArtistController));
 
 Router.post('/profile/', ArtistController.profile.bind(ArtistController));
 Router.post('/send', ArtistController.send.bind(ArtistController));

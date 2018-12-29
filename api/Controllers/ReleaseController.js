@@ -646,7 +646,7 @@ class ReleaseController {
       }
 
       // send tip amount to track address
-      const tx = await this.ArtistModule.sendTipFromProfile(UBIMUSIC_ACCOUNT, trackAddress, amount, this.PaymentCredentials);
+      const tx = await this.ArtistModule.sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, amount);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + amount;
@@ -701,8 +701,7 @@ class ReleaseController {
         replyToMessage: null,
         replyToSender: null,
         threadId: threadId,
-        messageType: "tip",
-        tips: amount
+        messageType: "tip"
       });
 
       Response.status(200).json({
