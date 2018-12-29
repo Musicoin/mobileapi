@@ -5,21 +5,18 @@ const URLUtil = require('../../utils/url-utils');
 const TIMEOUT = 3*60*1000;
 
 function responseData(release) {
-  const directTipCount = release.directTipCount || 0;
-  const directPlayCount = release.directPlayCount || 0;
   return {
-    trackId: release.contractAddress,
+    trackAddress: release.contractAddress,
     title: release.title,
-    link: Constant.TRACK_BASE_URL + release.contractAddress,
     tx: release.tx,
     genres: release.genres,
-    author: release.artistName,
-    authorLink: Constant.ARTIST_BASE_URL + release.artistAddress,
+    artistName: release.artistName,
+    artistAddress: release.artistAddress,
     trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
-    trackUrl: RESOURCE_BASE_URL+"ppp/"+URLUtil.createExpiringLink(release.contractAddress,TIMEOUT),
+    trackPlayUrl: `${Constant.PLAY_BASE_URL}/${release.contractAddress}/index.m3u8`,
     trackDescription: release.description,
-    directTipCount: directTipCount,
-    directPlayCount: directPlayCount
+    directTipCount: release.directTipCount || 0,
+    directPlayCount: release.directPlayCount || 0
   }
 }
 

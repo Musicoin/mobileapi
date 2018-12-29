@@ -1,12 +1,19 @@
-const mongoose = require('mongoose');
+// lib
+const rp = require('request-promise');
+// util
+const MediaProvider = require('../../utils/media-provider-instance');
+// db table
 const LicenseKey = require('../../db/core/key');
 const Release = require('../../db/core/release');
 const User = require('../../db/core/user');
-const rp = require('request-promise');
+const Hero = require('../../db/core/hero');
+// http response
+const ArtistModel = require('../data/artist-model');
+const ReleaseModel = require('../data/release-model');
+// constant
 const defaultRecords = 20;
 const maxRecords = 100;
-const ArtistModel = require('../data/artist-model');
-const MediaProvider = require('../../utils/media-provider-instance');
+const Constant = require('../constant');
 
 
 function getLimit(req) {
@@ -35,7 +42,7 @@ class ArtistController {
       const address = Request.params.address;
       const artist = await this.artistModule.getArtistByProfile(address);
       const descUrl = MediaProvider.getIpfsHash(artist.descriptionUrl);
-      const desc = await MediaProvider.fetchTextFromIpfs("ipfs://"+descUrl);
+      const desc = await MediaProvider.fetchTextFromIpfs("ipfs://" + descUrl);
       Response.status(200).json({
         ...ArtistModel.responseData(address, artist),
         description: desc
@@ -185,9 +192,9 @@ class ArtistController {
   async pppV1(Request, Response) {
     try {
       const res = await this.artistModule.pppFromProfile(Request.body.profileAddress, Request.body.licenseAddress, this.hotWalletCredentialsProvider);
-      if(res){
+      if (res) {
         Response.status(200).json(res)
-      }else{
+      } else {
         Response.status(400).json({
           error: "payment rejected."
         })
@@ -478,6 +485,50 @@ class ArtistController {
         });
       })
   }
+
+  async getArtistOfWeekV1(Request, Response) {
+    try {
+      const heros = await Hero.find().sort({
+        startDate: -1
+      }).limit(1).exec();
+      const hero = heros ? heros[0] : null;
+      if (!hero) {
+        return Response.status(400).json({
+          error: "not found artist"
+        })
+      }
+
+      const release = await Release.findOne({
+        contractAddress: hero.licenseAddress
+      }).exec();
+
+      if (!release) {
+        return Response.status(400).json({
+          error: "not found track"
+        })
+      }
+
+      const track = ReleaseModel.responseData(release);
+
+      const data = {
+        label: hero.label,
+        artistName: hero.title,
+        artistImg: hero.image.replace("/media", Constant.IPFS_BASE_URL),
+        artistAddress: track.artistAddress,
+        trackName: track.title,
+        trackImg: track.trackImg,
+        trackAddress: track.trackAddress,
+        trackPlayUrl: track.trackPlayUrl
+      }
+
+      Response.status(200).json(data);
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
 }
 
 module.exports = ArtistController;
