@@ -170,11 +170,18 @@ class GlobalController {
     const artistModule = this.artistModule;
 
     const keyword = Request.body.keyword;
+
+    if(!keyword || keyword === ''){
+      return Response.status(400).json({
+        error: "search keyword is required."
+      })
+    }
+
     const _limit = Request.body.limit;
     let limit = _limit ? Number(_limit) : 10;
     limit = limit > 20 ? 20 : limit;
 
-    const reg = new RegExp(keyword ? keyword : "", "i");
+    const reg = new RegExp(keyword, "i");
 
     let ReleasesArray = [];
     let UsersArray = [];
@@ -185,11 +192,6 @@ class GlobalController {
         state: 'published' ,
         $or: [{
             title: {
-              $regex: reg
-            }
-          },
-          {
-            genres: {
               $regex: reg
             }
           }
