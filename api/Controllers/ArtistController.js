@@ -488,6 +488,7 @@ class ArtistController {
 
   async getArtistOfWeekV1(Request, Response) {
     try {
+      // find the record of week
       const heros = await Hero.find().sort({
         startDate: -1
       }).limit(1).exec();
@@ -498,6 +499,7 @@ class ArtistController {
         })
       }
 
+      // load release of the record
       const release = await Release.findOne({
         contractAddress: hero.licenseAddress
       }).exec();
@@ -507,13 +509,22 @@ class ArtistController {
           error: "not found track"
         })
       }
-
       const track = ReleaseModel.responseData(release);
+      // load artist by address
+      const _artist = await this.artistModule.getArtistByProfile(track.artistAddress);
+
+      if(!_artist){
+        return Response.status(400).json({
+          error: "not found artist"
+        })
+      }
+
+      const artist = ArtistModel.responseData(track.artistAddress, _artist);
 
       const data = {
         label: hero.label,
-        artistName: hero.title,
-        artistImg: hero.image.replace("/media", Constant.IPFS_BASE_URL),
+        artistName: artist.artistName,
+        artistImg: artist.imageUrl,
         artistAddress: track.artistAddress,
         trackName: track.title,
         trackImg: track.trackImg,
