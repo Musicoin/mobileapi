@@ -166,9 +166,6 @@ class ReleaseController {
 
     let where = {
       state: 'published',
-      state4app: {
-        $ne: "error"
-      }
     };
     if (Request.query.genre) {
       if (knownGenres.indexOf(Request.query.genre) !== -1) {
@@ -333,9 +330,6 @@ class ReleaseController {
     Release.find({
         genres: Request.query.genre,
         state: 'published',
-        state4app: {
-          $ne: "error"
-        }
       })
       .limit(this.limit(Number(Request.query.limit)))
       .then(releases => {
@@ -374,9 +368,6 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
       state: 'published',
-      state4app: {
-        $ne: "error"
-      }
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -402,9 +393,6 @@ class ReleaseController {
   getTopTracks(Request, Response) {
     Release.find({
         state: 'published',
-        state4app: {
-          $ne: "error"
-        }
       })
       .sort({
         directTipCount: 'desc'
@@ -445,9 +433,6 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         state: 'published',
-        state4app: {
-          $ne: "error"
-        }
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -467,9 +452,6 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         state: 'published',
-        state4app: {
-          $ne: "error"
-        }
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -491,9 +473,6 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
       state: 'published',
-      state4app: {
-        $ne: "error"
-      }
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -522,9 +501,6 @@ class ReleaseController {
   getRecentTracks(Request, Response) {
     Release.find({
         state: 'published',
-        state4app: {
-          $ne: "error"
-        }
       })
       .sort({
         releaseDate: 'desc'
@@ -562,9 +538,6 @@ class ReleaseController {
       const errArray = errFileContent.split("\n");
       const releases = await Release.find({
         state: 'published',
-        state4app: {
-          $ne: "error"
-        },
         contractAddress: {
           $nin: errArray
         }
@@ -595,10 +568,7 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         artistAddress: aritstId,
-        state: 'published',
-        state4app: {
-          $ne: "error"
-        }
+        state: 'published'
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();

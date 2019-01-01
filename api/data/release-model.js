@@ -13,7 +13,7 @@ function responseData(release) {
     artistName: release.artistName,
     artistAddress: release.artistAddress,
     trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
-    trackPlayUrl: `${Constant.PLAY_BASE_URL}/${release.contractAddress}/index.m3u8`,
+    trackUrl: `${Constant.PLAY_BASE_URL}/${release.contractAddress}/index.m3u8`,
     trackDescription: release.description,
     directTipCount: release.directTipCount || 0,
     directPlayCount: release.directPlayCount || 0

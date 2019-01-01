@@ -529,7 +529,7 @@ class ArtistController {
         trackName: track.title,
         trackImg: track.trackImg,
         trackAddress: track.trackAddress,
-        trackPlayUrl: track.trackPlayUrl
+        trackUrl: track.trackUrl
       }
 
       Response.status(200).json(data);
