@@ -218,7 +218,11 @@ class ReleaseController {
 
   async getRandomTrackV1(Request, Response) {
 
-    let where = {};
+    let where = {
+      markedAsAbuse: {
+        $ne: true
+      }
+    };
     const genre = Request.query.genre;
     if (genre) {
       if (knownGenres.indexOf(genre) !== -1) {
@@ -368,6 +372,9 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
       state: 'published',
+      markedAsAbuse: {
+        $ne: true
+      }
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -433,6 +440,9 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         state: 'published',
+        markedAsAbuse: {
+          $ne: true
+        }
       }).sort({
         directTipCount: 'desc'
       }).limit(limit).exec();
@@ -473,6 +483,9 @@ class ReleaseController {
     const limit = this.limit(Number(Request.query.limit));
     const filter = {
       state: 'published',
+      markedAsAbuse: {
+        $ne: true
+      },
     };
     if (genre && knownGenres.indexOf(genre) !== -1) {
       filter.genres = genre;
@@ -538,6 +551,9 @@ class ReleaseController {
       const errArray = errFileContent.split("\n");
       const releases = await Release.find({
         state: 'published',
+        markedAsAbuse: {
+          $ne: true
+        },
         contractAddress: {
           $nin: errArray
         }
@@ -568,7 +584,10 @@ class ReleaseController {
     try {
       const releases = await Release.find({
         artistAddress: aritstId,
-        state: 'published'
+        state: 'published',
+        markedAsAbuse: {
+          $ne: true
+        },
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
@@ -798,6 +817,11 @@ class ReleaseController {
       const releases = await Release.aggregate([{
         $sample: {
           size: limit
+        },
+        $match: {
+          markedAsAbuse: {
+            $ne: true
+          }
         }
       }]).exec();
 

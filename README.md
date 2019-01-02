@@ -1,6 +1,7 @@
 Musicoin API
 ===============
 Add .env
+
 cp .env.default .env
 
 To get setup, run `npm install`

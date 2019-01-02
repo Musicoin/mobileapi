@@ -190,12 +190,14 @@ class GlobalController {
     try {
       const releases = await Release.find({
         state: 'published' ,
+        markedAsAbuse: {
+          $ne: true
+        },
         $or: [{
             title: {
               $regex: reg
             }
-          }
-        ]
+          }]
       }).limit(limit).exec();
 
       // filter the releases and conversion result
