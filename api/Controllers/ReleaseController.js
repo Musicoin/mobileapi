@@ -546,16 +546,11 @@ class ReleaseController {
   async getRecentTracksV1(Request, Response) {
     const limit = this.limit(Number(Request.query.limit));
     try {
-      const errFilePath = "/var/www/mcorg/running-master/musicoin-streaming/log/streaming-error-address.log";
-      const errFileContent = require('fs').readFileSync(errFilePath).toString();
-      const errArray = errFileContent.split("\n");
+
       const releases = await Release.find({
         state: 'published',
         markedAsAbuse: {
           $ne: true
-        },
-        contractAddress: {
-          $nin: errArray
         }
       }).sort({
         releaseDate: 'desc'
