@@ -2,7 +2,7 @@ const Constant = require('../constant');
 const MediaProvider = require('../../utils/media-provider-instance');
 const RESOURCE_BASE_URL = "https://musicoin.org";
 const URLUtil = require('../../utils/url-utils');
-const TIMEOUT = 3*60*1000;
+const TIMEOUT = 24*60*60*1000;
 
 function responseData(release) {
   return {
