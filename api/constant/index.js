@@ -1,5 +1,5 @@
 const TOKEN_TIMEOUT = 7 * 24 * 60 * 60 * 1000;
-const TOKEN_LENGTH = 30;
+const TOKEN_LENGTH = 40;
 const SECRET_LENGTH = 30;
 const IPFS_PROTOCOL = "ipfs://";
 const IPFS_BASE_URL = "https://musicoin.org/media/";

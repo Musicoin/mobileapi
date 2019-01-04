@@ -1,4 +1,4 @@
-const SignUp = {
+const signup = {
   username: {
     type: "string",
     min: 3
@@ -12,7 +12,7 @@ const SignUp = {
   }
 };
 
-const Login = {
+const quickLogin = {
   password: {
     type: "string",
     min: 6
@@ -22,7 +22,27 @@ const Login = {
   }
 };
 
-const SignIn = {
+const authenticate = {
+  password: {
+    type: "string",
+    min: 6
+  },
+  email: {
+    type: 'email'
+  }
+};
+
+const tokenValidity = {
+  email: {
+    type: "string"
+  },
+  accessToken: {
+    type: "string",
+    length: 80
+  }
+};
+
+const accessToken = {
   email: {
     type: "string",
     min: 3
@@ -30,23 +50,17 @@ const SignIn = {
   clientSecret: {
     type: "string",
     length: 60
-  }
-};
-
-const AccessToken = {
-  email: {
-    type: "string",
-    min: 3
   },
-  accessToken: {
+  password: {
     type: "string",
-    length: 80
+    min: 6
   }
 }
 
 module.exports = {
-  signup: SignUp,
-  signin: SignIn,
-  login: Login,
-  AccessToken
+  signup,
+  authenticate,
+  accessToken,
+  tokenValidity,
+  quickLogin
 };
