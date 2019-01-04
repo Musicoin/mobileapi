@@ -85,7 +85,7 @@ class AuthController extends BaseController {
       })
 
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -132,8 +132,7 @@ class AuthController extends BaseController {
       });
 
     } catch (error) {
-      console.log(error);
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -163,7 +162,7 @@ class AuthController extends BaseController {
         this.reject(Response, "email and password dont match");
       }
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -200,7 +199,7 @@ class AuthController extends BaseController {
         clientSecret: apiUser.clientSecret
       });
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -242,7 +241,7 @@ class AuthController extends BaseController {
         accessToken: accessToken
       })
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -270,7 +269,7 @@ class AuthController extends BaseController {
         accessToken: apiUser.accessToken
       })
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 
@@ -309,7 +308,7 @@ class AuthController extends BaseController {
       });
 
     } catch (error) {
-      this.error(Response, error.message);
+      this.error(Response, error);
     }
   }
 }

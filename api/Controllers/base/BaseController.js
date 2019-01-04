@@ -5,9 +5,9 @@ const constant = require('../../constant');
 /**
  * all route controller extends BaseController
  */
-class BaseController{
+class BaseController {
 
-  constructor(props){
+  constructor(props) {
     // constant var
     this.constant = constant;
 
@@ -31,11 +31,18 @@ class BaseController{
    * @param {*} Response 
    * @param {*} error 
    */
-  error(Response, message){
-    this.log(`${this.TAG} error: ${message}`);
-    return Response.status(500).json({
-      error: message
-    })
+  error(Response, error) {
+    if (typeof error === "string") {
+      this.log(`${this.TAG} error: ${error}`);
+      Response.status(500).json({
+        error: error
+      })
+    } else {
+      this.log(`${this.TAG} error: `, error);
+      Response.status(500).json({
+        error: error.message
+      })
+    }
   }
 
   /**
@@ -43,8 +50,8 @@ class BaseController{
    * @param {*} Response 
    * @param {*} data 
    */
-  success(Response, data){
-    return Response.status(200).json(data)
+  success(Response, data) {
+    Response.status(200).json(data)
   }
 
   /**
@@ -52,17 +59,17 @@ class BaseController{
    * @param {*} Response 
    * @param {*} error 
    */
-  reject(Response, message){
+  reject(Response, message) {
     this.log(`${this.TAG} bad request: ${message}`);
-    return Response.status(400).json({
+    Response.status(400).json({
       error: message
     })
   }
 
-  log(message, ...params){
+  log(message, ...params) {
     if (params) {
       console.log(message, ...params);
-    }else{
+    } else {
       console.log(message);
     }
   }

@@ -1,20 +1,32 @@
+const BaseController = require('../base/BaseController');
+
 const MediaProvider = require('../../../utils/media-provider-instance');
 
-async function getArtistDescription(Request, Response) {
-  try {
-    const descUrl = "ipfs://"+Request.params.hash;
-    const text = await MediaProvider.fetchTextFromIpfs(descUrl);
-    Response.status(200).json({
-      success: true,
-      data: text
-    })
-  } catch (error) {
-    Response.status(500).json({
-      error: error.message
-    })
+class ArtistController extends BaseController{
+  constructor(props){
+    super(props);
+
+    this.getArtistDescription = this.getArtistDescription.bind(this);
+  }
+
+  /**
+   * params:
+   * hash
+   */
+  async getArtistDescription(Request, Response) {
+    const params = Request.params;
+    try {
+      const descUrl = this.constant.IPFS_PROTOCOL+params.hash;
+      const text = await MediaProvider.fetchTextFromIpfs(descUrl);
+      this.success(Response, {
+        data: text
+      })
+    } catch (error) {
+      this.error(Response, error);
+    }
   }
 }
 
-module.exports = {
-  getArtistDescription
-}
+
+
+module.exports = ArtistController;
