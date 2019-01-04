@@ -1,4 +1,4 @@
-const TIMEOUT = 7 * 24 * 60 * 60 * 1000;
+const TOKEN_TIMEOUT = 7 * 24 * 60 * 60 * 1000;
 const IPFS_PROTOCOL = "ipfs://";
 const IPFS_BASE_URL = "https://musicoin.org/media/";
 const TRACK_BASE_URL = "https://musicoin.org/nav/track/";
@@ -7,7 +7,7 @@ const PLAY_BASE_URL = "https://a.musicoin.org/track";
 
 
 module.exports = {
-  TIMEOUT,
+  TOKEN_TIMEOUT: TOKEN_TIMEOUT,
   IPFS_BASE_URL,
   TRACK_BASE_URL,
   ARTIST_BASE_URL,

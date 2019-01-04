@@ -7,7 +7,8 @@ const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 const bcrypt = require('bcrypt-nodejs');
 const crypto = require('crypto');
-const TIMEOUT = require('../../constant').TIMEOUT;
+const TIMEOUT = require('../../constant').TOKEN_TIMEOUT;
+const BaseController = require('../base/BaseController');
 
 /**
  * generate token
@@ -157,7 +158,7 @@ async function getAccessToken(Request, Response) {
     const validResult = Validator.validate(Request.body, AuthSchema.signin);
     if (validResult !== true) {
       return Response.status(400).json({
-        error: validResult[0]? validResult[0].message : "params invalid."
+        error: validResult[0] ? validResult[0].message : "params invalid."
       });
     }
     // find user
@@ -226,8 +227,8 @@ async function getTokenValidity(Request, Response) {
       });
     }
     const now = Date.now();
-    const timeElapsed = TIMEOUT+user.timeout-now;
-    if(timeElapsed<0){
+    const timeElapsed = TIMEOUT + user.timeout - now;
+    if (timeElapsed < 0) {
       return Response.status(403).json({
         error: 'Access Token timed out'
       });
@@ -249,5 +250,6 @@ module.exports = {
   authenticateUser,
   getClientSecret,
   getAccessToken,
-  getTokenValidity
+  getTokenValidity,
+  testFunc
 }
