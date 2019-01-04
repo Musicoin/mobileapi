@@ -41,7 +41,7 @@ app.use("/",require('./api/routes/auth'));
 app.use("/v1/auth",require('./api/routes/v1/auth'));
 app.use("/v1/track",require('./api/routes/v1/track'));
 
-app.use('/', AuthMiddleware.checkTimeouts(), RateLimiter);
+app.use('/', AuthMiddleware.authenticate, RateLimiter);
 
 app.use("/v1/artist", require("./api/routes/v1/artist"));
 
