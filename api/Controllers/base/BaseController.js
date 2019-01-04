@@ -1,5 +1,6 @@
 const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
+const constant = require('../../constant');
 
 /**
  * all route controller extends BaseController
@@ -7,10 +8,13 @@ const Validator = new ValidatorClass();
 class BaseController{
 
   constructor(props){
+    // constant var
+    this.constant = constant;
+
     this.validate = this.validate.bind(this);
     this.error = this.error.bind(this);
     this.success = this.success.bind(this);
-    this.badRequest = this.badRequest.bind(this);
+    this.reject = this.reject.bind(this);
   }
 
   /**
@@ -27,10 +31,10 @@ class BaseController{
    * @param {*} Response 
    * @param {*} error 
    */
-  error(Response, error){
-    console.log(`${this.TAG} error: ${error.message}`);
+  error(Response, message){
+    this.log(`${this.TAG} error: ${message}`);
     return Response.status(500).json({
-      error: error.message
+      error: message
     })
   }
 
@@ -48,11 +52,19 @@ class BaseController{
    * @param {*} Response 
    * @param {*} error 
    */
-  badRequest(Response, error){
-    console.log(`${this.TAG} bad request: ${error.message}`);
+  reject(Response, message){
+    this.log(`${this.TAG} bad request: ${message}`);
     return Response.status(400).json({
-      error: error.message
+      error: message
     })
+  }
+
+  log(message, ...params){
+    if (params) {
+      console.log(message, ...params);
+    }else{
+      console.log(message);
+    }
   }
 }
 

@@ -29,9 +29,6 @@ const RateLimiter = new RateLimit({
   delayMs: 0
 });
 
-app.set('views', './api/views');
-app.set('view engine', 'pug');
-
 app.use(session({
   name: "musicoin-api",
   secret: 'mcapi',
