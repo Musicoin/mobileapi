@@ -38,10 +38,10 @@ class ArtistController extends BaseController{
     try {
       const address = Request.params.address;
       const artist = await ArtistModule.getArtistByProfile(address);
-      // const desc = await MediaProvider.fetchTextFromIpfs(artist.descriptionUrl);
+      const desc = await MediaProvider.fetchTextFromIpfs(artist.descriptionUrl);
       this.success(Response,{
         ...ArtistModel.responseData(address, artist),
-        description: "desc"
+        description: desc
       });
     } catch (error) {
       this.error(Response, error);
