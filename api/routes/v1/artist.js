@@ -6,5 +6,6 @@ const Controller = new ArtistController({});
 Router.get('/description/:hash', Controller.getArtistDescription);
 Router.get('/profile/:address', Controller.getProfileByAddress);
 Router.post('/tip', Controller.tipArtist);
+Router.get('/ofweek', Controller.getArtistOfWeek);
 
 module.exports = Router;

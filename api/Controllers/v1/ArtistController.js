@@ -3,11 +3,14 @@ const BaseController = require('../base/BaseController');
 const User = require('../../../db/core/user');
 const UserStats = require('../../../db/core/user-stats');
 const TrackMessage = require('../../../db/core/track-message');
+const Release = require('../../../db/core/release');
+const Hero = require('../../../db/core/hero');
 
 const MediaProvider = require('../../../utils/media-provider-instance');
 const ArtistModule = require('../../Kernel').musicoinCore.getArtistModule();
 
 const ArtistModel = require('../../data/artist-model');
+const ReleaseModel = require('../../data/release-model');
 
 const moment = require('moment');
 const uuidV4 = require('uuid/v4');
@@ -164,6 +167,55 @@ class ArtistController extends BaseController{
         tx: tx
       });
 
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
+  async getArtistOfWeek(Request, Response) {
+    try {
+      // find the record of week
+      const heros = await Hero.find().sort({
+        startDate: -1
+      }).limit(1).exec();
+      const hero = heros ? heros[0] : null;
+      if (!hero) {
+        return Response.status(400).json({
+          error: "not found artist"
+        })
+      }
+
+      // load release of the record
+      const release = await Release.findOne({
+        contractAddress: hero.licenseAddress
+      }).exec();
+
+      if (!release) {
+        return Response.status(400).json({
+          error: "not found track"
+        })
+      }
+      const track = ReleaseModel.responseData(release);
+      // load artist by address
+      const _artist = await ArtistModule.getArtistByProfile(track.artistAddress);
+
+      if(!_artist){
+        return Response.status(400).json({
+          error: "not found artist"
+        })
+      }
+
+      const artist = ArtistModel.responseData(track.artistAddress, _artist);
+
+      const data = {
+        label: hero.label,
+        track,
+        artist
+      }
+
+      Response.status(200).json(data);
     } catch (error) {
       Response.status(500).json({
         error: error.message
