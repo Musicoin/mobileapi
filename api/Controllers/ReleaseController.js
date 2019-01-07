@@ -555,7 +555,6 @@ class ReleaseController {
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
-      console.log("releases: ", releases);
       Response.status(200).json({
         success: true,
         releases: ReleaseModel.responseList(releases)
@@ -599,7 +598,7 @@ class ReleaseController {
 
   async tipTrackV1(Request, Response) {
     const trackAddress = Request.body.trackAddress;
-
+    console.log("tip params: ", Request.body);
     if (!trackAddress) {
       return Response.status(400).json({
         error: "track address is required."
@@ -674,7 +673,7 @@ class ReleaseController {
       }
       
       // insert a track message to db
-      await TrackMessage.create({
+      const trackMsg = await TrackMessage.create({
         artistAddress: release.artistAddress,
         contractAddress: trackAddress,
         senderAddress: UBIMUSIC_ACCOUNT,
@@ -687,6 +686,8 @@ class ReleaseController {
         threadId: threadId,
         messageType: "tip"
       });
+
+      console.log("track msg: ", trackMsg);
 
       Response.status(200).json({
         tx: tx
