@@ -523,13 +523,8 @@ class ArtistController {
 
       const data = {
         label: hero.label,
-        artistName: artist.artistName,
-        artistImg: artist.imageUrl,
-        artistAddress: track.artistAddress,
-        trackName: track.title,
-        trackImg: track.trackImg,
-        trackAddress: track.trackAddress,
-        trackUrl: track.trackUrl
+        track,
+        artist
       }
 
       Response.status(200).json(data);
