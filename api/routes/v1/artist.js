@@ -5,5 +5,6 @@ const Controller = new ArtistController({});
 
 Router.get('/description/:hash', Controller.getArtistDescription);
 Router.get('/profile/:address', Controller.getProfileByAddress);
+Router.post('/tip', Controller.tipArtist);
 
 module.exports = Router;

@@ -6,6 +6,15 @@ const IPFS_BASE_URL = "https://musicoin.org/media/";
 const TRACK_BASE_URL = "https://musicoin.org/nav/track/";
 const ARTIST_BASE_URL = "https://musicoin.org/nav/artist/";
 const PLAY_BASE_URL = "https://a.musicoin.org/track";
+const UBIMUSIC_ACCOUNT = "0x576b3db6f9df3fe83ea3f6fba9eca8c0ee0e4915";
+
+const DATE_PERIOD = [
+  "day",
+  "week",
+  "month",
+  "year",
+  "all"
+];
 
 
 module.exports = {
@@ -16,5 +25,7 @@ module.exports = {
   IPFS_PROTOCOL,
   PLAY_BASE_URL,
   TOKEN_LENGTH,
-  SECRET_LENGTH
+  SECRET_LENGTH,
+  UBIMUSIC_ACCOUNT,
+  DATE_PERIOD
 }

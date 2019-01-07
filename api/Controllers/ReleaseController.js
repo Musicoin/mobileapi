@@ -555,7 +555,6 @@ class ReleaseController {
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
-      console.log("releases: ", releases);
       Response.status(200).json({
         success: true,
         releases: ReleaseModel.responseList(releases)
