@@ -38,15 +38,17 @@ app.use(session({
   }
 }));
 
+app.use(RateLimiter);
+
 Logger.initRequestLogger(app);
 
 app.use("/",require('./api/routes/auth'));
 app.use("/v1/auth",require('./api/routes/v1/auth'));
-app.use("/v1/track",require('./api/routes/v1/track'));
 
-app.use('/', AuthMiddleware.authenticate, RateLimiter);
+app.use('/', AuthMiddleware.authenticate);
 
 app.use("/v1/artist", require("./api/routes/v1/artist"));
+app.use("/v1/user", require("./api/routes/v1/user"));
 
 apollo.config(app);
 

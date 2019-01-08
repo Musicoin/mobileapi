@@ -1,55 +1,44 @@
-const ApiUser = require('../../db/core/api-user');
-const ValidatorClass = require('fastest-validator');
-const Validator = new ValidatorClass();
-const AuthSchema = require('../ValidatorSchema/AuthSchema');
-const TIMEOUT = require('../constant').timeout;
+const BaseController = require('../Controllers/base/BaseController');
 
-class AuthMiddleware {
-
-
-  constructor(){
+class AuthMiddleware extends BaseController {
+  constructor(props) {
+    super(props);
     this.authenticate = this.authenticate.bind(this);
   }
 
-  async authenticate(Request, Response, next){
+  async authenticate(Request, Response, next) {
 
     try {
       const params = Request.query;
-    const email = params.email;
-    const accessToken = params.accessToken;
+      const email = params.email;
+      const accessToken = params.accessToken;
 
-    const validateResult = Validator.validate(params, AuthSchema.tokenValidity);
+      // validate request params
+      const validateResult = this.validate(params, this.schema.AuthSchema.tokenValidity);
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult[0].message);
+      }
 
-    if (validateResult !== true) {
-      return Response.status(400).json({
-        error: validateResult[0].message
-      })
-    }
+      // find api user
+      const apiUser = await this.db.ApiUser.findOne({
+        email: email
+      }).exec();
 
-    const apiUser = await ApiUser.findOne({
-      email: email
-    }).exec();
-
-    if (apiUser && apiUser.accessToken === accessToken) {
-      await apiUser.update({
-        calls: apiUser.calls + 1,
-        timeout: Date.now()
-      });
-      next();
-    } else if (Date.now() - apiUser.timeout > TIMEOUT) {
-      Response.status(401).json({
-        error: 'Access Token Expired'
-      });
-    } else {
-      Response.status(401).json({
-        error: 'Invalid Credentials'
-      });
-    }
+      // verify api user
+      if (apiUser && apiUser.accessToken === accessToken) {
+        await apiUser.update({
+          calls: apiUser.calls + 1,
+          timeout: Date.now()
+        });
+        Request.apiUser = apiUser;
+        next();
+      } else if (Date.now() - apiUser.timeout > this.constant.TOKEN_TIMEOUT) {
+        this.reject(Request, Response, 'Access Token Expired');
+      } else {
+        this.reject(Request, Response, 'Invalid Credentials');
+      }
     } catch (error) {
-      console.log("Authenticate error: ",error)
-      Response.status(500).json({
-        error: error.message
-      });
+      this.error(Request, Response, error);
     }
   }
 }

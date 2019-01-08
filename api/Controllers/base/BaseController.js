@@ -24,6 +24,11 @@ const PlaylistSchema = require('../../ValidatorSchema/PlaylistSchema');
 const ReleaseSchema = require('../../ValidatorSchema/ReleaseSchema');
 const UserSchema = require('../../ValidatorSchema/UserSchema');
 
+// response data
+const ArtistResponse = require('../../data/artist-model');
+const ReleaseResponse = require('../../data/release-model');
+const PlaylistResponse = require('../../data/playlist-model');
+
 // logger
 const Logger = require('../../../utils/Logger');
 
@@ -60,6 +65,13 @@ class BaseController {
       PlaylistSchema,
       ReleaseSchema ,
       UserSchema
+    }
+
+    // response data
+    this.response = {
+      ArtistResponse,
+      ReleaseResponse,
+      PlaylistResponse
     }
 
     // logger
@@ -117,7 +129,7 @@ class BaseController {
     const url = Request.originalUrl;
     this.logger.warn(url, message);
     Response.status(400).json({
-      error: msg
+      error: message
     })
   }
 }

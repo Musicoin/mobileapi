@@ -1,13 +1,36 @@
-const PackageCreate = {
+const create = {
   name: {
     type: "string",
-    min: 3
   },
-  limitApiCalls: {
-    type: "number"
+  apiUserId:{
+    type: "string",
   }
-};
+}
+
+const add = {
+  playlistId: {
+    type: "string",
+  },
+  trackAddress: {
+    type: "string",
+  }
+}
+
+const getOne = {
+  id: {
+    type: "string",
+  },
+}
+
+const getAll = {
+  apiUserId: {
+    type: "string",
+  }
+}
 
 module.exports = {
-  create: PackageCreate
+  create,
+  add,
+  getOne,
+  getAll
 };

@@ -4,15 +4,12 @@ module.exports = mongoose.model('Playlist', mongoose.Schema({
   name: {
     type: String,
   },
-  user: {
-    email: String,
-    profileAddress: String,
-    name: String,
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      index: true
-    }
+  apiUserId: {
+    type: String
   },
-  songs: [String]
+  songs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Release',
+    unique: true
+  }]
 }));
