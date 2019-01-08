@@ -8,6 +8,7 @@ const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const config = ConfigUtils.loadConfig(process.argv);
 const apollo = require('./apollo/server');
+const Logger = require('./utils/Logger');
 
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,7 +36,9 @@ app.use(session({
   cookie: {
       maxAge: 60000
   }
-}))
+}));
+
+Logger.initRequestLogger(app);
 
 app.use("/",require('./api/routes/auth'));
 app.use("/v1/auth",require('./api/routes/v1/auth'));
