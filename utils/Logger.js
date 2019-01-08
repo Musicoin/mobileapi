@@ -76,7 +76,7 @@ let accessLogger = new winston.Logger({
 
 logger.stream = {
     write: function (message) {
-        accessLogger.info(message.trim()); // trim 去除多余换行
+        accessLogger.info(message.trim());
     }
 };
 
@@ -141,7 +141,7 @@ let Logger = {
             ]
         );
     },
-    // 错误日志并记录行号
+
     error: function () {
         let cellSite = stackTrace.get()[1];
         logger.error.apply(
