@@ -2,6 +2,24 @@ const ValidatorClass = require('fastest-validator');
 const Validator = new ValidatorClass();
 const constant = require('../../constant');
 
+// db model
+const User = require('../../../db/core/user');
+const ApiUser = require('../../../db/core/api-user');
+const Hero = require('../../../db/core/hero');
+const ApiPackage = require('../../../db/core/api-package');
+const IPFSResource = require('../../../db/core/ipfs-resource');
+const LicenseKey = require('../../../db/core/key');
+const Playlist = require('../../../db/core/playlist');
+const ReleaseStats = require('../../../db/core/release-stats');
+const Release = require('../../../db/core/release');
+const TipHistory = require('../../../db/core/tip-history');
+const TrackMessage = require('../../../db/core/track-message');
+const UserPlayback = require('../../../db/core/user-playback');
+const UserStats = require('../../../db/core/user-stats');
+
+// logger
+const Logger = require('../../../utils/Logger');
+
 /**
  * all route controller extends BaseController
  */
@@ -10,6 +28,26 @@ class BaseController {
   constructor(props) {
     // constant var
     this.constant = constant;
+
+    // db model
+    this.db = {
+      User,
+      ApiUser,
+      Hero,
+      ApiPackage,
+      IPFSResource,
+      LicenseKey,
+      Playlist,
+      Release,
+      ReleaseStats,
+      TipHistory,
+      TrackMessage,
+      UserPlayback,
+      UserStats
+    }
+
+    // logger
+    this.logger = Logger;
 
     this.validate = this.validate.bind(this);
     this.error = this.error.bind(this);
@@ -31,18 +69,18 @@ class BaseController {
    * @param {*} Response 
    * @param {*} error 
    */
-  error(Response, error) {
-    if (typeof error === "string") {
-      this.log(`${this.TAG} error: ${error}`);
-      Response.status(500).json({
-        error: error
-      })
+  error(Request, Response, error) {
+    const url = Request.originalUrl;
+    let msg;
+    if (error instanceof Error) {
+      msg = error.message;
     } else {
-      this.log(`${this.TAG} error: `, error);
-      Response.status(500).json({
-        error: error.message
-      })
+      msg = error;
     }
+    this.logger.error(url, error);
+    Response.status(500).json({
+      error: msg
+    })
   }
 
   /**
@@ -59,19 +97,12 @@ class BaseController {
    * @param {*} Response 
    * @param {*} error 
    */
-  reject(Response, message) {
-    this.log(`${this.TAG} bad request: ${message}`);
+  reject(Request, Response, message) {
+    const url = Request.originalUrl;
+    this.logger.warn(url, message);
     Response.status(400).json({
-      error: message
+      error: msg
     })
-  }
-
-  log(message, ...params) {
-    if (params) {
-      console.log(message, ...params);
-    } else {
-      console.log(message);
-    }
   }
 }
 

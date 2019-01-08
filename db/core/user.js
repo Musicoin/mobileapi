@@ -1,15 +1,6 @@
-const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
-const bcrypt = require('bcrypt-nodejs');
-let Validator = require('fastest-validator');
-let v = new Validator();
-let emailSchema = {
-  email: {
-    type: "email"
-  }
-};
-// define the schema for our user model
-const userSchema = mongoose.Schema({
+const mongoose = require('./../connections/core');
+
+module.exports = mongoose.model('User', mongoose.Schema({
   profileAddress: String,
   updatePending: {
     type: Boolean,
@@ -168,15 +159,7 @@ const userSchema = mongoose.Schema({
   },
   primaryEmail: {
     type: String,
-    trim: true,
-    validate: {
-      validator: function(pEmail) {
-        v.validate({
-          email: pEmail
-        }, emailSchema);
-      },
-      message: '{VALUE} is not a valid email. Please provide a valid email address!'
-    }
+    trim: true
   },
   emailVerified: {
     type: Boolean,
@@ -186,8 +169,5 @@ const userSchema = mongoose.Schema({
     type: Number,
     default: 1
   }
-});
+}));
 
-// create the model for users and expose it to our app
-module.exports = coreConnection.model('User', userSchema);
-//# sourceMappingURL=user.js.map

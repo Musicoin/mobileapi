@@ -29,6 +29,7 @@ class ArtistController extends BaseController{
 
     this.getArtistDescription = this.getArtistDescription.bind(this);
     this.getProfileByAddress = this.getProfileByAddress.bind(this);
+    this.getArtistOfWeek = this.getArtistOfWeek.bind(this);
     this.tipArtist = this.tipArtist.bind(this);
     this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
     this.updateArtistStats = this.updateArtistStats.bind(this);
@@ -49,7 +50,7 @@ class ArtistController extends BaseController{
         data: text
       })
     } catch (error) {
-      this.error(Response, error);
+      this.error(Resquest,Response, error);
     }
   }
 
@@ -67,7 +68,7 @@ class ArtistController extends BaseController{
         description: desc
       });
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -81,9 +82,7 @@ class ArtistController extends BaseController{
     const amount = Request.body.musicoins || 10;
 
     if (!artistAddress) {
-      return Response.status(400).json({
-        error: "artist address is required."
-      })
+      return this.reject(Request, Response, "artist address is required");
     }
 
     try {
@@ -92,9 +91,7 @@ class ArtistController extends BaseController{
         profileAddress: artistAddress
       }).exec();
       if (!artist) {
-        return Response.status(400).json({
-          error: "artist not found: " + artistAddress
-        })
+        return this.reject(Request, Response, "artist not found: " + artistAddress);
       }
 
       // find abimusic
@@ -102,9 +99,7 @@ class ArtistController extends BaseController{
         profileAddress: this.constant.UBIMUSIC_ACCOUNT
       }).exec();
       if(!sender){
-        return Response.status(400).json({
-          error: "UBIMUSIC not found: " + this.constant.UBIMUSIC_ACCOUNT
-        })
+        return this.reject(Request, Response, "UBIMUSIC not found: " + this.constant.UBIMUSIC_ACCOUNT);
       }
 
       // send tip amount to track address
@@ -163,14 +158,12 @@ class ArtistController extends BaseController{
         messageType: "tip"
       });
 
-      Response.status(200).json({
+      this.success(Response, {
         tx: tx
       });
 
     } catch (error) {
-      Response.status(500).json({
-        error: error.message
-      })
+      this.error(Request, Response, error);
     }
   }
 
@@ -182,9 +175,7 @@ class ArtistController extends BaseController{
       }).limit(1).exec();
       const hero = heros ? heros[0] : null;
       if (!hero) {
-        return Response.status(400).json({
-          error: "not found artist"
-        })
+        return this.reject(Request, Response, "not found artist");
       }
 
       // load release of the record
@@ -193,18 +184,14 @@ class ArtistController extends BaseController{
       }).exec();
 
       if (!release) {
-        return Response.status(400).json({
-          error: "not found track"
-        })
+        return this.reject(Request, Response, "not found track");
       }
       const track = ReleaseModel.responseData(release);
       // load artist by address
       const _artist = await ArtistModule.getArtistByProfile(track.artistAddress);
 
       if(!_artist){
-        return Response.status(400).json({
-          error: "not found artist"
-        })
+        return this.reject(Request, Response, "not found artist");
       }
 
       const artist = ArtistModel.responseData(track.artistAddress, _artist);
@@ -215,11 +202,9 @@ class ArtistController extends BaseController{
         artist
       }
 
-      Response.status(200).json(data);
+      this.success(Response, data);
     } catch (error) {
-      Response.status(500).json({
-        error: error.message
-      })
+      this.error(Request, Response, error);
     }
   }
 

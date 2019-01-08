@@ -32,7 +32,7 @@ class AuthController extends BaseController {
       // vlidate request params
       const validResult = this.validate(body, AuthSchema.quickLogin);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
 
       const apiUser = await ApiUser.findOne({
@@ -48,7 +48,7 @@ class AuthController extends BaseController {
       if (user) {
         // verify password
         if (!cryptoUtil.comparePassword(body.password, user.local.password)) {
-          return this.reject(Response, "email and password dont match");
+          return this.reject(Request, Response, "email and password dont match");
         }
       } else {
         // encrypt password
@@ -79,13 +79,13 @@ class AuthController extends BaseController {
         await _apiUser.save();
       }
       // response clientSecret and accessToken
-      this.success(Response,{
+      this.success(Response, {
         clientSecret,
         accessToken
       })
 
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -101,7 +101,7 @@ class AuthController extends BaseController {
       // vlidate request params
       const validResult = this.validate(body, AuthSchema.signup);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
       // encrypt password
       body.password = cryptoUtil.hashPassword(body.password);
@@ -132,7 +132,7 @@ class AuthController extends BaseController {
       });
 
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -159,10 +159,10 @@ class AuthController extends BaseController {
           success: true
         })
       } else {
-        this.reject(Response, "email and password dont match");
+        this.reject(Request, Response, "email and password dont match");
       }
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -177,14 +177,14 @@ class AuthController extends BaseController {
       // validate request params
       const validResult = this.validate(body, AuthSchema.authenticate);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
       // find user
       const user = await User.findOne({
         "local.email": body.email
       }).exec();
       if (!user || !cryptoUtil.comparePassword(body.password, user.local.password)) {
-        return this.reject(Response, "email and password dont match");
+        return this.reject(Request, Response, "email and password dont match");
       }
       // find api user
       const apiUser = await ApiUser.findOne({
@@ -192,14 +192,14 @@ class AuthController extends BaseController {
       }).exec();
 
       if (!apiUser) {
-        return this.reject(Response, "API user not found");
+        return this.reject(Request, Response, "API user not found");
       }
 
       this.success(Response, {
         clientSecret: apiUser.clientSecret
       });
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -215,21 +215,21 @@ class AuthController extends BaseController {
       // validate request params
       const validResult = this.validate(body, AuthSchema.accessToken);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
       // find user
       const user = await User.findOne({
         "local.email": body.email
       }).exec();
       if (!user || !cryptoUtil.comparePassword(body.password, user.local.password)) {
-        return this.reject(Response, "account not found: " + body.email);
+        return this.reject(Request, Response, "account not found: " + body.email);
       }
       // find api user
       const apiUser = await ApiUser.findOne({
         email: body.email
       }).exec();
       if (!apiUser || apiUser.clientSecret !== body.clientSecret) {
-        return this.reject(Response, "Client Secrets dont match");
+        return this.reject(Request, Response, "Client Secrets dont match");
       }
       // generate access token
       const accessToken = cryptoUtil.generateToken(this.constant.TOKEN_LENGTH);
@@ -241,7 +241,7 @@ class AuthController extends BaseController {
         accessToken: accessToken
       })
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -256,20 +256,20 @@ class AuthController extends BaseController {
       // validate request params
       const validResult = this.validate(body, AuthSchema.accessToken);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
       // find api user
       const apiUser = await ApiUser.findOne({
         email: body.email
       }).exec();
       if (!apiUser || apiUser.clientSecret !== body.clientSecret) {
-        return this.reject(Response, "Client Secrets dont match");
+        return this.reject(Request, Response, "Client Secrets dont match");
       }
       this.success(Response, {
         accessToken: apiUser.accessToken
       })
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 
@@ -284,23 +284,23 @@ class AuthController extends BaseController {
       // validate request params
       const validResult = this.validate(body, AuthSchema.tokenValidity);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Request, Response, validResult[0].message);
       }
       // find api user
       const user = await ApiUser.findOne({
         email: body.email
       }).exec();
       if (!user) {
-        return this.reject("user not found");
+        return this.reject(Request, Response, "user not found");
       }
 
       if (user.accessToken !== Request.body.accessToken) {
-        return this.reject(Response, "Invalid Access Token");
+        return this.reject(Request, Response, "Invalid Access Token");
       }
       const now = Date.now();
       const timeElapsed = this.constant.TOKEN_TIMEOUT + user.timeout - now;
       if (timeElapsed < 0) {
-        return this.reject(Response, "Access Token time out");
+        return this.reject(Request, Response, "Access Token time out");
       }
 
       this.success(Response, {
@@ -308,7 +308,7 @@ class AuthController extends BaseController {
       });
 
     } catch (error) {
-      this.error(Response, error);
+      this.error(Request, Response, error);
     }
   }
 }

@@ -2,8 +2,7 @@ const morgan = require('morgan');
 const winston = require('winston');
 const path = require('path');
 const moment = require('moment');
-const stackTrace = require('stack-trace');
-require('winston-daily-rotate-file');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 
 const LOGS_DIR = path.join(__dirname, '../logs');
@@ -24,63 +23,40 @@ const LOGGER_COMMON_CONFIG = {
     handleExceptions: true,
 };
 
-let logger = new winston.Logger({
-    transports: [
-        new(winston.transports.DailyRotateFile)({
-            name: 'error',
-            level: 'error',
-            filename: LOGS_DIR + '/error-%DATE%.log',
+function generateLogger(level) {
+    let transport;
+    
+    if(process.env['NODE_ENV'] === 'development'){
+        transport = new DailyRotateFile({
+            name: level,
+            level: level,
+            filename: `${LOGS_DIR}/${level}-%DATE%.log`,
             ...LOGGER_COMMON_CONFIG,
-        }),
-        new(winston.transports.DailyRotateFile)({
-            name: 'warn',
-            level: 'warn',
-            filename: LOGS_DIR + '/warn-%DATE%.log',
+        });
+    }else{
+        transport = new winston.transports.Console({
+            name: level,
+            level: level,
             ...LOGGER_COMMON_CONFIG,
-        }),
-        new(winston.transports.DailyRotateFile)({
-            name: 'normal',
-            level: 'info',
-            filename: LOGS_DIR + '/normal-%DATE%.log',
-            ...LOGGER_COMMON_CONFIG,
-        }),
-        new winston.transports.Console({
-            name: 'debug',
-            level: 'debug',
             colorize: true,
-            json: false,
-            handleExceptions: true,
-        }),
-
-    ],
-    exitOnError: false,
-});
-
-let accessLogger = new winston.Logger({
-    transports: [
-        new winston.transports.Console({
-            name: 'info',
-            level: 'info',
-            json: false,
-            ...LOGGER_COMMON_CONFIG,
-        }),
-        new(winston.transports.DailyRotateFile)({
-            name: 'access',
-            level: 'info',
-            filename: LOGS_DIR + '/access-%DATE%.log',
-            ...LOGGER_COMMON_CONFIG,
-        }),
-    ],
-    exitOnError: false,
-});
-
-logger.stream = {
-    write: function (message) {
-        accessLogger.info(message.trim());
+        });
     }
-};
+    const config = {
+        level,
+        transports: [
+            transport
+        ],
+        exitOnError: false,
+    };
+    return new winston.Logger(config);
+}
 
-let Logger = {
+const error_logger = generateLogger("error");
+const debug_logger = generateLogger("debug");
+const info_logger = generateLogger("info");
+const warn_logger = generateLogger("warn");
+
+const Logger = {
 
     initRequestLogger: function (app) {
         app.use(morgan(function (tokens, req, res) {
@@ -96,64 +72,24 @@ let Logger = {
                 tokens['response-time'](req, res), 'ms'
             ].join(' ')
         }, {
-            stream: logger.stream
+            stream: {
+                write: function (message) {
+                    info_logger.info(message.trim())
+                }
+            }
         }));
     },
-
-    debug: function () {
-        if (process.env['NODE_ENV'] === 'development') {
-            let cellSite = stackTrace.get()[1];
-            logger.debug.apply(
-                logger,
-                [
-                    ...arguments,
-                    {
-                        FilePath: cellSite.getFileName(),
-                        LineNumber: cellSite.getLineNumber(),
-                    }
-                ]
-            );
-        }
+    info: function (msg, args) {
+        info_logger.info(msg, args);
     },
-    info: function () {
-        let cellSite = stackTrace.get()[1];
-        logger.info.apply(
-            logger,
-            [
-                ...arguments,
-                {
-                    FilePath: cellSite.getFileName(),
-                    LineNumber: cellSite.getLineNumber(),
-                }
-            ]
-        );
+    warn: function (msg, args) {
+        warn_logger.warn(msg, args);
     },
-    warn: function () {
-        let cellSite = stackTrace.get()[1];
-        logger.warn.apply(
-            logger,
-            [
-                ...arguments,
-                {
-                    FilePath: cellSite.getFileName(),
-                    LineNumber: cellSite.getLineNumber(),
-                }
-            ]
-        );
+    debug: function (msg, args) {
+        debug_logger.debug(msg, args);
     },
-
-    error: function () {
-        let cellSite = stackTrace.get()[1];
-        logger.error.apply(
-            logger,
-            [
-                ...arguments,
-                {
-                    filePath: cellSite.getFileName(),
-                    lineNumber: cellSite.getLineNumber(),
-                }
-            ]
-        );
+    error: function (msg, args) {
+        error_logger.error(msg, args);
     },
 };
 module.exports = Logger;
