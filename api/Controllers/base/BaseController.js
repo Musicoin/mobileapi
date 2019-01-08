@@ -17,6 +17,13 @@ const TrackMessage = require('../../../db/core/track-message');
 const UserPlayback = require('../../../db/core/user-playback');
 const UserStats = require('../../../db/core/user-stats');
 
+// validator schema
+const AuthSchema = require('../../ValidatorSchema/AuthSchema');
+const PackageSchema = require('../../ValidatorSchema/PackageSchema');
+const PlaylistSchema = require('../../ValidatorSchema/PlaylistSchema');
+const ReleaseSchema = require('../../ValidatorSchema/ReleaseSchema');
+const UserSchema = require('../../ValidatorSchema/UserSchema');
+
 // logger
 const Logger = require('../../../utils/Logger');
 
@@ -44,6 +51,15 @@ class BaseController {
       TrackMessage,
       UserPlayback,
       UserStats
+    }
+
+    // validator schema
+    this.schema = {
+      AuthSchema,
+      PackageSchema ,
+      PlaylistSchema,
+      ReleaseSchema ,
+      UserSchema
     }
 
     // logger
