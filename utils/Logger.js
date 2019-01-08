@@ -27,18 +27,18 @@ function generateLogger(level) {
     let transport;
     
     if(process.env['NODE_ENV'] === 'development'){
-        transport = new DailyRotateFile({
-            name: level,
-            level: level,
-            filename: `${LOGS_DIR}/${level}-%DATE%.log`,
-            ...LOGGER_COMMON_CONFIG,
-        });
-    }else{
         transport = new winston.transports.Console({
             name: level,
             level: level,
             ...LOGGER_COMMON_CONFIG,
             colorize: true,
+        });
+    }else{
+        transport = new DailyRotateFile({
+            name: level,
+            level: level,
+            filename: `${LOGS_DIR}/${level}-%DATE%.log`,
+            ...LOGGER_COMMON_CONFIG,
         });
     }
     const config = {
