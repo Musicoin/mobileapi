@@ -88,6 +88,7 @@ class BaseController {
     this.error = this.error.bind(this);
     this.success = this.success.bind(this);
     this.reject = this.reject.bind(this);
+    this.limit = this.limit.bind(this);
   }
 
   /**
@@ -138,6 +139,18 @@ class BaseController {
     Response.status(400).json({
       error: message
     })
+  }
+
+  /**
+   * 
+   * @param {*} limit 
+   */
+  limit(num) {
+    if (num) {
+      const parseNum = Number(num);
+      return parseNum>0?(parseNum>20?20:parseNum):10
+    }
+    return 10
   }
 }
 

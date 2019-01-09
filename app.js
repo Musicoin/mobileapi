@@ -50,6 +50,7 @@ app.use('/', AuthMiddleware.authenticate);
 app.use("/v1", require("./api/routes/v1/global"));
 app.use("/v1/artist", require("./api/routes/v1/artist"));
 app.use("/v1/user", require("./api/routes/v1/user"));
+app.use("/v1/release", require("./api/routes/v1/release"));
 
 apollo.config(app);
 
@@ -62,5 +63,5 @@ app.use('/artist', require('./api/routes/artist'));
 app.use('/tx', require('./api/routes/tx'));
 
 app.listen(config.port, function() {
-  console.log('Listening on port ' + config.port);
+  Logger.info(`server listening on port ${config.port}`);
 });
