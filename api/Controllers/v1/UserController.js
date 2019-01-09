@@ -6,37 +6,17 @@ class UserController extends BaseController {
     super(props);
 
     this.getPlayList = this.getPlayList.bind(this);
-    this.createPlayList = this.createPlayList.bind(this);
-    this.addToPlayList = this.addToPlayList.bind(this);
+    this.addPlayList = this.addPlayList.bind(this);
     this.getAllPlayList = this.getAllPlayList.bind(this);
     this.deletePlayList = this.deletePlayList.bind(this);
-    this.removeToPlayList = this.removeToPlayList.bind(this);
-
-  }
-
-  async createPlayList(Request, Response) {
-    try {
-      const params = Request.body;
-      params.apiUserId = Request.apiUser._id.toString();
-      // validate params
-      const validateResult = this.validate(params, this.schema.PlaylistSchema.create);
-      if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
-      }
-      params.songs = [];
-
-      const playlist = await this.db.Playlist.create(params);
-      const response = this.response.PlaylistResponse.responseData(playlist);
-      this.success(Response, response);
-
-    } catch (error) {
-      this.error(Request, Response, error);
-    }
   }
 
   async getPlayList(Request, Response) {
     try {
-      const params = Request.params;
+      const params = {
+        name: Request.query.name,
+        email: Request.query.email
+      };
 
       // validate params
       const validateResult = this.validate(params, this.schema.PlaylistSchema.getOne);
@@ -44,13 +24,13 @@ class UserController extends BaseController {
         return this.reject(Request, Response, validateResult[0].message);
       }
 
-      const playlist = await this.db.Playlist.findById(params.id).populate("songs").exec();
+      const playlist = await this.db.Playlist.find(params).populate("release").exec();
 
-      if(!playlist){
-        return this.reject(Request,Response, "playlist not found: "+params.id);
+      if (!playlist) {
+        return this.reject(Request, Response, "playlist not found: " + params.id);
       }
 
-      const response = this.response.PlaylistResponse.responseData(playlist);
+      const response = this.response.PlaylistResponse.responseList(playlist);
       this.success(Response, response);
 
     } catch (error) {
@@ -61,7 +41,7 @@ class UserController extends BaseController {
   async getAllPlayList(Request, Response) {
     try {
       const params = {
-        apiUserId: Request.apiUser._id.toString()
+        email: Request.query.email
       }
       // validate params
       const validateResult = this.validate(params, this.schema.PlaylistSchema.getAll);
@@ -69,9 +49,9 @@ class UserController extends BaseController {
         return this.reject(Request, Response, validateResult[0].message);
       }
 
-      const playlists = await this.db.Playlist.find(params).populate("songs").exec();
+      const playlist = await this.db.Playlist.find(params).populate("release").exec();
 
-      const response = this.response.PlaylistResponse.responseList(playlists);
+      const response = this.response.PlaylistResponse.responseList(playlist);
       this.success(Response, response);
 
     } catch (error) {
@@ -79,15 +59,15 @@ class UserController extends BaseController {
     }
   }
 
-  async addToPlayList(Request, Response) {
+  async addPlayList(Request, Response) {
     try {
       const params = Request.body;
+      params.email = Request.query.email;
       // validate params
       const validateResult = this.validate(params, this.schema.PlaylistSchema.add);
       if (validateResult !== true) {
         return this.reject(Request, Response, validateResult[0].message);
       }
-
 
       // find release
       const release = await this.db.Release.findOne({
@@ -97,28 +77,16 @@ class UserController extends BaseController {
       if (!release) {
         return this.reject(Request, Response, "track not found: " + params.trackAddress);
       }
-
-      // find playlist and add song
-      const playlist = await this.db.Playlist.findByIdAndUpdate(params.playlistId, {
-        $push: {
-          "songs": release._id.toString()
-        }
-      }, {
-        safe: true,
+      const content = {
+        name: params.name,
+        email: params.email,
+        release: release._id
+      };
+      await this.db.Playlist.findOneAndUpdate(content,content,{
         upsert: true
-      }).populate("songs").exec();
+      }).exec();
 
-      const response = this.response.PlaylistResponse.responseData(playlist);
-
-      this.success(Response, response);
-
-    } catch (error) {
-      this.error(Request, Response, error);
-    }
-  }
-
-  async removeToPlayList(Request, Response) {
-    try {
+      this.success(Response, {success: true});
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -127,6 +95,31 @@ class UserController extends BaseController {
 
   async deletePlayList(Request, Response) {
     try {
+      const params = Request.body;
+      params.email = Request.query.email;
+      // validate params
+      const validateResult = this.validate(params, this.schema.PlaylistSchema.deleteOne);
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult[0].message);
+      }
+
+      // find release
+      const release = await this.db.Release.findOne({
+        contractAddress: params.trackAddress
+      })
+
+      if (!release) {
+        return this.reject(Request, Response, "track not found: " + params.trackAddress);
+      }
+      const content = {
+        name: params.name,
+        email: params.email,
+        release: release._id
+      };
+
+      await this.db.Playlist.findOneAndDelete(content).exec();
+
+      this.success(Response, {success: true});
 
     } catch (error) {
       this.error(Request, Response, error);

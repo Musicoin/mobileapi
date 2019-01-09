@@ -1,15 +1,9 @@
-const create = {
+const add = {
   name: {
     type: "string",
   },
-  apiUserId:{
-    type: "string",
-  }
-}
-
-const add = {
-  playlistId: {
-    type: "string",
+  email: {
+    type: "email"
   },
   trackAddress: {
     type: "string",
@@ -17,20 +11,35 @@ const add = {
 }
 
 const getOne = {
-  id: {
+  name: {
     type: "string",
   },
+  email: {
+    type: "email"
+  }
 }
 
 const getAll = {
-  apiUserId: {
+  email: {
+    type: "email"
+  }
+}
+
+const deleteOne = {
+  name: {
+    type: "string",
+  },
+  email: {
+    type: "email"
+  },
+  trackAddress: {
     type: "string",
   }
 }
 
 module.exports = {
-  create,
   add,
   getOne,
-  getAll
+  getAll,
+  deleteOne
 };

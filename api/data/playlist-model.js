@@ -3,9 +3,8 @@ const ReleaseModel = require('./release-model');
 
 function responseData(data) {
   return {
-    id: data._id.toString(),
-    name: data.name,
-    songs: ReleaseModel.responseList(data.songs)
+    name:data.name,
+    release: ReleaseModel.responseData(data.release)
   }
 }
 

@@ -55,7 +55,7 @@ class BaseController {
       TipHistory,
       TrackMessage,
       UserPlayback,
-      UserStats
+      UserStats,
     }
 
     // validator schema

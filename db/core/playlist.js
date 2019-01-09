@@ -1,15 +1,14 @@
 const mongoose = require('./../connections/core');
 
-module.exports = mongoose.model('Playlist', mongoose.Schema({
+module.exports = mongoose.model('playlist', mongoose.Schema({
   name: {
     type: String,
   },
-  apiUserId: {
+  email: {
     type: String
   },
-  songs: [{
+  release: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Release',
-    unique: true
-  }]
+    ref: 'Release'
+  }
 }));

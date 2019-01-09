@@ -3,9 +3,9 @@ const Router = express.Router();
 const UserController = require('../../Controllers/v1/UserController');
 const Controller = new UserController();
 
-Router.post('/playlist/create', Controller.createPlayList);
-Router.post('/playlist/add', Controller.addToPlayList);
-Router.get('/playlist/:id', Controller.getPlayList);
-Router.get('/playlist', Controller.getAllPlayList);
+Router.post('/playlist/delete', Controller.deletePlayList);
+Router.post('/playlist/add', Controller.addPlayList);
+Router.get('/playlist/all', Controller.getAllPlayList);
+Router.get('/playlist', Controller.getPlayList);
 
 module.exports = Router;
