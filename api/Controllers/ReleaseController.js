@@ -32,7 +32,9 @@ const NOTIFICATION_HTML = path.join(__dirname, "../views/message.ejs");
 const UBIMUSIC_ACCOUNT = "0x576b3db6f9df3fe83ea3f6fba9eca8c0ee0e4915";
 
 const renderMessage = function (params, callback) {
-  return renderFile(NOTIFICATION_HTML, {notification: params}, callback);
+  return renderFile(NOTIFICATION_HTML, {
+    notification: params
+  }, callback);
 }
 
 const knownGenres = [
@@ -74,9 +76,11 @@ const DatePeriodStart = [
   "all"
 ];
 
+let verifiedList = [];
+
 class ReleaseController {
 
-  constructor(ArtistModule,PublishCredentials,PaymentCredentials) {
+  constructor(ArtistModule, PublishCredentials, PaymentCredentials) {
 
     this.ArtistModule = ArtistModule;
     this.PublishCredentials = PublishCredentials;
@@ -546,11 +550,26 @@ class ReleaseController {
   async getRecentTracksV1(Request, Response) {
     const limit = this.limit(Number(Request.query.limit));
     try {
+      if (!verifiedList || verifiedList.length === 0) {
+        // load verified users
+        const _verifiedList = await User.find({
+          verified: true,
+          profileAddress: {
+            $exists: true,
+            $ne: null
+          }
+        }).exec();
+        verifiedList = _verifiedList.map(val => val.profileAddress);
+      }
+      console.log("verifiedList: ",verifiedList.length);
 
       const releases = await Release.find({
         state: 'published',
         markedAsAbuse: {
           $ne: true
+        },
+        artistAddress: {
+          $in: verifiedList
         }
       }).sort({
         releaseDate: 'desc'
@@ -622,7 +641,7 @@ class ReleaseController {
       const sender = await User.findOne({
         profileAddress: UBIMUSIC_ACCOUNT
       }).exec();
-      if(!sender){
+      if (!sender) {
         return Response.status(400).json({
           error: "UBIMUSIC not found: " + UBIMUSIC_ACCOUNT
         })
@@ -656,7 +675,7 @@ class ReleaseController {
         };
 
         renderMessage(notification, (err, html) => {
-          console.log("email error: ",err);
+          console.log("email error: ", err);
           if (html) {
             const emailContent = {
               from: "musicoin@musicoin.org",
@@ -671,14 +690,14 @@ class ReleaseController {
           }
         })
       }
-      
+
       // insert a track message to db
       const trackMsg = await TrackMessage.create({
         artistAddress: release.artistAddress,
         contractAddress: trackAddress,
         senderAddress: UBIMUSIC_ACCOUNT,
         release: release._id,
-        artist: artist?artist._id:null,
+        artist: artist ? artist._id : null,
         sender: sender._id,
         message: message,
         replyToMessage: null,
