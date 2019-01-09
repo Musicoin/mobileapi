@@ -47,6 +47,7 @@ app.use("/v1/auth",require('./api/routes/v1/auth'));
 
 app.use('/', AuthMiddleware.authenticate);
 
+app.use("/v1", require("./api/routes/v1/global"));
 app.use("/v1/artist", require("./api/routes/v1/artist"));
 app.use("/v1/user", require("./api/routes/v1/user"));
 

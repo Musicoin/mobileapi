@@ -23,6 +23,7 @@ const PackageSchema = require('../../ValidatorSchema/PackageSchema');
 const PlaylistSchema = require('../../ValidatorSchema/PlaylistSchema');
 const ReleaseSchema = require('../../ValidatorSchema/ReleaseSchema');
 const UserSchema = require('../../ValidatorSchema/UserSchema');
+const GlobalSchema = require('../../ValidatorSchema/GlobalSchema');
 
 // response data
 const ArtistResponse = require('../../data/artist-model');
@@ -31,6 +32,9 @@ const PlaylistResponse = require('../../data/playlist-model');
 
 // logger
 const Logger = require('../../../utils/Logger');
+
+// musicoin core
+const MusicoinCore = require('../../Kernel').musicoinCore;
 
 /**
  * all route controller extends BaseController
@@ -64,7 +68,8 @@ class BaseController {
       PackageSchema ,
       PlaylistSchema,
       ReleaseSchema ,
-      UserSchema
+      UserSchema,
+      GlobalSchema
     }
 
     // response data
@@ -76,6 +81,8 @@ class BaseController {
 
     // logger
     this.logger = Logger;
+
+    this.MusicoinCore = MusicoinCore;
 
     this.validate = this.validate.bind(this);
     this.error = this.error.bind(this);
