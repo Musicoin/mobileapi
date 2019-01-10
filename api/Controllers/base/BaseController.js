@@ -36,6 +36,27 @@ const Logger = require('../../../utils/Logger');
 // musicoin core
 const MusicoinCore = require('../../Kernel').musicoinCore;
 
+// verified artist
+let verifiedList = [];
+
+async function checkUserVerified(){
+  if (!verifiedList || verifiedList.length === 0) {
+    // load verified users
+    const _verifiedList = await User.find({
+      verified: true,
+      profileAddress: {
+        $exists: true,
+        $ne: null
+      }
+    }).exec();
+    verifiedList = _verifiedList.map(val => val.profileAddress);
+  }
+  console.log("verified users: ",verifiedList.length);
+}
+
+checkUserVerified();
+setInterval(checkUserVerified, 1000*60*60);
+
 /**
  * all route controller extends BaseController
  */
@@ -65,9 +86,9 @@ class BaseController {
     // validator schema
     this.schema = {
       AuthSchema,
-      PackageSchema ,
+      PackageSchema,
       PlaylistSchema,
-      ReleaseSchema ,
+      ReleaseSchema,
       UserSchema,
       GlobalSchema
     }
@@ -148,9 +169,13 @@ class BaseController {
   limit(num) {
     if (num) {
       const parseNum = Number(num);
-      return parseNum>0?(parseNum>20?20:parseNum):10
+      return parseNum > 0 ? (parseNum > 20 ? 20 : parseNum) : 10
     }
     return 10
+  }
+
+  getVerifiedArtist(){
+    return verifiedList;
   }
 }
 

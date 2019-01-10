@@ -58,7 +58,7 @@ async function downloadTrack(Request, Response) {
     const resource = await MediaProvider.getIpfsResource(resourceUrl, () => licenseKey.key);
 
     Response.sendSeekable(resource.stream, {
-      type: { contentType: "audio/mpeg" },
+      type: "audio/mp3",
       length: resource.headers['content-length']
     });
   } catch (error) {

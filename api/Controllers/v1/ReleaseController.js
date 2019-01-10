@@ -18,8 +18,6 @@ class ReleaseController extends BaseController {
   constructor(props) {
     super(props);
 
-    this.verifiedList = [];
-
     this.getRecentTracks = this.getRecentTracks.bind(this);
     this.getTrackDetail = this.getTrackDetail.bind(this);
     this.getTracksByArtist = this.getTracksByArtist.bind(this);
@@ -30,26 +28,10 @@ class ReleaseController extends BaseController {
     this.updateReleaseStats = this.updateReleaseStats.bind(this);
     this._updateReleaseStats = this._updateReleaseStats.bind(this);
     this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
-
-    this.checkUserVerified = this.checkUserVerified.bind(this);
-    this.checkUserVerified();
-    setTimeout(this.checkUserVerified, 1000*60*60);
+    
   }
 
-  async checkUserVerified(){
-    if (!this.verifiedList || this.verifiedList.length === 0) {
-      // load verified users
-      const _verifiedList = await this.db.User.find({
-        verified: true,
-        profileAddress: {
-          $exists: true,
-          $ne: null
-        }
-      }).exec();
-      this.verifiedList = _verifiedList.map(val => val.profileAddress);
-    }
-    console.log("verified users: ",this.verifiedList.length);
-  }
+  
 
   async getTrackDetail(Request, Response) {
     try {
@@ -77,7 +59,7 @@ class ReleaseController extends BaseController {
           $ne: true
         },
         artistAddress: {
-          $in: this.verifiedList
+          $in: this.getVerifiedArtist()
         }
       }).sort({
         releaseDate: 'desc'
