@@ -33,6 +33,9 @@ class GlobalController extends BaseController {
           markedAsAbuse: {
             $ne: true
           },
+          artistAddress: {
+            $in: this.getVerifiedArtist()
+          },
           $or: [{
             title: {
               $regex: reg
@@ -53,6 +56,9 @@ class GlobalController extends BaseController {
             $match: {
               artistName: {
                 $regex: reg
+              },
+              artistAddress: {
+                $in: this.getVerifiedArtist()
               }
             }
           },

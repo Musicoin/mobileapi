@@ -205,7 +205,10 @@ class ReleaseController extends BaseController {
         markedAsAbuse: {
           $ne: true
         },
-        genres: genre
+        genres: genre,
+        artistAddress: {
+          $in: this.getVerifiedArtist()
+        }
       }).limit(limit).exec();
 
       const response = this.response.ReleaseResponse.responseList(releases);
@@ -235,6 +238,9 @@ class ReleaseController extends BaseController {
         markedAsAbuse: {
           $ne: true
         },
+        artistAddress: {
+          $in: this.getVerifiedArtist()
+        }
       }).sort({
         releaseDate: 'desc'
       }).limit(limit).exec();
