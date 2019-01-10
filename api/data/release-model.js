@@ -14,7 +14,8 @@ function responseData(release) {
     artistAddress: release.artistAddress,
     trackImg: MediaProvider.resolveIpfsUrl(release.imageUrl),
     // trackUrl: `${Constant.PLAY_BASE_URL}/${release.contractAddress}/index.m3u8`,
-    trackUrl: `${RESOURCE_BASE_URL}/ppp/${URLUtil.createExpiringLink(release.contractAddress, TIMEOUT)}`,
+    // trackUrl: `${RESOURCE_BASE_URL}/ppp/${URLUtil.createExpiringLink(release.contractAddress, TIMEOUT)}`,
+    trackUrl: `https://staging.musicoin.org/api/test/track/download/${release.contractAddress}`,
     trackDescription: release.description,
     directTipCount: release.directTipCount || 0,
     directPlayCount: release.directPlayCount || 0
