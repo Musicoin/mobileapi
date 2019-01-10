@@ -28,12 +28,19 @@ const emailUtil = require("../../utils/email");
 const renderFile = require("ejs").renderFile;
 const path = require("path");
 const NOTIFICATION_HTML = path.join(__dirname, "../views/message.ejs");
+const TEST_PLAY_HTML = path.join(__dirname, "../views/test-play.ejs");
 
 const UBIMUSIC_ACCOUNT = "0x576b3db6f9df3fe83ea3f6fba9eca8c0ee0e4915";
 
 const renderMessage = function (params, callback) {
   return renderFile(NOTIFICATION_HTML, {
     notification: params
+  }, callback);
+}
+
+const renderTestPlay = function (params, callback) {
+  return renderFile(TEST_PLAY_HTML, {
+    response: params
   }, callback);
 }
 
@@ -515,36 +522,51 @@ class ReleaseController {
     }
   }
 
-  getRecentTracks(Request, Response) {
-    Release.find({
-        state: 'published',
-      })
-      .sort({
-        releaseDate: 'desc'
-      })
-      .limit(this.limit(Number(Request.query.limit)))
-      .then(tracks => {
-        let TrackArray = [];
-        for (let track of tracks) {
-          TrackArray.push({
-            artistName: track.artistName,
-            artistProfile: 'https://musicoin.org/nav/artist/' + track.artistAddress,
-            trackURL: 'https://musicion.org/nav/track/' + track.contractAddress
-          });
-        }
+  async getRecentTracks(Request, Response) {
 
-        Response.send({
-          success: true,
-          data: TrackArray
-        });
+    const limit = 20;
+    try {
+      if (!verifiedList || verifiedList.length === 0) {
+        // load verified users
+        const _verifiedList = await User.find({
+          verified: true,
+          profileAddress: {
+            $exists: true,
+            $ne: null
+          }
+        }).exec();
+        verifiedList = _verifiedList.map(val => val.profileAddress);
+      }
+      console.log("verifiedList: ",verifiedList.length);
+
+      const releases = await Release.find({
+        state: 'published',
+        markedAsAbuse: {
+          $ne: true
+        },
+        artistAddress: {
+          $in: verifiedList
+        }
+      }).sort({
+        releaseDate: 'desc'
+      }).limit(limit).exec();
+      const response = ReleaseModel.responseList(releases);
+
+      renderTestPlay(response, (err, html) =>{
+        if (html) {
+          Response.send(html);
+        }else{
+          Response.status(500).json({
+            error: err.message
+          })
+        }
       })
-      .catch(Error => {
-        Response.status(400);
-        Response.send({
-          success: false,
-          error: Error.message
-        });
+
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
       });
+    }
   }
 
   async getRecentTracksV1(Request, Response) {
