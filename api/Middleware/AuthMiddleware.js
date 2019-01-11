@@ -16,7 +16,7 @@ class AuthMiddleware extends BaseController {
       // validate request params
       const validateResult = this.validate(params, this.schema.AuthSchema.tokenValidity);
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
       // find api user

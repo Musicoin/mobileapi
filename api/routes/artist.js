@@ -1,7 +1,6 @@
 const express = require('express');
 const Router = express.Router();
 const Kernel = require('../Kernel');
-const ArtistMiddleware = require('../Middleware/ArtistMiddleware');
 
 const ArtistController = Kernel.artistModule;
 

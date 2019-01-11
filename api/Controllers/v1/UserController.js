@@ -1,9 +1,12 @@
 const BaseController = require('../base/BaseController');
+const UserDelegator = require('../../Delegator/UserDelegator');
 
 class UserController extends BaseController {
 
   constructor(props) {
     super(props);
+
+    this.UserDelegator = new UserDelegator();
 
     this.getPlayList = this.getPlayList.bind(this);
     this.addPlayList = this.addPlayList.bind(this);
@@ -13,24 +16,22 @@ class UserController extends BaseController {
 
   async getPlayList(Request, Response) {
     try {
-      const params = {
-        name: Request.query.name,
-        email: Request.query.email
-      };
+
+      const name = Request.query.name;
+      const email = Request.query.email;
 
       // validate params
-      const validateResult = this.validate(params, this.schema.PlaylistSchema.getOne);
+      const validateResult = this.validate(Request.query, this.schema.PlaylistSchema.getOne);
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
-      const playlist = await this.db.Playlist.find(params).populate("release").exec();
-
-      if (!playlist) {
-        return this.reject(Request, Response, "playlist not found: " + params.id);
+      const playlistLoad = await this.UserDelegator.loadPlaylist(name, email);
+      if (playlistLoad.error) {
+        return this.reject(Request, Response, playlistLoad.error);
       }
 
-      const response = this.response.PlaylistResponse.responseList(playlist);
+      const response = playlistLoad.data;
       this.success(Response, response);
 
     } catch (error) {
@@ -40,18 +41,19 @@ class UserController extends BaseController {
 
   async getAllPlayList(Request, Response) {
     try {
-      const params = {
-        email: Request.query.email
-      }
+      const  email =  Request.query.email;
       // validate params
-      const validateResult = this.validate(params, this.schema.PlaylistSchema.getAll);
+      const validateResult = this.validate(Request.query, this.schema.PlaylistSchema.getAll);
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
-      const playlist = await this.db.Playlist.find(params).populate("release").exec();
+      const playlistLoad = await this.UserDelegator.loadAllPlaylist(email);
+      if (playlistLoad.error) {
+        return this.reject(Request, Response, playlistLoad.error);
+      }
 
-      const response = this.response.PlaylistResponse.responseList(playlist);
+      const response = playlistLoad.data;
       this.success(Response, response);
 
     } catch (error) {
@@ -59,34 +61,47 @@ class UserController extends BaseController {
     }
   }
 
+  /**
+   * params:
+   * name
+   * email
+   * trackAddress
+   */
   async addPlayList(Request, Response) {
     try {
-      const params = Request.body;
-      params.email = Request.query.email;
+      const name = Request.body.name;
+      const trackAddress = Request.body.trackAddress;
+      const email = Request.query.email;
       // validate params
-      const validateResult = this.validate(params, this.schema.PlaylistSchema.add);
+      const validateResult = this.validate({
+        name,
+        trackAddress,
+        email
+      }, this.schema.PlaylistSchema.add);
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
       // find release
       const release = await this.db.Release.findOne({
-        contractAddress: params.trackAddress
-      })
+        contractAddress: trackAddress
+      }).exec();
 
       if (!release) {
-        return this.reject(Request, Response, "track not found: " + params.trackAddress);
+        return this.reject(Request, Response, "track not found: " +trackAddress);
       }
       const content = {
-        name: params.name,
-        email: params.email,
+        name: name,
+        email: email,
         release: release._id
       };
-      await this.db.Playlist.findOneAndUpdate(content,content,{
+      await this.db.Playlist.findOneAndUpdate(content, content, {
         upsert: true
       }).exec();
 
-      this.success(Response, {success: true});
+      this.success(Response, {
+        success: true
+      });
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -95,31 +110,38 @@ class UserController extends BaseController {
 
   async deletePlayList(Request, Response) {
     try {
-      const params = Request.body;
-      params.email = Request.query.email;
+      const name = Request.body.name;
+      const trackAddress = Request.body.trackAddress;
+      const email = Request.query.email;
       // validate params
-      const validateResult = this.validate(params, this.schema.PlaylistSchema.deleteOne);
+      const validateResult = this.validate({
+        name,
+        trackAddress,
+        email
+      }, this.schema.PlaylistSchema.deleteOne);
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
       // find release
       const release = await this.db.Release.findOne({
-        contractAddress: params.trackAddress
-      })
+        contractAddress: trackAddress
+      }).exec();
 
       if (!release) {
-        return this.reject(Request, Response, "track not found: " + params.trackAddress);
+        return this.reject(Request, Response, "track not found: " + trackAddress);
       }
       const content = {
-        name: params.name,
-        email: params.email,
+        name: name,
+        email: email,
         release: release._id
       };
 
       await this.db.Playlist.findOneAndDelete(content).exec();
 
-      this.success(Response, {success: true});
+      this.success(Response, {
+        success: true
+      });
 
     } catch (error) {
       this.error(Request, Response, error);

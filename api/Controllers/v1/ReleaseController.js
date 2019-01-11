@@ -1,22 +1,13 @@
 const BaseController = require('../base/BaseController');
+const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 
 const uuidV4 = require('uuid/v4');
-const moment = require('moment');
-// email
-const emailUtil = require("../../../utils/email");
-const renderFile = require("ejs").renderFile;
-const path = require("path");
-const NOTIFICATION_HTML = path.join(__dirname, "../../views/message.ejs");
-
-const renderMessage = function (params, callback) {
-  return renderFile(NOTIFICATION_HTML, {
-    notification: params
-  }, callback);
-}
 
 class ReleaseController extends BaseController {
   constructor(props) {
     super(props);
+
+    this.ReleaseDelegator = new ReleaseDelegator(props);
 
     this.getRecentTracks = this.getRecentTracks.bind(this);
     this.getTrackDetail = this.getTrackDetail.bind(this);
@@ -24,48 +15,39 @@ class ReleaseController extends BaseController {
     this.getTracksByGenre = this.getTracksByGenre.bind(this);
     this.tipTrack = this.tipTrack.bind(this);
 
-    this.getUserEmail = this.getUserEmail.bind(this);
-    this.updateReleaseStats = this.updateReleaseStats.bind(this);
-    this._updateReleaseStats = this._updateReleaseStats.bind(this);
-    this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
-    
   }
 
-  
-
+  /**
+   * params:
+   * address
+   */
   async getTrackDetail(Request, Response) {
     try {
-      const release = await this.db.Release.findOne({
-        contractAddress: Request.params.address
-      }).exec();
-
-      if (!release) {
-        return this.reject(Request, Response, "Track not found: " + Request.params.address);
+      const trackLoad = await this.ReleaseDelegator.loadTrack(Request.params.address);
+      if (trackLoad.error) {
+        return this.reject(Request, Response, trackLoad.error);
       }
 
-      const response = this.response.ReleaseResponse.responseData(release);
+      const response = trackLoad.data;
       this.success(Response, response);
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
+  /**
+   * params:
+   * none
+   */
   async getRecentTracks(Request, Response) {
     try {
       const limit = this.limit(Request.query.limit);
-      const releases = await this.db.Release.find({
-        state: 'published',
-        markedAsAbuse: {
-          $ne: true
-        },
-        artistAddress: {
-          $in: this.getVerifiedArtist()
-        }
-      }).sort({
-        releaseDate: 'desc'
-      }).limit(limit).exec();
-      
-      const response = this.response.ReleaseResponse.responseList(releases);
+      const skip = this.skip(Request.query.skip);
+      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+      if (tracksLoad.error) {
+        return this.reject(Request, Response, tracksLoad.error);
+      }
+      const response = tracksLoad.data;
       this.success(Response, response);
     } catch (error) {
       this.error(Request, Response, error);
@@ -83,98 +65,58 @@ class ReleaseController extends BaseController {
       const trackAddress = Request.body.trackAddress;
       const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
       const logger = this.logger;
-      
+
       const validateResult = this.validate({
         trackAddress,
         musicoins
       }, this.schema.ReleaseSchema.tip);
 
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
 
       // find track
-      const release = await this.db.Release.findOne({
-        contractAddress: trackAddress
-      }).exec();
+      const release = await this.ReleaseDelegator._loadTrack(trackAddress);
       if (!release) {
         return this.reject(Request, Response, "Track not found: " + trackAddress);
       }
 
       // find ubimusic
-      const sender = await this.db.User.findOne({
-        profileAddress: UBIMUSIC_ACCOUNT
-      }).exec();
+      const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
       if (!sender) {
-        return this.reject(Request, Response, "UBIMUSIC not found: " + UBIMUSIC_ACCOUNT);
+        return this.reject(Request, Response, "sender not found: " + UBIMUSIC_ACCOUNT);
       }
 
       // send tip amount to track address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
-      logger.debug("tip complete: ",tx);
+      logger.debug("tip complete: ", tx);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + musicoins;
       await release.save();
-      logger.debug("update tipCount: ",release.directTipCount);
+      logger.debug("update tipCount: ", release.directTipCount);
 
       // update release stats
-      await this.updateReleaseStats(release._id, musicoins);
-      logger.debug("update ReleaseStats: ",trackAddress);
+      await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
+      logger.debug("update ReleaseStats: ", trackAddress);
 
       const senderName = sender.draftProfile.artistName;
       const amountUnit = musicoins === 1 ? "coin" : "coins";
       const message = `${senderName} tipped ${musicoins} ${amountUnit} on "${release.title}"`;
       const threadId = uuidV4();
       // find track srtist
-      const artist = await this.db.User.findOne({
-        profileAddress: release.artistAddress
-      }).exec();
-      const email = this.getUserEmail(artist);
+      const artist = await this.ReleaseDelegator._loadUser(release.artistAddress);
+      const email = this.ReleaseDelegator.getUserEmail(artist);
       // send email to artist
       if (email) {
         logger.debug("tip notification to email: ", email);
-        const notification = {
-          trackName: release.title || "",
-          actionUrl: `https://musicoin.org/nav/thread-page?thread=${threadId}`,
-          message: message,
-          senderName: senderName
-        };
-
-        renderMessage(notification, (err, html) => {
-          
-          if (html) {
-            const emailContent = {
-              from: "musicoin@musicoin.org",
-              to: email,
-              subject: `${senderName} commented on ${release.title}`,
-              html: html
-            }
-
-            emailUtil.send(emailContent).then(result => {
-              logger.debug("tip notification complete: ", result);
-            });
-          }else{
-            logger.debug(`tip notification error: `, err);
-          }
-        })
+        this.ReleaseDelegator.notifyTip(email, message, senderName, release.title, threadId);
       }
 
       // insert a track message to db
-      await this.db.TrackMessage.create({
-        artistAddress: release.artistAddress,
-        contractAddress: trackAddress,
-        senderAddress: UBIMUSIC_ACCOUNT,
-        release: release._id,
-        artist: artist ? artist._id : null,
-        sender: sender._id,
-        message: message,
-        replyToMessage: null,
-        replyToSender: null,
-        threadId: threadId,
-        messageType: "tip"
-      });
+      await this.ReleaseDelegator.createTrackMessage(trackAddress, release.artistAddress, release._id,
+        artist._id, sender._id, message, threadId);
 
       logger.debug("record track message complete");
 
@@ -186,10 +128,18 @@ class ReleaseController extends BaseController {
     }
   }
 
+  /**
+   * 
+   * query:
+   * genre
+   * limit
+   * skip
+   */
   async getTracksByGenre(Request, Response) {
     try {
       const genre = Request.query.genre;
       const limit = this.limit(Request.query.limit);
+      const skip = this.skip(Request.query.skip);
 
       const validateResult = this.validate({
         genre,
@@ -197,109 +147,52 @@ class ReleaseController extends BaseController {
       }, this.schema.ReleaseSchema.byGenre);
 
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
-      const releases = await this.db.Release.find({
-        state: 'published',
-        markedAsAbuse: {
-          $ne: true
-        },
-        genres: genre,
-        artistAddress: {
-          $in: this.getVerifiedArtist()
-        }
-      }).limit(limit).exec();
-
-      const response = this.response.ReleaseResponse.responseList(releases);
+      const tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre,skip,limit);
+      if (tracksLoad.error) {
+        return this.reject(Request, Response, tracksLoad.error);
+      }
+      const response = tracksLoad.data;
       this.success(Response, response);
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
+  /**
+   * 
+   * query:
+   * artistAddress
+   * limit
+   * skip
+   */
   async getTracksByArtist(Request, Response) {
     try {
       const artistAddress = Request.query.artistAddress;
       const limit = this.limit(Request.query.limit);
+      const skip = this.skip(Request.query.skip);
 
       const validateResult = this.validate({
         artistAddress,
         limit
-      },this.schema.ReleaseSchema.byArtist);
+      }, this.schema.ReleaseSchema.byArtist);
 
       if (validateResult !== true) {
-        return this.reject(Request,Response, validateResult[0].message);
+        return this.reject(Request, Response, validateResult);
       }
 
-      const releases = await this.db.Release.find({
-        artistAddress,
-        state: 'published',
-        markedAsAbuse: {
-          $ne: true
-        },
-        artistAddress: {
-          $in: this.getVerifiedArtist()
-        }
-      }).sort({
-        releaseDate: 'desc'
-      }).limit(limit).exec();
-
-      const response = this.response.ReleaseResponse.responseList(releases);
-
+      const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress,skip,limit);
+      if (tracksLoad.error) {
+        return this.reject(Request, Response, tracksLoad.error);
+      }
+      const response = tracksLoad.data;
       this.success(Response, response);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
-  }
-
-  getUserEmail(user) {
-    if (!user) return null;
-    if (user.preferredEmail) return user.preferredEmail;
-    if (user.local && user.local.email) return user.local.email;
-    if (user.google && user.google.email) return user.google.email;
-    if (user.facebook && user.facebook.email) return user.facebook.email;
-    if (user.twitter && user.twitter.email) return user.twitter.email;
-    if (user.invite && user.invite.invitedAs) return user.invite.invitedAs;
-    return null;
-  }
-
-  async updateReleaseStats(releaseId, amount) {
-    const updatePromise = this._updateReleaseStats;
-    const now = Date.now();
-    return Promise.all(this.constant.DATE_PERIOD.map(duration => {
-      return updatePromise(releaseId, now, duration, amount)
-    }));
-  }
-
-  _updateReleaseStats(releaseId, startDate, duration, amount) {
-    const where = {
-      release: releaseId,
-      startDate: this.getDatePeriodStart(startDate, duration),
-      duration
-    }
-
-    const updateParams = {
-      $inc: {
-        tipCount: amount
-      }
-    }
-
-    const options = {
-      upsert: true,
-      new: true,
-      setDefaultsOnInsert: true
-    };
-    return this.db.ReleaseStats.findOneAndUpdate(
-      where,
-      updateParams,
-      options
-    ).exec();
-  }
-
-  getDatePeriodStart(startDate, duration) {
-    return duration === "all" ? 0 : moment(startDate).startOf(duration);
   }
 }
 

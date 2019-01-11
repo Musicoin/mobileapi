@@ -10,7 +10,7 @@ const TrackMessage = require('../../db/core/track-message');
 const Playlist = require('../../db/core/playlist');
 const User = require('../../db/core/user');
 const TipHistory = require('../../db/core/tip-history');
-const ReleaseModel = require('../data/release-model');
+const ReleaseModel = require('../response-data/release-model');
 /**
  *   VALIDATION SCHEMAS
  */

@@ -1,10 +1,4 @@
 const express = require('express');
-const request = require('request');
-const JsonPromiseRouter = require('../json-promise-router');
-const expressRouter = express.Router();
-const router = new JsonPromiseRouter(expressRouter, "tx");
-let txModule;
-let orbiterEndpoint;
 
 class TxController {
 

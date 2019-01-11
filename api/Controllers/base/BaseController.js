@@ -26,9 +26,9 @@ const UserSchema = require('../../ValidatorSchema/UserSchema');
 const GlobalSchema = require('../../ValidatorSchema/GlobalSchema');
 
 // response data
-const ArtistResponse = require('../../data/artist-model');
-const ReleaseResponse = require('../../data/release-model');
-const PlaylistResponse = require('../../data/playlist-model');
+const ArtistResponse = require('../../response-data/v1/artist-model');
+const ReleaseResponse = require('../../response-data/v1/release-model');
+const PlaylistResponse = require('../../response-data/v1/playlist-model');
 
 // logger
 const Logger = require('../../../utils/Logger');
@@ -110,15 +110,22 @@ class BaseController {
     this.success = this.success.bind(this);
     this.reject = this.reject.bind(this);
     this.limit = this.limit.bind(this);
+    this.skip = this.skip.bind(this);
   }
 
   /**
    * validate request params
    * @param {*} body 
    * @param {*} schema 
+   * @return true or error message
    */
   validate(body, schema) {
-    return Validator.validate(body, schema);
+    const result = Validator.validate(body, schema);
+    if(result === true){
+      return true
+    }else{
+      return result[0].message
+    }
   }
 
   /**
@@ -170,6 +177,14 @@ class BaseController {
     if (num) {
       const parseNum = Number(num);
       return parseNum > 0 ? (parseNum > 20 ? 20 : parseNum) : 10
+    }
+    return 10
+  }
+
+  skip(num){
+    if (num) {
+      const parseNum = Number(num);
+      return parseNum > 0 ? parseNum : 0
     }
     return 10
   }

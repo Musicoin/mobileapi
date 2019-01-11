@@ -1,9 +1,6 @@
 const BaseController = require('../base/BaseController');
-// db model
-const User = require('../../../db/core/user');
-const ApiUser = require('../../../db/core/api-user');
-// data schema
-const AuthSchema = require('../../ValidatorSchema/AuthSchema');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
+
 // util
 const cryptoUtil = require('../../../utils/crypto-util');
 
@@ -11,6 +8,8 @@ class AuthController extends BaseController {
   constructor(props) {
     super(props);
     this.TAG = "AuthController";
+
+    this.AuthDelegator = new AuthDelegator();
 
     this.registerNewUser = this.registerNewUser.bind(this);
     this.authenticateUser = this.authenticateUser.bind(this);
@@ -28,60 +27,37 @@ class AuthController extends BaseController {
    */
   async quickLogin(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const password = body.password;
     try {
       // vlidate request params
-      const validResult = this.validate(body, AuthSchema.quickLogin);
+      const validResult = this.validate(body, this.schema.AuthSchema.quickLogin);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
 
-      const apiUser = await ApiUser.findOne({
-        email: body.email
-      }).exec();
-      const user = await User.findOne({
-        "local.email": body.email
-      }).exec();
-      let clientSecret;
-      let accessToken;
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+      const user = await this.AuthDelegator._loadUserByEmail(email);
 
       // create a new user if not found
       if (user) {
         // verify password
-        if (!cryptoUtil.comparePassword(body.password, user.local.password)) {
+        if (!cryptoUtil.comparePassword(password, user.local.password)) {
           return this.reject(Request, Response, "email and password dont match");
         }
       } else {
-        // encrypt password
-        body.password = cryptoUtil.hashPassword(body.password);
         // create new user
-        const _user = new User({
-          local: body
-        });
-        await _user.save();
+        await this.AuthDelegator._createUser(email,password);
       }
 
       // carete a new api user if not found
-      if (apiUser) {
-        clientSecret = apiUser.clientSecret;
-        accessToken = apiUser.accessToken;
-      } else {
-        // generate client secret
-        clientSecret = cryptoUtil.generateToken(this.constant.SECRET_LENGTH);
-        // generate access token
-        accessToken = cryptoUtil.generateToken(this.constant.TOKEN_LENGTH);
-        // create api user
-        const _apiUser = new ApiUser({
-          email: body.email,
-          clientSecret: clientSecret,
-          timeout: Date.now(),
-          accessToken: accessToken
-        });
-        await _apiUser.save();
+      if (!apiUser) {
+        apiUser = await this.AuthDelegator._createApiUser(email);
       }
       // response clientSecret and accessToken
       this.success(Response, {
-        clientSecret,
-        accessToken
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
       })
 
     } catch (error) {
@@ -97,38 +73,24 @@ class AuthController extends BaseController {
    */
   async registerNewUser(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const password = body.password;
+    const username = body.username;
     try {
       // vlidate request params
-      const validResult = this.validate(body, AuthSchema.signup);
+      const validResult = this.validate(body, this.schema.AuthSchema.signup);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
-      // encrypt password
-      body.password = cryptoUtil.hashPassword(body.password);
-
-      // generate client secret
-      const clientSecret = cryptoUtil.generateToken(this.constant.SECRET_LENGTH);
-      // generate access token
-      const accessToken = cryptoUtil.generateToken(this.constant.TOKEN_LENGTH);
-      const timeout = Date.now();
+      
       // create user
-      const _user = new User({
-        local: body
-      });
+      await this.AuthDelegator._createUser(email,password,username);
       // create api user
-      const _apiUser = new ApiUser({
-        email: body.email,
-        clientSecret: clientSecret,
-        timeout: timeout,
-        accessToken: accessToken
-      });
-      // insert to db
-      await _user.save();
-      await _apiUser.save();
+      const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
       this.success(Response, {
-        clientSecret: clientSecret,
-        accessToken: accessToken
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
       });
 
     } catch (error) {
@@ -143,18 +105,18 @@ class AuthController extends BaseController {
    */
   async authenticateUser(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const password = body.password;
     try {
       // validate request params
-      const validResult = this.validate(body, AuthSchema.authenticate);
+      const validResult = this.validate(body, this.schema.AuthSchema.authenticate);
       if (validResult !== true) {
-        return this.reject(Response, validResult[0].message);
+        return this.reject(Response, validResult);
       }
 
-      const user = await User.findOne({
-        "local.email": body.email,
-      }).exec();
+      const user = await this.AuthDelegator._loadUserByEmail(email);
 
-      if (user && cryptoUtil.comparePassword(body.password, user.local.password)) {
+      if (user && cryptoUtil.comparePassword(password, user.local.password)) {
         this.success(Response, {
           success: true
         })
@@ -173,23 +135,21 @@ class AuthController extends BaseController {
    */
   async getClientSecret(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const password = body.password;
     try {
       // validate request params
-      const validResult = this.validate(body, AuthSchema.authenticate);
+      const validResult = this.validate(body, this.schema.AuthSchema.authenticate);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
       // find user
-      const user = await User.findOne({
-        "local.email": body.email
-      }).exec();
-      if (!user || !cryptoUtil.comparePassword(body.password, user.local.password)) {
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !cryptoUtil.comparePassword(password, user.local.password)) {
         return this.reject(Request, Response, "email and password dont match");
       }
       // find api user
-      const apiUser = await ApiUser.findOne({
-        email: body.email
-      }).exec();
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
 
       if (!apiUser) {
         return this.reject(Request, Response, "API user not found");
@@ -211,24 +171,23 @@ class AuthController extends BaseController {
    */
   async refreshAccessToken(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const password = body.password;
+    const clientSecret = body.clientSecret;
     try {
       // validate request params
-      const validResult = this.validate(body, AuthSchema.accessToken);
+      const validResult = this.validate(body, this.schema.AuthSchema.accessToken);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
       // find user
-      const user = await User.findOne({
-        "local.email": body.email
-      }).exec();
-      if (!user || !cryptoUtil.comparePassword(body.password, user.local.password)) {
-        return this.reject(Request, Response, "account not found: " + body.email);
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !cryptoUtil.comparePassword(password, user.local.password)) {
+        return this.reject(Request, Response, "account not found: " + email);
       }
       // find api user
-      const apiUser = await ApiUser.findOne({
-        email: body.email
-      }).exec();
-      if (!apiUser || apiUser.clientSecret !== body.clientSecret) {
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser || apiUser.clientSecret !== clientSecret) {
         return this.reject(Request, Response, "Client Secrets dont match");
       }
       // generate access token
@@ -252,17 +211,17 @@ class AuthController extends BaseController {
    */
   async getAccessToken(Request, Response) {
     const body = Request.body;
+    const clientSecret = body.clientSecret;
+    const email = body.email;
     try {
       // validate request params
-      const validResult = this.validate(body, AuthSchema.accessToken);
+      const validResult = this.validate(body, this.schema.AuthSchema.accessToken);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
       // find api user
-      const apiUser = await ApiUser.findOne({
-        email: body.email
-      }).exec();
-      if (!apiUser || apiUser.clientSecret !== body.clientSecret) {
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser || apiUser.clientSecret !== clientSecret) {
         return this.reject(Request, Response, "Client Secrets dont match");
       }
       this.success(Response, {
@@ -280,21 +239,21 @@ class AuthController extends BaseController {
    */
   async getTokenValidity(Request, Response) {
     const body = Request.body;
+    const email = body.email;
+    const accessToken = body.accessToken;
     try {
       // validate request params
-      const validResult = this.validate(body, AuthSchema.tokenValidity);
+      const validResult = this.validate(body, this.schema.AuthSchema.tokenValidity);
       if (validResult !== true) {
-        return this.reject(Request, Response, validResult[0].message);
+        return this.reject(Request, Response, validResult);
       }
       // find api user
-      const user = await ApiUser.findOne({
-        email: body.email
-      }).exec();
+      const user = await this.AuthDelegator._loadApiUser(email);
       if (!user) {
         return this.reject(Request, Response, "user not found");
       }
 
-      if (user.accessToken !== Request.body.accessToken) {
+      if (user.accessToken !== accessToken) {
         return this.reject(Request, Response, "Invalid Access Token");
       }
       const now = Date.now();

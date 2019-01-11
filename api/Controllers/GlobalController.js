@@ -5,8 +5,8 @@
  * */
 const User = require('../../db/core/user');
 const Release = require('../../db/core/release');
-const ReleaseModel = require('../data/release-model');
-const ArtistModel = require('../data/artist-model');
+const ReleaseModel = require('../response-data/release-model');
+const ArtistModel = require('../response-data/artist-model');
 
 class GlobalController {
 

@@ -8,8 +8,8 @@ const Release = require('../../db/core/release');
 const User = require('../../db/core/user');
 const Hero = require('../../db/core/hero');
 // http response
-const ArtistModel = require('../data/artist-model');
-const ReleaseModel = require('../data/release-model');
+const ArtistModel = require('../response-data/artist-model');
+const ReleaseModel = require('../response-data/release-model');
 // constant
 const defaultRecords = 20;
 const maxRecords = 100;
