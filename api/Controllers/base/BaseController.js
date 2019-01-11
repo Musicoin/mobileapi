@@ -54,7 +54,7 @@ async function checkUserVerified(){
   console.log("verified users: ",verifiedList.length);
 }
 
-checkUserVerified();
+setTimeout(checkUserVerified, 1000*30);
 setInterval(checkUserVerified, 1000*60*60);
 
 /**
