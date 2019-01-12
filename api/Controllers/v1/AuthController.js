@@ -25,7 +25,7 @@ class AuthController extends BaseController {
    * email
    * password 
    */
-  async quickLogin(Request, Response) {
+  async quickLogin(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const password = body.password;
@@ -55,10 +55,12 @@ class AuthController extends BaseController {
         apiUser = await this.AuthDelegator._createApiUser(email);
       }
       // response clientSecret and accessToken
-      this.success(Response, {
+      const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken
-      })
+      }
+
+      this.success(Request,Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -71,7 +73,7 @@ class AuthController extends BaseController {
    * password
    * username 
    */
-  async registerNewUser(Request, Response) {
+  async registerNewUser(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const password = body.password;
@@ -88,10 +90,11 @@ class AuthController extends BaseController {
       // create api user
       const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
-      this.success(Response, {
+      const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken
-      });
+      }
+      this.success(Request,Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -103,7 +106,7 @@ class AuthController extends BaseController {
    * email
    * password
    */
-  async authenticateUser(Request, Response) {
+  async authenticateUser(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const password = body.password;
@@ -117,9 +120,10 @@ class AuthController extends BaseController {
       const user = await this.AuthDelegator._loadUserByEmail(email);
 
       if (user && cryptoUtil.comparePassword(password, user.local.password)) {
-        this.success(Response, {
+        const data = {
           success: true
-        })
+        }
+        this.success(Request,Response, next, data);
       } else {
         this.reject(Request, Response, "email and password dont match");
       }
@@ -133,7 +137,7 @@ class AuthController extends BaseController {
    * email
    * password
    */
-  async getClientSecret(Request, Response) {
+  async getClientSecret(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const password = body.password;
@@ -155,9 +159,10 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "API user not found");
       }
 
-      this.success(Response, {
+      const data = {
         clientSecret: apiUser.clientSecret
-      });
+      }
+      this.success(Request,Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -169,7 +174,7 @@ class AuthController extends BaseController {
    * clientSecret
    * password
    */
-  async refreshAccessToken(Request, Response) {
+  async refreshAccessToken(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const password = body.password;
@@ -196,9 +201,10 @@ class AuthController extends BaseController {
       apiUser.accessToken = accessToken;
       // update api user
       await apiUser.save();
-      this.success(Response, {
+      const data = {
         accessToken: accessToken
-      })
+      }
+      this.success(Request,Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -209,7 +215,7 @@ class AuthController extends BaseController {
    * eamil
    * clientSecret
    */
-  async getAccessToken(Request, Response) {
+  async getAccessToken(Request, Response, next) {
     const body = Request.body;
     const clientSecret = body.clientSecret;
     const email = body.email;
@@ -224,9 +230,11 @@ class AuthController extends BaseController {
       if (!apiUser || apiUser.clientSecret !== clientSecret) {
         return this.reject(Request, Response, "Client Secrets dont match");
       }
-      this.success(Response, {
+
+      const data = {
         accessToken: apiUser.accessToken
-      })
+      }
+      this.success(Request,Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -237,7 +245,7 @@ class AuthController extends BaseController {
    * email
    * accessToken 
    */
-  async getTokenValidity(Request, Response) {
+  async getTokenValidity(Request, Response, next) {
     const body = Request.body;
     const email = body.email;
     const accessToken = body.accessToken;
@@ -262,9 +270,10 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "Access Token time out");
       }
 
-      this.success(Response, {
+      const data = {
         expried: timeElapsed
-      });
+      }
+      this.success(Request,Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);

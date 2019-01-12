@@ -1,74 +1,55 @@
-const LicenseKey = require('../../../db/core/key');
-const LicenseModule = require('../../Kernel').musicoinCore.getLicenseModule();
-const MediaProvider = require('../../../utils/media-provider-instance');
-const request = require('request');
-const CLIENT_ID = "OLDjonAeYPx6ZVKaMD3a";
-const logger = require('../../../utils/Logger');
+const BaseController = require('../base/BaseController');
+const TrackDelegator = require('../../Delegator/TrackDelegator');
 
-function getLicenseKey(licenseAddress) {
-  return new Promise((resolve, reject)=>{
-    request({
-      url: `http://35.186.250.94/license/ppp/${licenseAddress}`,
-      json: true,
-      headers: {
-        clientID: CLIENT_ID
-      }
-    }, function (error, response, result) {
-      if (error) {
-        logger.debug("get license key error: ",error);
-        reject(error);
-      }else if (response.statusCode != 200) {
-        reject("not found");
-      }else{
-        resolve(result);
-      }
-    })
-  })
-}
+class TrackController extends BaseController{
+  constructor(props){
+    super(props);
 
-async function downloadTrack(Request, Response) {
-  const address = Request.params.address;
+    this.TrackDelegator = new TrackDelegator(props);
 
-  try {
-    const licenseKey = await getLicenseKey(address);
-    
-    logger.debug("license key:",licenseKey);
-    if (!licenseKey) {
-      return Response.status(400).json({
-        error: `licenseKey not found: ${address}`
-      })
-    }
-  
-    // load license
-    const license = await LicenseModule.getLicense(address);
-    if (!license) {
-      return Response.status(400).json({
-        error: `license not found: ${address}`
-      })
-    }
-  
-    const resourceUrl = license.resourceUrl;
-  
-    if (!resourceUrl) {
-      return Response.status(400).json({
-        error: `track resource not found: ${address}`
-      })
-    }
-  
-    const resource = await MediaProvider.getIpfsResource(resourceUrl, () => licenseKey.key);
-
-    Response.sendSeekable(resource.stream, {
-      type: "audio/mp3",
-      length: resource.headers['content-length']
-    });
-  } catch (error) {
-    Response.status(500).json({
-      error: error.message
-    })
+    this.downloadTrack = this.downloadTrack.bind(this);
   }
 
+  async  downloadTrack(Request, Response, next) {
+    const address = Request.params.address;
+  
+    try {
+      const licenseKey = await this.TrackDelegator.getLicenseKey(address);
+      
+      this.logger.debug("license key:",licenseKey);
+      if (!licenseKey) {
+        return this.reject(Request, Response, `licenseKey not found: ${address}`);
+      }
+    
+      // load license
+      const license = await this.TrackDelegator.loadLicense(address);
+      if (!license) {
+        return this.reject(Request, Response, `license not found: ${address}`);
+      }
+    
+      const resourceUrl = license.resourceUrl;
+    
+      if (!resourceUrl) {
+        return this.reject(Request, Response, `track resource not found: ${address}`);
+      }
+    
+      const resource = await this.MediaProvider.getIpfsResource(resourceUrl, () => licenseKey.key);
+  
+
+      const data = {
+        stream: resource.stream,
+        options: {
+          type: "audio/mp3",
+          length: resource.headers['content-length']
+        }
+      }
+
+      this.success(Request, Response, next, data);
+    } catch (error) {
+      this.error(Request, Response, error)
+    }
+  
+  }
 }
 
-module.exports = {
-  downloadTrack
-}
+module.exports = TrackController;

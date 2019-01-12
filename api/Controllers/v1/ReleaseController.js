@@ -21,15 +21,16 @@ class ReleaseController extends BaseController {
    * params:
    * address
    */
-  async getTrackDetail(Request, Response) {
+  async getTrackDetail(Request, Response, next) {
     try {
       const trackLoad = await this.ReleaseDelegator.loadTrack(Request.params.address);
       if (trackLoad.error) {
         return this.reject(Request, Response, trackLoad.error);
       }
-
-      const response = trackLoad.data;
-      this.success(Response, response);
+      const data = {
+        track: trackLoad.data
+      }
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -39,7 +40,7 @@ class ReleaseController extends BaseController {
    * params:
    * none
    */
-  async getRecentTracks(Request, Response) {
+  async getRecentTracks(Request, Response, next) {
     try {
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
@@ -47,8 +48,11 @@ class ReleaseController extends BaseController {
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
-      const response = tracksLoad.data;
-      this.success(Response, response);
+
+      const data = {
+        tracks: tracksLoad.data
+      }
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -59,7 +63,7 @@ class ReleaseController extends BaseController {
    * trackAddress
    * musicoins
    */
-  async tipTrack(Request, Response) {
+  async tipTrack(Request, Response, next) {
     try {
       const musicoins = Request.body.musicoins || 10;
       const trackAddress = Request.body.trackAddress;
@@ -120,9 +124,10 @@ class ReleaseController extends BaseController {
 
       logger.debug("record track message complete");
 
-      this.success(Response, {
+      const data = {
         tx: tx
-      });
+      }
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -135,7 +140,7 @@ class ReleaseController extends BaseController {
    * limit
    * skip
    */
-  async getTracksByGenre(Request, Response) {
+  async getTracksByGenre(Request, Response, next) {
     try {
       const genre = Request.query.genre;
       const limit = this.limit(Request.query.limit);
@@ -154,8 +159,11 @@ class ReleaseController extends BaseController {
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
-      const response = tracksLoad.data;
-      this.success(Response, response);
+
+      const data = {
+        tracks: tracksLoad.data
+      }
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -168,7 +176,7 @@ class ReleaseController extends BaseController {
    * limit
    * skip
    */
-  async getTracksByArtist(Request, Response) {
+  async getTracksByArtist(Request, Response, next) {
     try {
       const artistAddress = Request.query.artistAddress;
       const limit = this.limit(Request.query.limit);
@@ -187,8 +195,12 @@ class ReleaseController extends BaseController {
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
-      const response = tracksLoad.data;
-      this.success(Response, response);
+
+      const data = {
+        tracks: tracksLoad.data
+      }
+
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);

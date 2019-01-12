@@ -3,10 +3,10 @@ const Router = express.Router();
 const ReleaseController = require('../../Controllers/v1/ReleaseController');
 const Controller = new ReleaseController();
 
-Router.get('/detail/:address', Controller.getTrackDetail);
-Router.get('/recent', Controller.getRecentTracks);
-Router.get('/bygenre', Controller.getTracksByGenre);
-Router.get('/byartist', Controller.getTracksByArtist);
-Router.post('/tip', Controller.tipTrack);
+Router.get('/detail/:address', Controller.getTrackDetail, Controller.sendJson);
+Router.get('/recent',Controller.getRecentTracks, Controller.sendJson);
+Router.get('/bygenre', Controller.getTracksByGenre, Controller.sendJson);
+Router.get('/byartist', Controller.getTracksByArtist, Controller.sendJson);
+Router.post('/tip', Controller.tipTrack, Controller.sendJson);
 
 module.exports = Router;

@@ -36,25 +36,32 @@ const Logger = require('../../../utils/Logger');
 // musicoin core
 const MusicoinCore = require('../../Kernel').musicoinCore;
 
+// media provider
+const MediaProvider = require('../../../utils/media-provider-instance');
+
 // verified artist
 let verifiedList = [];
 
-async function checkUserVerified(){
-  if (!verifiedList || verifiedList.length === 0) {
+function checkUserVerified(){
     // load verified users
-    const _verifiedList = await User.find({
+    User.find({
       verified: true,
       profileAddress: {
         $exists: true,
         $ne: null
       }
-    }).exec();
-    verifiedList = _verifiedList.map(val => val.profileAddress);
-  }
-  console.log("verified users: ",verifiedList.length);
+    })
+    .exec()
+    .then(list => {
+      verifiedList = list.map(val => val.profileAddress);
+      Logger.debug("get verified users: ",verifiedList.length);
+    }).catch(error => {
+      setTimeout(checkUserVerified, 1000*5);
+      Logger.debug("get verified users error: ", error.message);
+    });
 }
 
-setTimeout(checkUserVerified, 1000*30);
+checkUserVerified();
 setInterval(checkUserVerified, 1000*60*60);
 
 /**
@@ -103,7 +110,11 @@ class BaseController {
     // logger
     this.logger = Logger;
 
+    // web3 core util
     this.MusicoinCore = MusicoinCore;
+
+    // ipfs core util
+    this.MediaProvider = MediaProvider;
 
     this.validate = this.validate.bind(this);
     this.error = this.error.bind(this);
@@ -148,12 +159,40 @@ class BaseController {
   }
 
   /**
-   * request success
+   * handle success
    * @param {*} Response 
    * @param {*} data 
    */
-  success(Response, data) {
+  success(Request, Response, next, data) {
+    if(Request.response){
+      Request.response = {
+        ...Request.response,
+        data
+      }
+    }else{
+      Request.response = data;
+    }
+    next();
+  }
+
+  /**
+   * response json data to api caller
+   * @param {*} Request 
+   * @param {*} Response 
+   */
+  sendJson(Request, Response) {
+    const data = Request.response;
     Response.status(200).json(data)
+  }
+
+  /**
+   * response stream data to api caller
+   * @param {*} Request 
+   * @param {*} Response 
+   */
+  sendStream(Request, Response) {
+    const data = Request.response;
+    Response.sendSeekable(data.stream,data.options);
   }
 
   /**
@@ -190,7 +229,28 @@ class BaseController {
   }
 
   getVerifiedArtist(){
+    if (!verifiedList || verifiedList.length === 0) {
+      checkUserVerified();
+      return [];
+    }
     return verifiedList;
+  }
+
+  checkParams(schema){
+    return (Request, Response, next) => {
+      let params;
+      if(Request.method === 'POST'){
+        params = Request.body;
+      }else{
+        params = Request.query;
+      }
+      const validateResult = this.validate(params, schema);
+      if (validateResult === true) {
+        next();
+      }else{
+        this.reject(Request,Response,validateResult);
+      }
+    }
   }
 }
 

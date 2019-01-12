@@ -12,7 +12,7 @@ class GlobalController extends BaseController {
     this.search = this.search.bind(this);
   }
 
-  async search(Request, Response) {
+  async search(Request, Response, next) {
     try {
       const keyword = Request.body.keyword;
       const limit = this.limit(Request.query.limit);
@@ -35,10 +35,11 @@ class GlobalController extends BaseController {
         this.logger.error(Request.originalUrl, error);
       }
 
-      this.success(Response, {
-        releases: ReleasesArray,
+      const data = {
+        tracks: ReleasesArray,
         artists: UsersArray
-      });
+      }
+      this.success(Request,Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }

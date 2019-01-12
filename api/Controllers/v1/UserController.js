@@ -14,7 +14,7 @@ class UserController extends BaseController {
     this.deletePlayList = this.deletePlayList.bind(this);
   }
 
-  async getPlayList(Request, Response) {
+  async getPlayList(Request, Response, next) {
     try {
 
       const name = Request.query.name;
@@ -31,15 +31,17 @@ class UserController extends BaseController {
         return this.reject(Request, Response, playlistLoad.error);
       }
 
-      const response = playlistLoad.data;
-      this.success(Response, response);
+      const data = {
+        playlist: playlistLoad.data
+      }
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-  async getAllPlayList(Request, Response) {
+  async getAllPlayList(Request, Response, next) {
     try {
       const  email =  Request.query.email;
       // validate params
@@ -53,8 +55,10 @@ class UserController extends BaseController {
         return this.reject(Request, Response, playlistLoad.error);
       }
 
-      const response = playlistLoad.data;
-      this.success(Response, response);
+      const data = {
+        playlist: playlistLoad.data
+      }
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -67,7 +71,7 @@ class UserController extends BaseController {
    * email
    * trackAddress
    */
-  async addPlayList(Request, Response) {
+  async addPlayList(Request, Response, next) {
     try {
       const name = Request.body.name;
       const trackAddress = Request.body.trackAddress;
@@ -99,16 +103,17 @@ class UserController extends BaseController {
         upsert: true
       }).exec();
 
-      this.success(Response, {
+      const data = {
         success: true
-      });
+      }
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-  async deletePlayList(Request, Response) {
+  async deletePlayList(Request, Response, next) {
     try {
       const name = Request.body.name;
       const trackAddress = Request.body.trackAddress;
@@ -139,9 +144,10 @@ class UserController extends BaseController {
 
       await this.db.Playlist.findOneAndDelete(content).exec();
 
-      this.success(Response, {
+      const data = {
         success: true
-      });
+      }
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);

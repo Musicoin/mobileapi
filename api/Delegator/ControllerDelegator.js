@@ -1,8 +1,5 @@
 const BaseController = require('../Controllers/base/BaseController');
 
-
-const MediaProvider = require('../../utils/media-provider-instance');
-
 const moment = require('moment');
 const renderFile = require("ejs").renderFile;
 const path = require("path");
@@ -18,8 +15,6 @@ class ControllerDelegator extends BaseController{
     this.updateTipStats = this.updateTipStats.bind(this);
     this._loadUser = this._loadUser.bind(this);
     this._loadApiUser = this._loadApiUser.bind(this);
-
-    this.MediaProvider = MediaProvider;
 
   }
 

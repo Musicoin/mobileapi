@@ -18,7 +18,7 @@ class ArtistController extends BaseController{
    * pramas:
    * address
    */
-  async getProfileByAddress(Request, Response) {
+  async getProfileByAddress(Request, Response, next) {
     try {
       const address = Request.params.address;
 
@@ -27,7 +27,11 @@ class ArtistController extends BaseController{
         return this.reject(Request, Response, result.error);
       }
 
-      this.success(Response,result.data);
+      const data = {
+        artist: result.data
+      }
+
+      this.success(Request,Response,next,data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -38,7 +42,7 @@ class ArtistController extends BaseController{
    * artistAddress
    * musicoins
    */
-  async tipArtist(Request, Response) {
+  async tipArtist(Request, Response, next) {
     const artistAddress = Request.body.artistAddress;
     const amount = Request.body.musicoins || 10;
     const logger = this.logger;
@@ -67,11 +71,11 @@ class ArtistController extends BaseController{
       const tipCount = artist.directTipCount || 0;
       artist.directTipCount = tipCount + amount;
       await artist.save();
-      logger.debug("update tipCount: ", release.directTipCount);
+      logger.debug("update tipCount: ", artist.directTipCount);
 
       // update release stats
       await this.ArtistDelegator.updateArtistStats(artist._id, amount);
-      logger.debug("update ReleaseStats: ", trackAddress);
+      logger.debug("update UserStats: ", artistAddress);
 
       const senderName = sender.draftProfile.artistName;
       const amountUnit = amount === 1 ? "coin" : "coins";
@@ -89,16 +93,17 @@ class ArtistController extends BaseController{
       await this.ArtistDelegator.createTrackMessage(artistAddress, artist._id, sender._id, message, threadId);
       logger.debug("record track message complete");
 
-      this.success(Response, {
+      const data = {
         tx: tx
-      });
+      }
+      this.success(Request,Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-  async getArtistOfWeek(Request, Response) {
+  async getArtistOfWeek(Request, Response, next) {
     try {
       // find the record of week
       const heroLoad = await this.ArtistDelegator.loadLatestHero();
@@ -127,7 +132,7 @@ class ArtistController extends BaseController{
         artist
       }
 
-      this.success(Response, data);
+      this.success(Request,Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
