@@ -5,10 +5,10 @@ const moment = require('moment');
 const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 
-const LOGS_DIR = path.join(__dirname, '../logs');
+const LOGS_DIR = process.env.LOG_PATH || path.join(__dirname, '../logs');
 
 if (!fs.existsSync(LOGS_DIR)) {
-    fs.mkdirSync(LOGS_DIR);
+    fs.mkdirSync(LOGS_DIR, { recursive: true });
 }
 
 // file size limit 10M
