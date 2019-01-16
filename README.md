@@ -1,23 +1,25 @@
-Musicoin API
-===============
-Add .env
+## quick start with docker
 
-cp .env.default .env
+### install project
+git clone https://github.com/Musicoin/api.git && cd api 
 
-To get setup, run `npm install`
+### switch to dev branch
+git checkout -b river/dev --track origin/river/dev
 
-You need to run a gmc / parity node and ipfs on the backend in order to test this effectively
+### install node modules
+npm install
 
-```
-screen -S gmc ./go-musicoin/build/bin/gmc --rpc --rpcapi=eth,net,web3,personal --rpcport 8545 --rpcaddr 127.0.0.1 --rpccorsdomain lcoalhost
-```
+### setup required variable
+cp .env.docker .env
 
-```
-screen -S ipfs ./go-ipfs/ipfs daemon --init=true --migrate=true
-```
+### build docker container
+./build.sh 
+- if no exec permision
+sudo chmod +x build.sh 
 
-`node app.js --ipfsHost http://localhost:8080 --web3Host http://localhost:8545`
+### restart if codes changed
+./run.sh
+- if no exec permision
+sudo chmod +x run.sh 
 
-Requires environment variables to be set (refer config.js)
-
-Documentation over at developers.musicoin.org and docs/
+Documentation over at [doc](https://documenter.getpostman.com/view/6054511/Rzn6wiiB)
