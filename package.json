@@ -4,7 +4,11 @@
   "private": true,
   "main": "./modules/coreModule.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "start:docker": "./docker/development/run.sh",
+    "build:docker": "./docker/development/build.sh",
+    "stop:docker": "./docker/development/stop.sh",
+    "start:refs": "./docker/development/start-ref-services.sh"
   },
   "dependencies": {
     "@sendgrid/mail": "^6.3.1",
