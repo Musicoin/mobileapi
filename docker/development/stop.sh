@@ -2,7 +2,9 @@
 
 # stop all services
 
-docker stop musicoin-api
-docker stop mongo-node
-docker stop gmc-node 
-docker stop ipfs-node
+NAME=$1
+
+docker stop $NAME
+
+cd `dirname $0`
+./stop-ref-services.sh

@@ -2,12 +2,14 @@
 
 # restart the container
 
+NAME=$1
+
 cd `dirname $0`
-if docker ps -a | grep -i musicoin-api; then
+if docker ps -a | grep -i $NAME; then
   ./start-ref-services.sh    
-  docker restart musicoin-api
-  docker logs -f musicoin-api
+  docker restart $NAME
+  docker logs -f $NAME
 else
-  ./build.sh
+  ./build.sh $NAME
 fi
 
