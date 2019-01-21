@@ -12,7 +12,7 @@
 ## develop with docker
 
 ### 0 setup required variable
-`cp .env.docker .env`
+`cp docker/development/.env.docker .env`
 
 ### 1 build docker container
 `npm run build:docker` 

@@ -122,6 +122,9 @@ class BaseController {
     this.reject = this.reject.bind(this);
     this.limit = this.limit.bind(this);
     this.skip = this.skip.bind(this);
+    this.checkParams = this.checkParams.bind(this);
+    this.sendJson = this.sendJson.bind(this);
+    this.sendStream = this.sendStream.bind(this);
   }
 
   /**
@@ -225,7 +228,7 @@ class BaseController {
       const parseNum = Number(num);
       return parseNum > 0 ? parseNum : 0
     }
-    return 10
+    return 0
   }
 
   getVerifiedArtist(){
