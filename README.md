@@ -9,7 +9,7 @@
 ### 2 install node modules
 `npm install`
 
-## develop with docker
+## Develop with docker
 
 ### 0 setup required variable
 `cp docker/development/.env.docker .env`
@@ -23,7 +23,7 @@
 ### 3 stop all docker container
 `npm run stop:docker`
 
-## develop without docker
+## Develop without docker
 
 ### 0 setup required variable
 `cp .env.default .env`
