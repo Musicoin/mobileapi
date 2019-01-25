@@ -42,23 +42,23 @@ const MediaProvider = require('../../../utils/media-provider-instance');
 // verified artist
 let verifiedList = [];
 
-function checkUserVerified(){
+async function checkUserVerified(){
     // load verified users
-    User.find({
-      verified: true,
-      profileAddress: {
-        $exists: true,
-        $ne: null
-      }
-    })
-    .exec()
-    .then(list => {
+    try {
+      const list = await User.find({
+        verified: true,
+        profileAddress: {
+          $exists: true,
+          $ne: null
+        }
+      })
+      .exec();
       verifiedList = list.map(val => val.profileAddress);
       Logger.debug("get verified users: ",verifiedList.length);
-    }).catch(error => {
+    } catch (error) {
       setTimeout(checkUserVerified, 1000*5);
       Logger.debug("get verified users error: ", error.message);
-    });
+    }     
 }
 
 checkUserVerified();
@@ -231,10 +231,9 @@ class BaseController {
     return 0
   }
 
-  getVerifiedArtist(){
+  async getVerifiedArtist(){
     if (!verifiedList || verifiedList.length === 0) {
-      checkUserVerified();
-      return [];
+      await checkUserVerified();
     }
     return verifiedList;
   }

@@ -72,14 +72,15 @@ class ReleaseDelegator extends ControllerDelegator {
   }
 
 
-  _loadTracks(conditions, sort, skip, limit) {
+  async _loadTracks(conditions, sort, skip, limit) {
+    const artistAddressList = await this.getVerifiedArtist();
     return this.db.Release.find({
       state: 'published',
       markedAsAbuse: {
         $ne: true
       },
       artistAddress: {
-        $in: this.getVerifiedArtist()
+        $in: artistAddressList
       },
       ...conditions
     }).sort(sort).skip(skip).limit(limit).exec();
@@ -152,8 +153,11 @@ class ReleaseDelegator extends ControllerDelegator {
   async loadTracksByArtist(artistAddress,skip,limit){
     const releases = await this._loadTracks({
       artistAddress: artistAddress
-    },{},skip,limit);
+    },{
+      releaseDate: 'desc'
+    },skip,limit);
     if (releases) {
+      this.logger.debug(`load tracks by artist: ${artistAddress}, total: ${releases.length}`);
       return {
         data: this.response.ReleaseResponse.responseList(releases)
       }

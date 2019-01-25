@@ -37,14 +37,15 @@ class GlobalDelegator extends ControllerDelegator {
     }
   }
 
-  _searchTracks(reg, limit) {
+  async _searchTracks(reg, limit) {
+    const artistAddressList = await this.getVerifiedArtist();
     return this.db.Release.find({
       state: 'published',
       markedAsAbuse: {
         $ne: true
       },
       artistAddress: {
-        $in: this.getVerifiedArtist()
+        $in: artistAddressList
       },
       $or: [{
         title: {
