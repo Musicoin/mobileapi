@@ -9,6 +9,10 @@ class GlobalDelegator extends ControllerDelegator {
 
     this.searchArtists = this.searchArtists.bind(this);
     this.searchTracks = this.searchTracks.bind(this);
+
+    this.findUserByAddress = this.findUserByAddress.bind(this);
+    this.findRleaseByAddress = this.findRleaseByAddress.bind(this);
+    this.createReport = this.createReport.bind(this);
   }
 
   _searchArtists(reg, limit) {
@@ -30,7 +34,7 @@ class GlobalDelegator extends ControllerDelegator {
       return {
         data: this.response.ArtistResponse.responseList(artists)
       }
-    }else{
+    } else {
       return {
         error: "artists not found"
       }
@@ -61,13 +65,41 @@ class GlobalDelegator extends ControllerDelegator {
       return {
         data: this.response.ReleaseResponse.responseList(releases)
       }
-    }else{
+    } else {
       return {
         error: "tracks not found"
       }
     }
   }
-  
+
+  findUserByAddress(address) {
+    return this.db.User.findOne({
+      profileAddress: address
+    }).exec();
+  }
+
+  findRleaseByAddress(address) {
+    return this.db.Release.findOne({
+      contractAddress: address
+    }).exec();
+  }
+
+  createReport(email, type, reason, targetId, isArtist = false) {
+    const reportContent = {
+      reportEmail: email,
+      reportType: type,
+      reason: reason
+    }
+    if (isArtist) {
+      reportContent["artist"] = targetId
+    } else {
+      reportContent["release"] = targetId
+    }
+
+    return this.db.Report.create(reportContent);
+
+  }
+
 }
 
 module.exports = GlobalDelegator;

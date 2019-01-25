@@ -16,6 +16,7 @@ const TipHistory = require('../../../db/core/tip-history');
 const TrackMessage = require('../../../db/core/track-message');
 const UserPlayback = require('../../../db/core/user-playback');
 const UserStats = require('../../../db/core/user-stats');
+const Report = require("../../../db/core/report");
 
 // validator schema
 const AuthSchema = require('../../ValidatorSchema/AuthSchema');
@@ -88,6 +89,7 @@ class BaseController {
       TrackMessage,
       UserPlayback,
       UserStats,
+      Report,
     }
 
     // validator schema

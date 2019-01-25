@@ -2,7 +2,7 @@ const MediaProvider = require('../../../utils/media-provider-instance');
 
 function responseData(artist) {
   return {
-    profileAddress: artist.profileAddress,
+    artistAddress: artist.profileAddress,
     description: artist.draftProfile.description,
     artistName: artist.draftProfile.artistName,
     imageUrl: MediaProvider.resolveIpfsUrl(artist.draftProfile.ipfsImageUrl),
@@ -14,7 +14,7 @@ function responseData(artist) {
 
 function responseMore(contractInfo, artist) {
   return {
-    profileAddress: artist.profileAddress,
+    artistAddress: artist.profileAddress,
     description: contractInfo.description,
     artistName: contractInfo.artistName,
     imageUrl: MediaProvider.resolveIpfsUrl(contractInfo.imageUrl),
