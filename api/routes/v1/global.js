@@ -10,4 +10,6 @@ Router.post('/search', Controller.search, Controller.sendJson);
 Router.post('/report/release', checkReportRelease,Controller.reportRelease, Controller.sendJson);
 Router.post('/report/artist', checkReportArtist,Controller.reportArtist, Controller.sendJson);
 
+Router.get("/check_services", Controller.checkServices, Controller.sendJson);
+
 module.exports = Router;

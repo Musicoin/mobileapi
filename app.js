@@ -50,6 +50,7 @@ app.use("/v1/auth",require('./api/routes/v1/auth'));
 // test
 app.use('/test/release', require('./api/routes/release'));
 app.use('/test/track', require('./api/routes/v1/track'));
+app.use("/test", require("./api/routes/v1/global"));
 
 
 app.use('/', AuthMiddleware.authenticate);

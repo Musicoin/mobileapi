@@ -12,6 +12,8 @@ class GlobalController extends BaseController {
     this.search = this.search.bind(this);
     this.reportArtist = this.reportArtist.bind(this);
     this.reportRelease = this.reportRelease.bind(this);
+
+    this.checkServices = this.checkServices.bind(this);
   }
 
   async search(Request, Response, next) {
@@ -26,7 +28,7 @@ class GlobalController extends BaseController {
       let ReleasesArray = [];
       let UsersArray = [];
 
-      const tracksLoad = this.GlobalDelegator._searchTracks(reg,limit);
+      const tracksLoad = this.GlobalDelegator._searchTracks(reg, limit);
       const artistsLoad = this.GlobalDelegator._searchArtists(reg, limit);
 
       try {
@@ -41,13 +43,13 @@ class GlobalController extends BaseController {
         tracks: ReleasesArray,
         artists: UsersArray
       }
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-  async reportArtist(Request, Response, next){
+  async reportArtist(Request, Response, next) {
     try {
       const body = Request.body;
       const email = body.reportEmail;
@@ -57,7 +59,7 @@ class GlobalController extends BaseController {
 
       const user = await this.GlobalDelegator.findUserByAddress(artistAddress);
       if (!user) {
-        return this.reject(Request, Response, "user not found: "+artistAddress);
+        return this.reject(Request, Response, "user not found: " + artistAddress);
       }
 
       await this.GlobalDelegator.createReport(email, type, reason, user._id, true);
@@ -67,11 +69,11 @@ class GlobalController extends BaseController {
       })
 
     } catch (error) {
-      this.error(Request,Response,error);
+      this.error(Request, Response, error);
     }
   }
 
-  async reportRelease(Request, Response, next){
+  async reportRelease(Request, Response, next) {
     try {
       const body = Request.body;
       const email = body.reportEmail;
@@ -81,7 +83,7 @@ class GlobalController extends BaseController {
 
       const release = await this.GlobalDelegator.findRleaseByAddress(trackAddress);
       if (!release) {
-        return this.reject(Request, Response, "track not found: "+trackAddress);
+        return this.reject(Request, Response, "track not found: " + trackAddress);
       }
 
       await this.GlobalDelegator.createReport(email, type, reason, release._id, false);
@@ -91,8 +93,53 @@ class GlobalController extends BaseController {
       })
 
     } catch (error) {
-      this.error(Request,Response,error);
+      this.error(Request, Response, error);
     }
+  }
+
+  async checkServices(Request, Response, next) {
+    // load a artist info to check if serices is running
+    const artistAddress = "0x411eedd91f172766061d705ed7e71131b84a7654";
+    const ipfsHash = "ipfs://QmYV4gXcXaVLFctdTsYADCWcuzzLbcigPkwFzgtrdfHaZw";
+    let user;
+    let artist;
+    let description;
+    const response = {
+      mongodb: "running",
+      ipfs: "running",
+      gmc: "running"
+    }
+
+    try {
+      user = await this.db.User.findOne({
+        profileAddress: artistAddress
+      }).exec();
+      this.logger.debug("find user from mongodb: ", user._id);
+      this.logger.info("mongodb is running");
+    } catch (error) {
+      response.mongodb = "error: "+error.message;
+      this.logger.info("mongodb running error: "+error.message);
+    }
+
+    try {
+      artist = await this.MusicoinCore.getArtistModule().getArtistByProfile(artistAddress);
+      this.logger.debug("find user from gmc: ", artist);
+      this.logger.info("gmc is running");
+    } catch (error) {
+      response.gmc = "error: "+error.message;
+      this.logger.info("gmc running error: "+error.message);
+    }
+
+    try {
+      description = await this.MediaProvider.fetchTextFromIpfs(ipfsHash);
+      this.logger.debug("find artist description from ipfs: ", description);
+      this.logger.info("ipfs is running");
+    } catch (error) {
+      response.ipfs = "error: "+error.message;
+      this.logger.info("ipfs running error: "+error.message);
+    }
+
+    this.success(Request, Response, next, response);
   }
 
 }
