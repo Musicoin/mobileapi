@@ -14,18 +14,20 @@ class TrackController extends BaseController {
     const address = Request.params.address;
 
     try {
+      this.logger.debug(`load license key start`);
       const licenseKey = await this.TrackDelegator.getLicenseKey(address);
-
-      this.logger.debug("license key:", licenseKey);
+      this.logger.debug("load license key end:", licenseKey);
       if (!licenseKey) {
         return this.reject(Request, Response, `licenseKey not found: ${address}`);
       }
 
       // load license
+      this.logger.debug(`load license info start`);
       const license = await this.TrackDelegator.loadLicense(address);
       if (!license) {
         return this.reject(Request, Response, `license not found: ${address}`);
       }
+      this.logger.debug(`load license info end`);
 
       const resourceUrl = license.resourceUrl;
 
@@ -33,9 +35,16 @@ class TrackController extends BaseController {
         return this.reject(Request, Response, `track resource not found: ${address}`);
       }
 
+      this.logger.debug(`load track resource start`);
       const resource = await this.MediaProvider.getIpfsResource(resourceUrl, () => licenseKey.key);
+      this.logger.debug(`load track resource end`);
+
       try {
+        this.logger.debug(`update track plays start`);
+        const release = await this.db.Release.findOne({contractAddress: address});
         await this.TrackDelegator.increaseTrackPlays(address);
+        await this.TrackDelegator.increaseTrackPlayStats(release._id)
+        this.logger.debug(`update track plays end`);
       } catch (error) {
         this.logger.error("increase release plays error:", error.message);
       }

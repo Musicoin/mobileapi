@@ -13,6 +13,7 @@ class ControllerDelegator extends BaseController{
     this.getUserEmail = this.getUserEmail.bind(this);
     this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
     this.updateTipStats = this.updateTipStats.bind(this);
+    this.updatePlayStats = this.updatePlayStats.bind(this);
     this._loadUser = this._loadUser.bind(this);
     this._loadApiUser = this._loadApiUser.bind(this);
 
@@ -50,6 +51,31 @@ class ControllerDelegator extends BaseController{
    * @returns promise
    */
   updateTipStats(db_table, conditions, tips){
+    const updateParams = {
+      $inc: {
+        tipCount: tips
+      }
+    }
+    const options = {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true
+    };
+    return db_table.findOneAndUpdate(
+      conditions,
+      updateParams,
+      options
+    ).exec();
+  }
+
+  /**
+   * update tip count
+   * @param {*} db_table 
+   * @param {*} conditions 
+   * @param {*} tips 
+   * @returns promise
+   */
+  updatePlayStats(db_table, conditions, tips){
     const updateParams = {
       $inc: {
         tipCount: tips

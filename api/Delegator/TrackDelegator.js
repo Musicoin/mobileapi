@@ -10,6 +10,7 @@ class TrackDelegator extends ControllerDelegator {
     this.getLicenseKey = this.getLicenseKey.bind(this);
     this.loadLicense = this.loadLicense.bind(this);
     this.increaseTrackPlays = this.increaseTrackPlays.bind(this);
+    this.increaseTrackPlayStats = this.increaseTrackPlayStats.bind(this);
   }
 
   getLicenseKey(licenseAddress) {
@@ -38,6 +39,20 @@ class TrackDelegator extends ControllerDelegator {
 
   increaseTrackPlays(address){
     return this.db.Release.update({contractAddress:address}, {$inc: { directPlayCount: 1 }})
+  }
+
+  increaseTrackPlayStats(releaseId){
+    const updatePromise = this.updatePlayStats;
+    const now = Date.now();
+    const ReleaseStats = this.db.ReleaseStats;
+    return Promise.all(this.constant.DATE_PERIOD.map(duration => {
+      const where = {
+        release: releaseId,
+        startDate: this.getDatePeriodStart(now, duration),
+        duration
+      }
+      return updatePromise(ReleaseStats, where, 1);
+    }));
   }
 
 }
