@@ -17,6 +17,9 @@ class GlobalDelegator extends ControllerDelegator {
 
   _searchArtists(reg, limit) {
     return this.db.User.find({
+      profileAddress: {
+        $ne: null
+      },
       draftProfile: {
         $exists: true
       },
