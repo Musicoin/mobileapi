@@ -6,7 +6,7 @@ const Controller = new GlobalController();
 const checkReportArtist = Controller.checkParams(Controller.schema.GlobalSchema.reportArtist);
 const checkReportRelease = Controller.checkParams(Controller.schema.GlobalSchema.reportRelease);
 
-Router.post('/search', Controller.search, Controller.sendJson);
+Router.get('/search', Controller.search, Controller.sendJson);
 Router.post('/report/release', checkReportRelease,Controller.reportRelease, Controller.sendJson);
 Router.post('/report/artist', checkReportArtist,Controller.reportArtist, Controller.sendJson);
 
