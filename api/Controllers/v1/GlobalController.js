@@ -20,6 +20,7 @@ class GlobalController extends BaseController {
     try {
       const keyword = Request.body.keyword;
       const limit = this.limit(Request.query.limit);
+      const skip = this.skip(Request.query.skip);
       if (!keyword) {
         return this.reject(Request, Response, "keyword is required.");
       }
@@ -28,8 +29,8 @@ class GlobalController extends BaseController {
       let ReleasesArray = [];
       let UsersArray = [];
 
-      const tracksLoad = this.GlobalDelegator._searchTracks(reg, limit);
-      const artistsLoad = this.GlobalDelegator._searchArtists(reg, limit);
+      const tracksLoad = this.GlobalDelegator._searchTracks(reg, limit, skip);
+      const artistsLoad = this.GlobalDelegator._searchArtists(reg, limit, skip);
 
       try {
         const searchResult = await Promise.all([tracksLoad, artistsLoad]);
@@ -117,8 +118,8 @@ class GlobalController extends BaseController {
       this.logger.debug("find user from mongodb: ", user._id);
       this.logger.info("mongodb is running");
     } catch (error) {
-      response.mongodb = "error: "+error.message;
-      this.logger.info("mongodb running error: "+error.message);
+      response.mongodb = "error: " + error.message;
+      this.logger.info("mongodb running error: " + error.message);
     }
 
     try {
@@ -126,8 +127,8 @@ class GlobalController extends BaseController {
       this.logger.debug("find user from gmc: ", artist);
       this.logger.info("gmc is running");
     } catch (error) {
-      response.gmc = "error: "+error.message;
-      this.logger.info("gmc running error: "+error.message);
+      response.gmc = "error: " + error.message;
+      this.logger.info("gmc running error: " + error.message);
     }
 
     try {
@@ -135,8 +136,8 @@ class GlobalController extends BaseController {
       this.logger.debug("find artist description from ipfs: ", description);
       this.logger.info("ipfs is running");
     } catch (error) {
-      response.ipfs = "error: "+error.message;
-      this.logger.info("ipfs running error: "+error.message);
+      response.ipfs = "error: " + error.message;
+      this.logger.info("ipfs running error: " + error.message);
     }
 
     this.success(Request, Response, next, response);

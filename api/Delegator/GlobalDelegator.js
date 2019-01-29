@@ -15,7 +15,7 @@ class GlobalDelegator extends ControllerDelegator {
     this.createReport = this.createReport.bind(this);
   }
 
-  _searchArtists(reg, limit) {
+  _searchArtists(reg, limit, skip) {
     return this.db.User.find({
       profileAddress: {
         $ne: null
@@ -26,12 +26,12 @@ class GlobalDelegator extends ControllerDelegator {
       "draftProfile.artistName": {
         $regex: reg
       }
-    }).limit(limit).exec();
+    }).skip(skip).limit(limit).exec();
   }
 
-  async searchArtists(reg, limit) {
+  async searchArtists(reg, limit, skip) {
 
-    const artists = await this._searchArtists(reg, limit);
+    const artists = await this._searchArtists(reg, limit, skip);
 
     if (artists) {
       return {
@@ -44,7 +44,7 @@ class GlobalDelegator extends ControllerDelegator {
     }
   }
 
-  async _searchTracks(reg, limit) {
+  async _searchTracks(reg, limit, skip) {
     const artistAddressList = await this.getVerifiedArtist();
     return this.db.Release.find({
       state: 'published',
@@ -59,11 +59,11 @@ class GlobalDelegator extends ControllerDelegator {
           $regex: reg
         }
       }]
-    }).limit(limit).exec();
+    }).skip(skip).limit(limit).exec();
   }
 
-  async searchTracks(reg, limit) {
-    const releases = await this._searchTracks(reg, limit);
+  async searchTracks(reg, limit, skip) {
+    const releases = await this._searchTracks(reg, limit, skip);
     if (releases) {
       return {
         data: this.response.ReleaseResponse.responseList(releases)
