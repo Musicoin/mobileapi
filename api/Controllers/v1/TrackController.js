@@ -40,11 +40,13 @@ class TrackController extends BaseController {
       this.logger.debug(`load track resource end`);
 
       try {
-        this.logger.debug(`update track plays start`);
-        const release = await this.db.Release.findOne({contractAddress: address});
-        await this.TrackDelegator.increaseTrackPlays(address);
-        await this.TrackDelegator.increaseTrackPlayStats(release._id)
-        this.logger.debug(`update track plays end`);
+        if(Request.headers.range){
+          this.logger.debug(`update track plays start`);
+          const release = await this.db.Release.findOne({contractAddress: address});
+          await this.TrackDelegator.increaseTrackPlays(address);
+          await this.TrackDelegator.increaseTrackPlayStats(release._id)
+          this.logger.debug(`update track plays end`);
+        }
       } catch (error) {
         this.logger.error("increase release plays error:", error.message);
       }
