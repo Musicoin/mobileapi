@@ -18,9 +18,9 @@ class GlobalController extends BaseController {
 
   async search(Request, Response, next) {
     try {
-      const keyword = Request.query.keyword;
-      const limit = this.limit(Request.query.limit);
-      const skip = this.skip(Request.query.skip);
+      const keyword = Request.body.keyword;
+      const limit = this.limit(Request.body.limit);
+      const skip = this.skip(Request.body.skip);
       if (!keyword) {
         return this.reject(Request, Response, "keyword is required.");
       }
