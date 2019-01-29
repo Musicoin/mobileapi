@@ -9,6 +9,7 @@ class TrackDelegator extends ControllerDelegator {
 
     this.getLicenseKey = this.getLicenseKey.bind(this);
     this.loadLicense = this.loadLicense.bind(this);
+    this.increaseTrackPlays = this.increaseTrackPlays.bind(this);
   }
 
   getLicenseKey(licenseAddress) {
@@ -33,6 +34,10 @@ class TrackDelegator extends ControllerDelegator {
 
   loadLicense(licenseAddress){
     return this.MusicoinCore.getLicenseModule().getLicense(licenseAddress);
+  }
+
+  increaseTrackPlays(address){
+    return this.db.Release.update({contractAddress:address}, {$inc: { directPlayCount: 1 }})
   }
 
 }
