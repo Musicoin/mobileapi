@@ -60,6 +60,8 @@ app.use("/v1/artist", require("./api/routes/v1/artist"));
 app.use("/v1/user", require("./api/routes/v1/user"));
 app.use("/v1/release", require("./api/routes/v1/release"));
 
+app.use("/v2", require("./api/routes/v2/global"));
+
 apollo.config(app);
 
 app.use('/', require('./api/routes/global'));
