@@ -1,13 +1,45 @@
-const PackageCreate = {
+const add = {
   name: {
     type: "string",
-    min: 3
   },
-  limitApiCalls: {
-    type: "number"
+  email: {
+    type: "email"
+  },
+  trackAddress: {
+    type: "string",
   }
-};
+}
+
+const getOne = {
+  name: {
+    type: "string",
+  },
+  email: {
+    type: "email"
+  }
+}
+
+const getAll = {
+  email: {
+    type: "email"
+  }
+}
+
+const deleteOne = {
+  name: {
+    type: "string",
+  },
+  email: {
+    type: "email"
+  },
+  trackAddress: {
+    type: "string",
+  }
+}
 
 module.exports = {
-  create: PackageCreate
+  add,
+  getOne,
+  getAll,
+  deleteOne
 };

@@ -1,8 +1,6 @@
-const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
+const mongoose = require('./../connections/core');
 
-// define the schema for our user model
-const packageSchema = mongoose.Schema({
+module.exports = mongoose.model('ApiPackage', mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -12,7 +10,4 @@ const packageSchema = mongoose.Schema({
         type: Number,
         default: 1000
     }
-});
-
-// create the model for users and expose it to our app
-module.exports = coreConnection.model('ApiPackage', packageSchema);
+}));

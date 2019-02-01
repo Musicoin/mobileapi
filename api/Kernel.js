@@ -14,10 +14,9 @@ const LicenseController = require('./Controllers/LicenseController');
 const TxController = require('./Controllers/TxController');
 const UserController = require('./Controllers/UserController');
 const GlobalController = require('./Controllers/GlobalController');
-const GlobalModule = new GlobalController();
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
-const ReleaseModule = require('./Controllers/ReleaseController');
+const ReleaseController = require('./Controllers/ReleaseController');
 
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
 const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
@@ -27,6 +26,8 @@ const licenseModule = new LicenseController(musicoinCore.getLicenseModule(), acc
 const artistModule = new ArtistController(musicoinCore.getArtistModule(), paymentAccountCredentialsProvider, accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider);
 const txModule = new TxController(musicoinCore.getTxModule(), config.orbiterEndpoint, musicoinCore.getWeb3Reader());
 const UserModule = new UserController(musicoinCore.getWeb3Reader(), config);
+const GlobalModule = new GlobalController(musicoinCore.getArtistModule());
+const ReleaseModule = new ReleaseController(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
 
 module.exports = {
   licenseModule: licenseModule,
@@ -36,5 +37,6 @@ module.exports = {
   authModule: authModule,
   releaseModule: ReleaseModule,
   userModule: UserModule,
-  globalController: GlobalModule
+  globalController: GlobalModule,
+  musicoinCore
 };

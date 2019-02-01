@@ -1,57 +1,45 @@
-const ApiUser = require('../../db/core/api-user');
-const mongoose = require('mongoose');
-const ValidatorClass = require('fastest-validator');
-const Validator = new ValidatorClass();
-const AuthSchema = require('../ValidatorSchema/AuthSchema');
+const BaseController = require('../Controllers/base/BaseController');
 
-class AuthMiddleware {
-
-  checkTimeouts() {
-    console.log("STUCK IN CHECK TIMEOUTS")
-    return (Request, Response, next) => {
-      ApiUser.findOne({
-        email: Request.query.email
-      }).then(user1 => {
-        console.log("Found user1 in checktimeouts", user1)
-        if (user1.accessToken != Request.query.accessToken) {
-          // error out
-          console.log("Client Secrets don't match", user1.clientSecret, Request.query.clientSecret)
-          Response.send({
-            success: false,
-            error: 'Invalid Credentials'
-          });
-        } else if (Date.now() - user1.timeout > 3600 * 1000) {
-          // error out
-          console.log("Didn't find user1 in checktimeouts")
-          Response.send({
-            success: false,
-            error: 'Access Token Expired'
-          });
-        } else {
-          this.updateApiCallcount(Request.query.email, user1.calls + 1);
-          next();
-        }
-      }).catch(Error => {
-        // error out
-        console.log("Errored out in checktimeouts")
-        Response.send({
-          success: false,
-          error: Error
-        });
-      });
-    }
+class AuthMiddleware extends BaseController {
+  constructor(props) {
+    super(props);
+    this.authenticate = this.authenticate.bind(this);
   }
 
-  updateApiCallcount(email, calls) {
-    ApiUser.findOne({
-      email: email
-    }).then(user => {
-      user.update({
-        calls: calls
-      }).then(user => {
-        console.log('User ' + email + 'now has made ' + calls + ' calls');
-      });
-    })
+  async authenticate(Request, Response, next) {
+
+    try {
+      const params = Request.query;
+      const email = params.email;
+      const accessToken = params.accessToken;
+
+      // validate request params
+      const validateResult = this.validate(params, this.schema.AuthSchema.tokenValidity);
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult);
+      }
+
+      // find api user
+      const apiUser = await this.db.ApiUser.findOne({
+        email: email
+      }).exec();
+
+      // verify api user
+      if (apiUser && apiUser.accessToken === accessToken) {
+        await apiUser.update({
+          calls: apiUser.calls + 1,
+          timeout: Date.now()
+        });
+        Request.apiUser = apiUser;
+        next();
+      } else if (Date.now() - apiUser.timeout > this.constant.TOKEN_TIMEOUT) {
+        this.reject(Request, Response, 'Access Token Expired');
+      } else {
+        this.reject(Request, Response, 'Invalid Credentials');
+      }
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
   }
 }
 

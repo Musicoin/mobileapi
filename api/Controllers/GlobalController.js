@@ -4,13 +4,16 @@
  *
  * */
 const User = require('../../db/core/user');
-const ApiUser = require('../../db/core/api-user');
 const Release = require('../../db/core/release');
-const Playlist = require('../../db/core/playlist');
-const Package = require('../../db/core/api-package');
-const mongoose = require('mongoose');
+const ReleaseModel = require('../response-data/release-model');
+const ArtistModel = require('../response-data/artist-model');
 
 class GlobalController {
+
+  constructor(_artistModule) {
+    this.artistModule = _artistModule;
+  }
+
   async search(Request, Response) {
     let ReleasesArray = [];
     let ResponseInstance = {
@@ -162,6 +165,101 @@ class GlobalController {
     });
   }
 
+  async searchV1(Request, Response) {
+
+    const artistModule = this.artistModule;
+
+    const keyword = Request.body.keyword;
+
+    if(!keyword || keyword === ''){
+      return Response.status(400).json({
+        error: "search keyword is required."
+      })
+    }
+
+    const _limit = Request.body.limit;
+    let limit = _limit ? Number(_limit) : 10;
+    limit = limit > 20 ? 20 : limit;
+
+    const reg = new RegExp(keyword, "i");
+
+    let ReleasesArray = [];
+    let UsersArray = [];
+
+    // search releases
+    try {
+      const releases = await Release.find({
+        state: 'published' ,
+        markedAsAbuse: {
+          $ne: true
+        },
+        $or: [{
+            title: {
+              $regex: reg
+            }
+          }]
+      }).limit(limit).exec();
+
+      // filter the releases and conversion result
+      ReleasesArray = ReleaseModel.responseList(releases);
+    } catch (error) {
+      console.log("search release error:", error.message)
+    }
+
+    // search users
+    try {
+      // search artist from releases
+      const users = await Release.aggregate([{
+          $match: {
+            artistName: {
+              $regex: reg
+            }
+          }
+        },
+        {
+          $group: {
+            "_id": "$artistAddress",
+            "name": {
+              $first: "$artistName"
+            },
+            "profileAddress": {
+              $first: "$artistAddress"
+            },
+            "releaseCount": {
+              $sum: 1
+            }
+          }
+        },
+        {
+          $limit: limit
+        }
+      ]).exec();
+
+      // conversion result
+      UsersArray = await Promise.all(users.map(user => {
+        return new Promise((resolve, reject) => {
+
+          // load artist
+          artistModule.getArtistByProfile(user.profileAddress).then(res => {
+            resolve(ArtistModel.responseData(user.profileAddress, res));
+          })
+          .catch(error => reject(error));
+
+        })
+      }));
+    } catch (error) {
+      console.log("search user error:", error.message)
+    }
+
+
+    Response.send({
+      success: true,
+      releases: ReleasesArray,
+      artists: UsersArray
+    });
+
+  }
+
   async getAllSongsByName(Request, Response) {
 
     let ReleasesArray = [];
@@ -251,6 +349,39 @@ class GlobalController {
     });
   }
 
+  async publishRelease(req, res){
+	try{
+		const releaseArray = req.body.releases;
+		const mode = req.body.mode;
+		if(mode === "info"){
+			const info = await Release.find({contractAddress: { $in: releaseArray }}).exec();
+			return res.status(200).json({
+				status: "success",
+				releases: info.map(val=>{
+					return {
+						address: val.contractAddress,
+						state: val.state
+					}
+				})
+			})
+		}else if(mode === "all"){
+			await Release.update({state: "error"},{$set:{state: "published"}},{multi: true});
+		return res.status(200).json({
+			status: "success"
+		})
+	
+		}
+		await Release.update({contractAddress: {$in: releaseArray}},{$set:{state: "published"}},{multi: true});
+		res.status(200).json({
+			status: "success"
+		})
+	}catch(error){
+		res.status(500).json({
+			error: error.message
+		})
+	}
+  }
+
   async getAllSongs(Request, Response) {
     // this endpoint should accept a string (artistName) to find the artist's songs
     // this can also be the profile address I guess, should work pretty okay
@@ -262,9 +393,9 @@ class GlobalController {
       totalReleases: 0,
       totalPlays: 0
     };
-    let user = User.findOne(
-      artistName: req.query.artistName
-    ).then(user => {
+    User.findOne({
+      artistName: Request.query.artistName
+    }).then(user => {
       console.log("USER FOUND", user);
       if ((typeof user != 'null') && (typeof user != 'undefined')) {
         let releases = Release.find({

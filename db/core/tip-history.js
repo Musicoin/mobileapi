@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
-// create the model for users and expose it to our app
-module.exports = coreConnection.model('TipHistory', mongoose.Schema({
+const mongoose = require('./../connections/core');
+
+module.exports = mongoose.model('TipHistory', mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -17,4 +14,4 @@ module.exports = coreConnection.model('TipHistory', mongoose.Schema({
     tipCount: Number,
     date: Date
 }));
-//# sourceMappingURL=release.js.map
+

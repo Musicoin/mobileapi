@@ -1,11 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
-// create the model for users and expose it to our app
-module.exports = coreConnection.model('Release', mongoose.Schema({
+const mongoose = require('./../connections/core');
+
+module.exports = mongoose.model('Release', mongoose.Schema({
   tx: String,
   state: {
     type: String,
@@ -41,4 +36,3 @@ module.exports = coreConnection.model('Release', mongoose.Schema({
   pendingUpdateTxs: Object,
   votes: Object
 }));
-//# sourceMappingURL=release.js.map

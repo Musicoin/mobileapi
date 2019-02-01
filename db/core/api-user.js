@@ -1,7 +1,6 @@
-const mongoose = require('mongoose');
-const coreConnection = require('./../connections/core');
-// define the schema for our user model
-const userSchema = mongoose.Schema({
+const mongoose = require('./../connections/core');
+
+module.exports = mongoose.model('APIUserAccount', mongoose.Schema({
   email: {
     type: Object,
     unique: true,
@@ -33,7 +32,4 @@ const userSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ApiPackage'
   }
-});
-
-// create the model for users and expose it to our app
-module.exports = coreConnection.model('APIUserAccount', userSchema);
+}));

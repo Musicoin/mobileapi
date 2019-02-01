@@ -266,13 +266,14 @@ LicenseModule.prototype.doGetRandomReleases = function({
     .then(items => bluebird_1.Promise.all(items.map(item => this.convertDbRecordToLicense(item))));
 }
 
-LicenseModule.prototype.getTrackDetailsByIds = function(addresses) {
+LicenseModule.prototype.getTrackDetailsByIds = function(addresses, limit) {
   return Release.find({
       contractAddress: {
         $in: addresses
       }
     })
     .populate('artist')
+    .limit(limit)
     .then(releases => {
       return bluebird_1.Promise.all(releases.map(r => this.convertDbRecordToLicenseLite(r)));
     })

@@ -21,8 +21,21 @@ const ZIP_ENCRYPTED = "zeipfs://";
 function MediaProvider(ipfsHost, ipfsAddUrl) {
   this.ipfsReadEndpoint = ipfsHost;
   this.ipfsAddUrl = ipfsAddUrl;
+
+  this.getIpfsHash = function (resourceUrl) {
+    if(resourceUrl.startsWith(RAW)){
+      return resourceUrl.slice(RAW.length, resourceUrl.length);
+    }else if (resourceUrl.startsWith(ENCRYPTED)) {
+      return resourceUrl.slice(ENCRYPTED.length, resourceUrl.length);
+    }else if (resourceUrl.startsWith(ZIP_ENCRYPTED)) {
+      return resourceUrl.slice(ENCRYPTED.length, resourceUrl.length);
+    }else{
+      return resourceUrl;
+    }
+  }
+
   // private functions
-  this._parseIpfsUrl = function(resourceUrl) {
+  this._parseIpfsUrl = function (resourceUrl) {
     if (!resourceUrl)
       return {
         err: new Error("Resource URL is empty: " + resourceUrl)
@@ -38,7 +51,7 @@ function MediaProvider(ipfsHost, ipfsAddUrl) {
       err: new Error("Unsupported protocol: " + resourceUrl)
     };
   };
-  this._createIpfsProxyOptions = function(url, protocol) {
+  this._createIpfsProxyOptions = function (url, protocol) {
     const hash = url.substring(protocol.length);
     return {
       hash: hash,
@@ -48,21 +61,21 @@ function MediaProvider(ipfsHost, ipfsAddUrl) {
     };
   };
 }
-MediaProvider.prototype.getRawIpfsResource = function(hash) {
+MediaProvider.prototype.getRawIpfsResource = function (hash) {
   return this.getIpfsResource(RAW + decryptText(hash, () => "TESTING@(*@$"));
 };
-MediaProvider.prototype.resolveIpfsUrl = function(url) {
+MediaProvider.prototype.resolveIpfsUrl = function (url) {
   if (!url || url.trim().length == 0)
     return "";
   const parsed = this._parseIpfsUrl(url);
   if (parsed.err)
-    throw new Error("Could not parse URL: " + url);
+    return "";
   // we have to proxy ipfs locally
-  return "/media/" + encryptText(parsed.hash, () => "TESTING@(*@$");
+  return "https://musicoin.org/media/" + encryptText(parsed.hash, () => "TESTING@(*@$");
 };
-MediaProvider.prototype.readJsonFromIpfs = function(url) {
+MediaProvider.prototype.readJsonFromIpfs = function (url) {
   return this.readTextFromIpfs(url)
-    .then(function(text) {
+    .then(function (text) {
       try {
         return JSON.parse(text);
       } catch (e) {
@@ -72,31 +85,48 @@ MediaProvider.prototype.readJsonFromIpfs = function(url) {
       }
     });
 };
-MediaProvider.prototype.readTextFromIpfs = function(url) {
+MediaProvider.prototype.readTextFromIpfs = function (url) {
   return this.getIpfsResource(url)
-    .then(function(result) {
-      return new bluebird_1.Promise(function(resolve, reject) {
+    .then(function (result) {
+      return new bluebird_1.Promise(function (resolve, reject) {
         let content = '';
-        result.stream.on('data', function(d) {
+        result.stream.on('data', function (d) {
           content += d;
         });
-        result.stream.on('end', function() {
+        result.stream.on('end', function () {
           resolve(content);
         });
         result.stream.on('err', reject);
       });
     });
 };
-MediaProvider.prototype.getIpfsResource = function(resourceUrl, keyProvider) {
+
+MediaProvider.prototype.fetchTextFromIpfs = function (url) {
+  return this.fetchIpfsResource(url)
+    .then(function (result) {
+      return new bluebird_1.Promise(function (resolve, reject) {
+        let content = '';
+        result.stream.on('data', function (d) {
+          content += d.toString();
+        });
+        result.stream.on('end', function () {
+          resolve(content);
+        });
+        result.stream.on('err', reject);
+      });
+    });
+};
+
+MediaProvider.prototype.getIpfsResource = function (resourceUrl, keyProvider) {
   var timeout = 30000;
-  return new bluebird_1.Promise(function(resolve, reject) {
+  return new bluebird_1.Promise(function (resolve, reject) {
     const options = this._parseIpfsUrl(resourceUrl);
     if (options.err)
       return reject(options.err);
     let downloading = false;
     let aborted = false;
     // console.log("Requesting " + resourceUrl);
-    const request = http.get(options.ipfsUrl, function(proxyRes) {
+    const request = http.get(options.ipfsUrl, function (proxyRes) {
       try {
         // console.log("Downloading " + resourceUrl);
         downloading = true;
@@ -118,7 +148,7 @@ MediaProvider.prototype.getIpfsResource = function(resourceUrl, keyProvider) {
     });
     request.on('error', reject);
     if (timeout) {
-      request.setTimeout(timeout, function() {
+      request.setTimeout(timeout, function () {
         if (!downloading) {
           console.log("Canceling request for IPFS resource: " + resourceUrl);
           aborted = true;
@@ -130,7 +160,31 @@ MediaProvider.prototype.getIpfsResource = function(resourceUrl, keyProvider) {
     }
   }.bind(this));
 };
-MediaProvider.prototype.getKnownIPFSHashes = function(since, offset, limit) {
+
+MediaProvider.prototype.fetchIpfsResource = function (resourceUrl, key) {
+  return new bluebird_1.Promise(function (resolve, reject) {
+    const options = this._parseIpfsUrl(resourceUrl);
+    if (options.err)
+      return reject(options.err);
+    const request = http.get(options.ipfsUrl, function (proxyRes) {
+      try {
+        const headers = proxyRes.headers;
+        let stream = proxyRes;
+        stream = options.decrypt ? stream.pipe(crypto.createDecipher(algorithm, key)) : stream;
+        stream = options.unzip ? stream.pipe(zlib.createGunzip()) : stream;
+        resolve({
+          headers: headers,
+          stream: stream
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+    request.on('error', reject);
+  }.bind(this));
+};
+
+MediaProvider.prototype.getKnownIPFSHashes = function (since, offset, limit) {
   return IPFSResource.find({
       dateAdded: {
         $gte: since
@@ -140,7 +194,7 @@ MediaProvider.prototype.getKnownIPFSHashes = function(since, offset, limit) {
     .limit(limit)
     .exec();
 };
-MediaProvider.prototype.getIpfsUrl = function(hash) {
+MediaProvider.prototype.getIpfsUrl = function (hash) {
   return this.ipfsReadEndpoint + '/ipfs/' + hash;
 };
 /**
@@ -150,7 +204,7 @@ MediaProvider.prototype.getIpfsUrl = function(hash) {
  * @param encryptionKeyProvider A function that will return the encryption key, or null to upload an unencrypted file
  * @returns {Promise.<String>} a Promise that resolves to an IPFS URL (ipfs://HASH or eipfs://HASH)
  */
-MediaProvider.prototype.uploadText = function(text, encryptionKeyProvider) {
+MediaProvider.prototype.uploadText = function (text, encryptionKeyProvider) {
   // this sucks -- the IPFS upload step doesn't seem to work correctly with a stringToStream object
   // So, forcing it to go through a temp file.  However, that means any encryption should happen
   // before writing to a temp file...
@@ -183,7 +237,7 @@ MediaProvider.prototype.uploadText = function(text, encryptionKeyProvider) {
  * @param encryptionKeyProvider A function that will return the encryption key, or null to upload an unencrypted file
  * @returns {Promise.<String>} a Promise that resolves to an IPFS URL (ipfs://HASH or eipfs://HASH)
  */
-MediaProvider.prototype.upload = function(pathOrStream, encryptionKeyProvider) {
+MediaProvider.prototype.upload = function (pathOrStream, encryptionKeyProvider) {
   const context = {
     tempFile: null,
     hash: null
@@ -201,10 +255,10 @@ MediaProvider.prototype.upload = function(pathOrStream, encryptionKeyProvider) {
     .then(() => encryptionKeyProvider ? ENCRYPTED + context.hash : RAW + context.hash);
 };
 // Private static functions
-const maybeDeleteTmpFile = function(path) {
+const maybeDeleteTmpFile = function (path) {
   if (!path)
     return;
-  fs.unlink(path, function(err) {
+  fs.unlink(path, function (err) {
     if (err)
       console.log("Could not delete temp file: " + err);
   });
@@ -216,9 +270,9 @@ const maybeDeleteTmpFile = function(path) {
  * @param pathOrStream A Stream or a path to a file on the local file system
  * @returns {Promise.<String>} a Promise that resolves to the hash of the file in IPFS
  */
-const _uploadRaw = function(ipfsAddUrl, pathOrStream) {
-  return new bluebird_1.Promise(function(resolve, reject) {
-      const req = request.post(ipfsAddUrl, function(err, resp, body) {
+const _uploadRaw = function (ipfsAddUrl, pathOrStream) {
+  return new bluebird_1.Promise(function (resolve, reject) {
+      const req = request.post(ipfsAddUrl, function (err, resp, body) {
         if (err) {
           reject(err);
         } else {
@@ -250,21 +304,21 @@ const _uploadRaw = function(ipfsAddUrl, pathOrStream) {
  * @param encryptionKeyProvider A function that can provider the key for encryption
  * @return {Promise<Stream>} a promise resolves to an encrypted stream
  */
-const _encrypt = function(pathOrStream, encryptionKeyProvider) {
-  return new bluebird_1.Promise(function(resolve, reject) {
+const _encrypt = function (pathOrStream, encryptionKeyProvider) {
+  return new bluebird_1.Promise(function (resolve, reject) {
     if (!encryptionKeyProvider)
       return reject(new Error("A key provider is required to encrypt a stream or file"));
     const encrypt = crypto.createCipher(algorithm, encryptionKeyProvider());
     resolve(StreamUtils.asStream(pathOrStream).pipe(encrypt));
   });
 };
-const encryptText = function(text, encryptionKeyProvider) {
+const encryptText = function (text, encryptionKeyProvider) {
   var cipher = crypto.createCipher(algorithm, encryptionKeyProvider());
   var crypted = cipher.update(text, 'utf8', 'hex');
   crypted += cipher.final('hex');
   return crypted;
 };
-const decryptText = function(text, encryptionKeyProvider) {
+const decryptText = function (text, encryptionKeyProvider) {
   var decipher = crypto.createDecipher(algorithm, encryptionKeyProvider());
   var dec = decipher.update(text, 'hex', 'utf8');
   dec += decipher.final('utf8');

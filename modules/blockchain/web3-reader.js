@@ -57,69 +57,70 @@ function Web3Reader(web3) {
   knownContracts.push(this.artistV3);
 };
 
-Web3Reader.getDependencies = function() {
+Web3Reader.getDependencies = function () {
   return {
     web3: null
   };
 };
 
-Web3Reader.prototype.getContractDefinition = function(type, version) {
-  return knownContracts.filter(function(d) {
+Web3Reader.prototype.getContractDefinition = function (type, version) {
+  return knownContracts.filter(function (d) {
     return d.type == type && d.version == version
   })[0];
 };
 
-Web3Reader.prototype.loadLicense = function(licenseAddress) {
-  console.log("Loading license: " + licenseAddress);
+Web3Reader.prototype.loadLicense = function (licenseAddress) {
+  console.log("Loading license: ", licenseAddress);
+  try {
+    // load the oldest supported version and extract the actual version from the contract
+    const tempContract = this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
+    const version = tempContract.contractVersion();
+    console.log("contractVersion: ", version);
+    const definition = this.getContractDefinition(ContractTypes.PPP, version);
+    console.log("getContractDefinition : ", definition.codeHash);
+    const licensePromise = this.loadContract(licenseAddress, definition.abi);
+    // extracting the arrays takes some extra work
+    const c = Promise.promisifyAll(this.web3.eth.contract(definition.abi).at(licenseAddress));
+    const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
+    const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
+    return Promise.join(licensePromise, contributorPromise, royaltyPromise,
+      function (licenseObject, contributors, royalties) {
+        licenseObject.contributors = contributors;
+        licenseObject.royalties = royalties;
 
-  // load the oldest supported version and extract the actual version from the contract
-  const tempContract = this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
-  return Promise.promisify(tempContract.contractVersion)()
-    .bind(this)
-    .then(function(version) {
-      return this.getContractDefinition(ContractTypes.PPP, version);
-    })
-    .then(function(definition) {
-      const licensePromise = this.loadContract(licenseAddress, definition.abi);
-      // extracting the arrays takes some extra work
-      const c = Promise.promisifyAll(this.web3.eth.contract(definition.abi).at(licenseAddress));
-      const contributorPromise = ArrayUtils.extractAddressAndValues(c.contributorsAsync, c.contributorSharesAsync, "shares");
-      const royaltyPromise = ArrayUtils.extractAddressAndValues(c.royaltiesAsync, c.royaltyAmountsAsync, "amount");
-      return Promise.join(licensePromise, contributorPromise, royaltyPromise,
-        function(licenseObject, contributors, royalties) {
-          licenseObject.contributors = contributors;
-          licenseObject.royalties = royalties;
+        // for convenience, do the conversion to "coins" from wei
+        licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
+        licenseObject.totalEarnedCoins = this.web3.fromWei(licenseObject.totalEarned, 'ether');
+        licenseObject.address = licenseAddress;
+        return licenseObject;
+      }.bind(this));
+  } catch (error) {
+    console.log("load license error:", error.message);
+    return Promise.reject(error);
+  }
 
-          // for convenience, do the conversion to "coins" from wei
-          licenseObject.coinsPerPlay = this.web3.fromWei(licenseObject.weiPerPlay, 'ether');
-          licenseObject.totalEarnedCoins = this.web3.fromWei(licenseObject.totalEarned, 'ether');
-          licenseObject.address = licenseAddress;
-
-          return licenseObject;
-        }.bind(this));
-    });
 };
 
-Web3Reader.prototype.getArtistByProfile = function(profileAddress, output) {
+Web3Reader.prototype.getArtistByProfile = function (profileAddress, output) {
   return this.loadContract(profileAddress, artistAbi, output);
 };
 
-Web3Reader.prototype.loadContract = function(address, abi, outputObject) {
+Web3Reader.prototype.loadContract = function (address, abi, outputObject) {
   return this.loadContractAndFields(address, abi, this.getConstantFields(abi), outputObject);
 };
 
-Web3Reader.prototype.getFunctionType = function(transaction) {
+Web3Reader.prototype.getFunctionType = function (transaction) {
   return this.functionTypeMapping[transaction.input] || FunctionTypes.UNKNOWN;
 };
 
-Web3Reader.prototype.getTransactionType = function(transaction) {
+Web3Reader.prototype.getTransactionType = function (transaction) {
   if (transaction.to == null) {
     return TxTypes.CREATION;
   }
   return this.txTypeMapping[transaction.input];
 };
 
-Web3Reader.prototype.getContractType = function(code) {
+Web3Reader.prototype.getContractType = function (code) {
   for (let i = 0; i < knownContracts.length; i++) {
     const template = knownContracts[i];
     if (code.length >= template.codeLength) {
@@ -138,40 +139,40 @@ Web3Reader.prototype.getContractType = function(code) {
   };
 };
 
-Web3Reader.prototype.getTransaction = function(tx) {
-  return new Promise(function(resolve, reject) {
-    this.web3.eth.getTransaction(tx, function(error, transaction) {
+Web3Reader.prototype.getTransaction = function (tx) {
+  return new Promise(function (resolve, reject) {
+    this.web3.eth.getTransaction(tx, function (error, transaction) {
       if (error) reject(error);
       else resolve(transaction);
     })
   }.bind(this));
 };
 
-Web3Reader.prototype.getTransactionReceipt = function(tx) {
-  return new Promise(function(resolve, reject) {
-    this.web3.eth.getTransactionReceipt(tx, function(error, receipt) {
+Web3Reader.prototype.getTransactionReceipt = function (tx) {
+  return new Promise(function (resolve, reject) {
+    this.web3.eth.getTransactionReceipt(tx, function (error, receipt) {
       if (error) reject(error);
       else resolve(receipt);
     })
   }.bind(this));
 };
 
-Web3Reader.prototype.getLicenseContractInstance = function(licenseAddress) {
+Web3Reader.prototype.getLicenseContractInstance = function (licenseAddress) {
   return this.web3.eth.contract(pppMvp2Abi).at(licenseAddress);
 };
 
-Web3Reader.prototype.getArtistContractInstance = function(profileAddress) {
+Web3Reader.prototype.getArtistContractInstance = function (profileAddress) {
   return this.web3.eth.contract(this.artistV3.abi).at(profileAddress);
 };
 
-Web3Reader.prototype.getContractAt = function(abi, address) {
+Web3Reader.prototype.getContractAt = function (abi, address) {
   return Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
 };
 
 /*
  * Loads the given fields into a JSON object asynchronously
  */
-Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outputObject) {
+Web3Reader.prototype.loadContractAndFields = function (address, abi, fields, outputObject) {
   const c = Promise.promisifyAll(this.web3.eth.contract(abi).at(address));
   fields = fields.map(f => {
     if (typeof f == "string") {
@@ -190,13 +191,13 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
     const name = f.name;
     if (c[name + "Async"]) return c[name + "Async"]();
     return Promise.resolve(name + " not found")
-      .catch(function(err) {
+      .catch(function (err) {
         return name + " not found";
       });
   });
 
   const fieldPromises = Promise.all(promises);
-  return Promise.join(this.getBalanceAsync(address), fieldPromises, function(weiBalance, results) {
+  return Promise.join(this.getBalanceAsync(address), fieldPromises, function (weiBalance, results) {
     const output = outputObject || {};
     fields.forEach((f, idx) => {
       const name = f.name;
@@ -211,25 +212,25 @@ Web3Reader.prototype.loadContractAndFields = function(address, abi, fields, outp
   }.bind(this))
 };
 
-Web3Reader.prototype.getBalanceInMusicoins = function(address) {
+Web3Reader.prototype.getBalanceInMusicoins = function (address) {
   return this.getBalanceAsync(address)
     .then((weiBalance) => this.web3.fromWei(weiBalance, 'ether'));
 };
 
-Web3Reader.prototype.convertWeiToMusicoins = function(weiAmount) {
+Web3Reader.prototype.convertWeiToMusicoins = function (weiAmount) {
   return this.web3.fromWei(weiAmount, 'ether');
 };
 
-Web3Reader.prototype.getConstantFields = function(abi) {
+Web3Reader.prototype.getConstantFields = function (abi) {
   return abi
     .filter(field => field.constant && field.type == "function" && field.inputs && field.inputs.length == 0)
 };
 
-Web3Reader.prototype.waitForTransaction = function(expectedTx) {
-  return new Promise(function(resolve, reject) {
+Web3Reader.prototype.waitForTransaction = function (expectedTx) {
+  return new Promise(function (resolve, reject) {
     let count = 0;
     const filter = this.web3.eth.filter('latest');
-    filter.watch(function(error, result) {
+    filter.watch(function (error, result) {
       if (error) console.log("Error: " + error);
       if (result) console.log("Result: " + result);
       count++;
@@ -241,10 +242,10 @@ Web3Reader.prototype.waitForTransaction = function(expectedTx) {
       }
 
       // each time a new block comes in, see if our tx is in it
-      this.web3.eth.getTransactionReceipt(expectedTx, function(error, receipt) {
+      this.web3.eth.getTransactionReceipt(expectedTx, function (error, receipt) {
         if (receipt && receipt.transactionHash == expectedTx) {
           console.log("Got receipt: " + expectedTx + ", blockHash: " + receipt.blockHash);
-          this.web3.eth.getTransaction(expectedTx, function(error, transaction) {
+          this.web3.eth.getTransaction(expectedTx, function (error, transaction) {
             if (transaction.gas == receipt.gasUsed) {
               // wtf?! This is the only way to check for an error??
               filter.stopWatching();
@@ -264,8 +265,12 @@ Web3Reader.prototype.waitForTransaction = function(expectedTx) {
   }.bind(this));
 };
 
-Web3Reader.prototype.getWeb3 = function() {
+Web3Reader.prototype.getWeb3 = function () {
   return this.web3;
+};
+
+Web3Reader.prototype.getBlockNumber = function () {
+  return this.web3.eth.blockNumber;
 };
 
 module.exports = Web3Reader;

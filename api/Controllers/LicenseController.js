@@ -24,14 +24,47 @@ class LicenseController {
     })
   }
 
+  async getDetailV1(Request, Response){
+    const address = Request.params.address;
+    console.log("license address: ",address);
+    if(!address){
+      return Response.status(400).json({
+        status: "error",
+        message: "license address is required."
+      })
+    }
+
+    try {
+      const result = await this.licenseModule.getLicense(address);
+      if (result) {
+        Response.status(200).json(result)
+      }else{
+        Response.status(400).json({
+          error: `not found license: ${address}`
+        })
+      }
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+  }
+
   getAudioUrlByAddress(Request, Response) {
     this.licenseModule.getAudioLicense(Request.params.address).then(res => {
       Response.send(res)
     })
   }
 
-  getNewReleases(Request, Response) {
-    this.licenseModule.getNewReleases(getLimit(Request))
+  async getNewReleases(Request, Response) {
+    try {
+      const releases = await this.licenseModule.getNewReleases(getLimit(Request));
+      Response.status(200).json(releases)
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
   }
 
   getTopPlayed(Request, Response) {
@@ -55,7 +88,7 @@ class LicenseController {
   }
 
   getDetailsByAddresses(Request, Response) {
-    this.licenseModule.getTrackDetailsByIds(Request.query.addresses).then(res => {
+    this.licenseModule.getTrackDetailsByIds(Request.query.addresses, getLimit(Request)).then(res => {
       Response.send(res)
     });
   }
@@ -67,12 +100,15 @@ class LicenseController {
   }
 
   getPppByAddress(Request, Response) {
+    const accountManager = this.accountManager;
+    const licenseModule = this.licenseModule;
+    const paymentAccountCredentialsProvider = this.paymentAccountCredentialsProvider;
     const context = {};
-    const l = licenseModule.getLicense(Request.params.address);
-    const k = new Promise(function(resolve, reject) {
+    const l = this.licenseModule.getLicense(Request.params.address);
+    const k = new Promise(function (resolve, reject) {
       LicenseKey.findOne({
         licenseAddress: Request.params.address
-      }, function(err, licenseKey) {
+      }, function (err, licenseKey) {
         if (!licenseKey) return reject({
           err: "License not found: " + Request.params.address
         });
@@ -82,25 +118,62 @@ class LicenseController {
       })
     });
 
-    Promise.join(l, k, function(license, keyResult) {
+    Promise.join(l, k, function (license, keyResult) {
         context.output = keyResult;
-        return this.accountManager.pay(Request.user.clientID, license.weiPerPlay);
+        return accountManager.pay(Request.query.email, license.weiPerPlay);
       })
-      .then(function() {
-        return licenseModule.ppp(Request.params.address, this.paymentAccountCredentialsProvider);
+      .then(function () {
+        return licenseModule.ppp(Request.params.address, paymentAccountCredentialsProvider);
       })
-      .then(function(tx) {
+      .then(function (tx) {
         console.log(`Initiated payment, tx: ${tx}`);
         context.output.tx = tx;
         Response.send(context.output);
       })
-      .catch(function(err) {
+      .catch(function (err) {
         console.log(err);
         Response.status(400);
         Response.send({
           err: "Failed to acquire key or payment was rejected"
         });
       })
+  }
+
+
+  async getPppByAddressV1(Request, Response) {
+
+    try {
+      // load license
+      const license = await this.licenseModule.getLicense(Request.params.address);
+      if (!license) {
+        return Response.status(400).json({
+          error: `license not found: ${Request.params.address}`
+        })
+      }
+      // find license key
+      const licenseKey = await LicenseKey.findOne({
+        licenseAddress: Request.params.address
+      }).exec();
+      if (!licenseKey) {
+        return Response.status(400).json({
+          error: `license key not found: ${Request.params.address}`
+        })
+      }
+      // pay to license
+      const tx = await this.licenseModule.ppp(Request.params.address, this.paymentAccountCredentialsProvider);
+      // adjust user balance
+      await this.accountManager.pay(Request.query.email, license.weiPerPlay);
+
+      Response.status(200).json({
+        key: licenseKey.key,
+        tx
+      })
+
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
   }
 
   distributeBalance(Request, Response) {
@@ -110,7 +183,7 @@ class LicenseController {
           tx: tx
         });
       })
-      .catch(function(err) {
+      .catch(function (err) {
         Response.status(500)
         Response.send(err);
       });
@@ -141,7 +214,7 @@ class LicenseController {
   getAll(Request, Response) {
     console.log("Received license release request: " + JSON.stringify(Request.body));
     this.publishCredentialsProvider.getCredentials()
-      .then(function(credentials) {
+      .then(function (credentials) {
         return licenseModule.releaseLicense({
           owner: this.contractOwnerAccount,
           profileAddress: Request.body.profileAddress,
@@ -159,7 +232,7 @@ class LicenseController {
           }]
         }, this.publishCredentialsProvider)
       })
-      .then(function(tx) {
+      .then(function (tx) {
         console.log("Got transaction hash for release request: " + tx);
         res.json({
           tx: tx
@@ -173,10 +246,10 @@ class LicenseController {
 
         console.log("Waiting for tx: " + tx);
         licenseModule.getWeb3Reader().waitForTransaction(tx)
-          .then(function(receipt) {
+          .then(function (receipt) {
             console.log("Got receipt: " + JSON.stringify(receipt));
             newKey.licenseAddress = receipt.contractAddress;
-            newKey.save(function(err) {
+            newKey.save(function (err) {
               if (err) {
                 console.log("Failed to save license key!");
                 throw err;
@@ -191,6 +264,59 @@ class LicenseController {
         Response.status(500);
         Response.send(err);
       });
+  }
+
+  async releaseLicenseV1(Request, Response) {
+    const params = Request.body;
+    console.log("Received license release request: ", params);
+    const licenseModule = this.licenseModule;
+    const contractAddress = this.contractOwnerAccount;
+    const publishCredentialsProvider = this.publishCredentialsProvider;
+
+    try {
+      const credentials = await publishCredentialsProvider.getCredentials();
+      // release the license
+      const tx = await this.licenseModule.releaseLicense({
+        owner: contractAddress,
+        profileAddress: params.profileAddress,
+        artistName: params.artistName,
+        title: params.title,
+        resourceUrl: params.resourceUrl,
+        contentType: params.contentType,
+        imageUrl: params.imageUrl,
+        metadataUrl: params.metadataUrl,
+        coinsPerPlay: 1,
+        royalties: params.royalties || [],
+        contributors: params.contributors || [{
+          address: Request.body.profileAddress,
+          shares: 1
+        }]
+      }, publishCredentialsProvider);
+      console.log("Got transaction hash for release request: " + tx);
+
+      // wait for transaction
+      console.log("Waiting for tx: " + tx);
+      const receipt = await licenseModule.getWeb3Reader().waitForTransaction(tx);
+      console.log("Got receipt: ", receipt);
+
+      // create the license key
+      const keyContent = {
+        tx: tx,
+        key: params.key,
+        licenseAddress: receipt.contractAddress
+      };
+      const _key = new LicenseKey(keyContent);
+      const key = await _key.save();
+      Response.status(200).json({
+        status: "success",
+        key
+      })
+    } catch (error) {
+      Response.status(500).json({
+        error: error.message
+      })
+    }
+
   }
 }
 
