@@ -5,6 +5,7 @@
   "main": "./modules/coreModule.js",
   "scripts": {
     "start": "node app.js",
+    "pm2": "pm2 start pm2.json",
     "start:docker": "./docker/development/run.sh musicoin-api",
     "build:docker": "./docker/development/build.sh musicoin-api",
     "stop:docker": "./docker/development/stop.sh musicoin-api",
