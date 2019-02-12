@@ -12,6 +12,12 @@ const signup = {
   }
 };
 
+const socialLogin = {
+  email: {
+    type: "string"
+  }
+}
+
 const quickLogin = {
   password: {
     type: "string",
@@ -62,5 +68,6 @@ module.exports = {
   authenticate,
   accessToken,
   tokenValidity,
-  quickLogin
+  quickLogin,
+  socialLogin
 };

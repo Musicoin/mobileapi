@@ -10,12 +10,23 @@ class AuthDelegator extends ControllerDelegator {
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
+    this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
   }
 
   _loadUserByEmail(email) {
     return this.db.User.findOne({
       "local.email": email
     }).exec();
+  }
+
+  findUserBySocialEmail(channel, email){
+    const filter = {};
+    filter[channel+".email"] = email;
+    return this.db.User.findOne(filter).exec();
+  }
+
+  createSocialUser(profile){
+    return this.db.User.create(profile);
   }
 
   _createApiUser(email) {

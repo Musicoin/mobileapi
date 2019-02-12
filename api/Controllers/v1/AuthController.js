@@ -19,6 +19,91 @@ class AuthController extends BaseController {
     this.getTokenValidity = this.getTokenValidity.bind(this);
     this.quickLogin = this.quickLogin.bind(this);
     this.login = this.login.bind(this);
+    this.loginWithGoogle = this.loginWithGoogle.bind(this);
+    this.loginWithFacebook = this.loginWithFacebook.bind(this);
+    this.loginWithTwitter = this.loginWithTwitter.bind(this);
+  }
+
+  async loginWithGoogle(Request,Response, next){
+    try {
+      const email = Request.body.email;
+      const user = await this.AuthDelegator.findUserBySocialEmail("google", email);
+      if (!user) {
+        await this.AuthDelegator.createSocialUser({
+          google: Request.body
+        });
+      }
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+      // carete a new api user if not found
+      if (!apiUser) {
+        apiUser = await this.AuthDelegator._createApiUser(email);
+      }
+      // response clientSecret and accessToken
+      const data = {
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
+
+  async loginWithFacebook(Request,Response, next){
+    try {
+      const email = Request.body.email;
+      const user = await this.AuthDelegator.findUserBySocialEmail("facebook", email);
+      if (!user) {
+        await this.AuthDelegator.createSocialUser({
+          facebook: Request.body
+        });
+      }
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+      // carete a new api user if not found
+      if (!apiUser) {
+        apiUser = await this.AuthDelegator._createApiUser(email);
+      }
+      // response clientSecret and accessToken
+      const data = {
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
+      }
+
+      this.success(Request,Response, next, data);
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
+
+  async loginWithTwitter(Request,Response, next){
+    try {
+      const email = Request.body.email;
+      const user = await this.AuthDelegator.findUserBySocialEmail("twitter", email);
+      if (!user) {
+        await this.AuthDelegator.createSocialUser({
+          twitter: Request.body
+        });
+      }
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+      // carete a new api user if not found
+      if (!apiUser) {
+        apiUser = await this.AuthDelegator._createApiUser(email);
+      }
+      // response clientSecret and accessToken
+      const data = {
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
+      }
+
+      this.success(Request,Response, next, data);
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
   }
 
   /**
