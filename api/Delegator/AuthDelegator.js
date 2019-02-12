@@ -25,8 +25,14 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne(filter).exec();
   }
 
-  createSocialUser(profile){
-    return this.db.User.create(profile);
+  createSocialUser(channel, profile){
+    const content = {
+      pendingInitialization: true,
+      primaryEmail: profile.email,
+      emailVerified: true
+    };
+    constent[channel] = profile;
+    return this.db.User.create(content);
   }
 
   _createApiUser(email) {

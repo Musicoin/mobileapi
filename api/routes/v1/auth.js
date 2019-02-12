@@ -8,9 +8,7 @@ const checkSocialLoginParams = Controller.checkParams(Controller.schema.AuthSche
 
 Router.post('/signup', Controller.registerNewUser, Controller.sendJson);
 Router.post('/login', checkLoginParams, Controller.login, Controller.sendJson);
-Router.post('/googlelogin', checkSocialLoginParams, Controller.loginWithGoogle, Controller.sendJson);
-Router.post('/facebooklogin', checkSocialLoginParams, Controller.loginWithFacebook, Controller.sendJson);
-Router.post('/twitterlogin', checkSocialLoginParams, Controller.loginWithTwitter, Controller.sendJson);
+Router.post('/sociallogin', checkSocialLoginParams, Controller.loginWithSocial, Controller.sendJson);
 Router.post('/quicklogin', Controller.quickLogin, Controller.sendJson);
 Router.post('/clientsecret', Controller.getClientSecret, Controller.sendJson);
 Router.post('/verify', Controller.authenticateUser, Controller.sendJson);

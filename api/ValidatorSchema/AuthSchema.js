@@ -13,9 +13,30 @@ const signup = {
 };
 
 const socialLogin = {
-  email: {
-    type: "string"
+  channel: {
+    type:"string"
+  },
+  profile: {
+    type: "object",
+    props: {
+      email: {
+        type: "email"
+      },
+      username: {
+        type: "string"
+      },
+      picture: {
+        type: "string"
+      },
+      id: {
+        type: "string"
+      },
+      token: {
+        type: "string"
+      },
+    }
   }
+  
 }
 
 const quickLogin = {
