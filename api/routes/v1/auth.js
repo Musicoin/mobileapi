@@ -3,7 +3,10 @@ const Router = express.Router();
 const AuthController = require('../../Controllers/v1/AuthController');
 const Controller = new AuthController();
 
+const checkLoginParams = Controller.checkParams(Controller.schema.AuthSchema.quickLogin);
+
 Router.post('/signup', Controller.registerNewUser, Controller.sendJson);
+Router.post('/login', checkLoginParams, Controller.login, Controller.sendJson);
 Router.post('/quicklogin', Controller.quickLogin, Controller.sendJson);
 Router.post('/clientsecret', Controller.getClientSecret, Controller.sendJson);
 Router.post('/verify', Controller.authenticateUser, Controller.sendJson);

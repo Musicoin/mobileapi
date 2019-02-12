@@ -62,7 +62,13 @@ const Logger = {
         app.use(morgan(function (tokens, req, res) {
             const method = req.method;
             const url = req.originalUrl;
-            const request_params = JSON.stringify(req.body);
+            let request_params = {
+                ...req.body
+            };
+            if (request_params.password) {
+                request_params.password = "******";
+            }
+            request_params = JSON.stringify(request_params);
             return [
                 method,
                 url,

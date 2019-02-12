@@ -18,6 +18,7 @@ class AuthController extends BaseController {
     this.refreshAccessToken = this.refreshAccessToken.bind(this);
     this.getTokenValidity = this.getTokenValidity.bind(this);
     this.quickLogin = this.quickLogin.bind(this);
+    this.login = this.login.bind(this);
   }
 
   /**
@@ -85,6 +86,12 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, validResult);
       }
       
+      // check if user exists
+      const user = await this.db.User.findOne({"local.email": email}).exec();
+      if (user) {
+        return this.reject(Request, Response, "Email has been used");
+      }
+
       // create user
       await this.AuthDelegator._createUser(email,password,username);
       // create api user
@@ -98,6 +105,39 @@ class AuthController extends BaseController {
 
     } catch (error) {
       this.error(Request, Response, error);
+    }
+  }
+
+  async login(Request, Response, next){
+    try {
+      const body = Request.body;
+      const email = body.email;
+      const password = body.password;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        return this.reject(Request, Response, "user not found");
+      }
+      // verify password
+      if (!cryptoUtil.comparePassword(password, user.local.password)) {
+        return this.reject(Request, Response, "email and password dont match");
+      }
+
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser) {
+        apiUser = await this.AuthDelegator._createApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        clientSecret: apiUser.clientSecret,
+        accessToken: apiUser.accessToken
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request,Response, error);
     }
   }
 
