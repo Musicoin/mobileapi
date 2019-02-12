@@ -26,7 +26,7 @@ const LOGGER_COMMON_CONFIG = {
 function generateLogger(level) {
     let transport;
     
-    if(process.env['NODE_ENV'] === 'development'){
+    if(process.env['NODE_ENV'] !== 'production'){
         transport = new winston.transports.Console({
             name: level,
             level: level,
