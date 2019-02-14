@@ -27,6 +27,12 @@ class AuthController extends BaseController {
       const profile = Request.body.profile;
       const channel = Request.body.channel;
       const email = Request.body.profile.email;
+
+      // check channel is valid
+      if (this.constant.SOCIAL_CHANNELS.indexOf(channel) === -1) {
+        return this.reject(Request, Response, "channel is invalid.")
+      }
+
       const user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
       if (!user) {
         await this.AuthDelegator.createSocialUser(channel, profile);

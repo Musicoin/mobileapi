@@ -12,6 +12,57 @@ class UserController extends BaseController {
     this.addPlayList = this.addPlayList.bind(this);
     this.getAllPlayList = this.getAllPlayList.bind(this);
     this.deletePlayList = this.deletePlayList.bind(this);
+    this.getUserInfo = this.getUserInfo.bind(this);
+  }
+
+  async getUserInfo(Request, Response, next){
+    const email = Request.query.email;
+    try {
+      const user = await this.db.User.findOne({
+        $or:[
+          {
+            "local.email": email
+          },
+          {
+            "google.email": email
+          },
+          {
+            "facebook.email": email
+          },
+          {
+            "twitter.email": email
+          }
+        ]
+      }).exec();
+
+      const username = this.UserDelegator.getUserName(user);
+      const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
+      const avatar = user.draftProfile && user.draftProfile.ipfsImageUrl;
+      const description = user.draftProfile && user.draftProfile.description;
+      const socials = user.draftProfile && user.draftProfile.social;
+      const genres = user.draftProfile && user.draftProfile.genres;
+
+      const userInfo = {
+        profileAddress: user.profileAddress || null,
+        email: email,
+        username: username || null,
+        avatar: avatar || null,
+        description: description || null,
+        balance: balance || 0,
+        socials: socials || {},
+        genres: genres || []
+      }
+
+      const response = {
+        user: userInfo
+      }
+
+      this.success(Request,Response,next,response);
+
+    } catch (error) {
+      this.error(Request,Response, error);
+    }
+
   }
 
   async getPlayList(Request, Response, next) {

@@ -17,9 +17,7 @@ class AuthDelegator extends ControllerDelegator {
     this._setupNewUserDraftProfile = this._setupNewUserDraftProfile.bind(this);
     this._uploadNewUserProfile = this._uploadNewUserProfile.bind(this);
     this._publishNewUserProfile = this._publishNewUserProfile.bind(this);
-    this._getUserName = this._getUserName.bind(this);
     this._updateNewUserState = this._updateNewUserState.bind(this);
-    this._notBlank = this._notBlank.bind(this);
   }
 
   _loadUserByEmail(email) {
@@ -84,7 +82,7 @@ class AuthDelegator extends ControllerDelegator {
 
   _setupNewUserDraftProfile(db_user){
     this.logger.debug("start setup new user draft profile");
-    const name = this._getUserName(db_user);
+    const name = this.getUserName(db_user);
     db_user.draftProfile = {
       artistName: name,
       description: "",
@@ -129,20 +127,6 @@ class AuthDelegator extends ControllerDelegator {
     db_user.hideProfile = false;
     db_user.pendingInitialization = false;
     return db_user.save();
-  }
-
-  _getUserName(user){
-    if (!user) return "New User";
-    if (user.google && this._notBlank(user.google.name)) return user.google.name;
-    if (user.facebook && this._notBlank(user.facebook.name)) return user.facebook.name;
-    if (user.twitter && this._notBlank(user.twitter.displayName)) return user.twitter.displayName;
-    if (user.soundcloud && this._notBlank(user.soundcloud.username)) return user.soundcloud.username;
-    if (user.local && this._notBlank(user.local.username)) return user.local.username;
-    return "New User";
-  }
-
-  _notBlank(str){
-    return str && str!==""
   }
 
 }

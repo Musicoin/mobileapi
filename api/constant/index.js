@@ -47,6 +47,12 @@ const GENRES = [
   "Other"
 ];
 
+SOCIAL_CHANNELS = [
+  "google",
+  "twitter",
+  "facebook"
+]
+
 
 module.exports = {
   TOKEN_TIMEOUT,
@@ -59,5 +65,6 @@ module.exports = {
   SECRET_LENGTH,
   UBIMUSIC_ACCOUNT,
   DATE_PERIOD,
-  GENRES
+  GENRES,
+  SOCIAL_CHANNELS
 }

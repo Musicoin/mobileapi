@@ -7,5 +7,7 @@ Router.post('/playlist/delete', Controller.deletePlayList, Controller.sendJson);
 Router.post('/playlist/add', Controller.addPlayList, Controller.sendJson);
 Router.get('/playlist/all', Controller.getAllPlayList, Controller.sendJson);
 Router.get('/playlist', Controller.getPlayList, Controller.sendJson);
+Router.get('/detail', Controller.getUserInfo, Controller.sendJson);
+
 
 module.exports = Router;
