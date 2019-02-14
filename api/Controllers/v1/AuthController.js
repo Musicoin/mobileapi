@@ -34,6 +34,7 @@ class AuthController extends BaseController {
         user[channel] = profile;
         await user.save();
       }
+      await this.AuthDelegator.setupNewUser(user);
       let apiUser = await this.AuthDelegator._loadApiUser(email);
 
       // carete a new api user if not found
@@ -154,6 +155,8 @@ class AuthController extends BaseController {
       if (!cryptoUtil.comparePassword(password, user.local.password)) {
         return this.reject(Request, Response, "email and password dont match");
       }
+
+      await this.AuthDelegator.setupNewUser(user);
 
       let apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {

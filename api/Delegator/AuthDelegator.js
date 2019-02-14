@@ -2,6 +2,8 @@ const ControllerDelegator = require('./ControllerDelegator');
 
 // util
 const cryptoUtil = require('../../utils/crypto-util');
+const defaultProfileIPFSImage = "ipfs://QmR8mmsMn9TUdJiA6Ja3SYcQ4ckBdky1v5KGRimC7LkhGF";
+const publishCredentialsProvider = require("../Kernel").publishCredentialsProvider;
 
 class AuthDelegator extends ControllerDelegator {
   constructor(props) {
@@ -11,6 +13,13 @@ class AuthDelegator extends ControllerDelegator {
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
     this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
+    this.setupNewUser = this.setupNewUser.bind(this);
+    this._setupNewUserDraftProfile = this._setupNewUserDraftProfile.bind(this);
+    this._uploadNewUserProfile = this._uploadNewUserProfile.bind(this);
+    this._publishNewUserProfile = this._publishNewUserProfile.bind(this);
+    this._getUserName = this._getUserName.bind(this);
+    this._updateNewUserState = this._updateNewUserState.bind(this);
+    this._notBlank = this._notBlank.bind(this);
   }
 
   _loadUserByEmail(email) {
@@ -56,8 +65,84 @@ class AuthDelegator extends ControllerDelegator {
         email,
         password: cryptoUtil.hashPassword(password),
         username
-      }
+      },
+      pendingInitialization: true,
+      primaryEmail: email,
+      emailVerified: true
     });
+  }
+
+  async setupNewUser(db_user){
+    if (db_user.pendingInitialization) {
+      this.logger.debug("start setup new user");
+      const user = await this._setupNewUserDraftProfile(db_user);
+      const uploadResult = await this._uploadNewUserProfile(user);
+      const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
+      await this._updateNewUserState(user, tx);
+    }
+  }
+
+  _setupNewUserDraftProfile(db_user){
+    this.logger.debug("start setup new user draft profile");
+    const name = this._getUserName(db_user);
+    db_user.draftProfile = {
+      artistName: name,
+      description: "",
+      social: {},
+      ipfsImageUrl: defaultProfileIPFSImage,
+      heroImageUrl: null,
+      genres: [],
+      version: 1
+    };
+    return db_user.save();
+  }
+
+  async _uploadNewUserProfile(db_user){
+    this.logger.debug("start upload new user profile to ipfs");
+    const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description); 
+    const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
+    const result = await Promise.all([descPromise, socialPromise]);
+    return {
+      descUrl: result[0],
+      socialUrl: result[1]
+    }
+  }
+
+  async _publishNewUserProfile(name, descUrl, socialUrl){
+    this.logger.debug("start publish new user to blockchain");
+    const credentials = await publishCredentialsProvider.getCredentials();
+    const releaseRequest = {
+      profileAddress: null,
+      owner: credentials.account,
+      artistName: name,
+      imageUrl: defaultProfileIPFSImage,
+      socialUrl: socialUrl,
+      descriptionUrl: descUrl
+    };
+    return this.MusicoinCore.getArtistModule().releaseProfile(releaseRequest,publishCredentialsProvider);
+  }
+
+  _updateNewUserState(db_user, tx){
+    this.logger.debug("start update new user state");
+    db_user.pendingTx = tx;
+    db_user.updatePending = true;
+    db_user.hideProfile = false;
+    db_user.pendingInitialization = false;
+    return db_user.save();
+  }
+
+  _getUserName(user){
+    if (!user) return "New User";
+    if (user.google && this._notBlank(user.google.name)) return user.google.name;
+    if (user.facebook && this._notBlank(user.facebook.name)) return user.facebook.name;
+    if (user.twitter && this._notBlank(user.twitter.displayName)) return user.twitter.displayName;
+    if (user.soundcloud && this._notBlank(user.soundcloud.username)) return user.soundcloud.username;
+    if (user.local && this._notBlank(user.local.username)) return user.local.username;
+    return "New User";
+  }
+
+  _notBlank(str){
+    return str && str!==""
   }
 
 }
