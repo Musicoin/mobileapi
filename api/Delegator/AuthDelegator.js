@@ -38,7 +38,7 @@ class AuthDelegator extends ControllerDelegator {
       primaryEmail: profile.email,
       emailVerified: true
     };
-    constent[channel] = profile;
+    content[channel] = profile;
     return this.db.User.create(content);
   }
 
