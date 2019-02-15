@@ -33,12 +33,12 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "channel is invalid.")
       }
 
-      const user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+      let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
       if (!user) {
-        await this.AuthDelegator.createSocialUser(channel, profile);
+        user = await this.AuthDelegator.createSocialUser(channel, profile);
       }else{
         user[channel] = profile;
-        await user.save();
+        user = await user.save();
       }
       await this.AuthDelegator.setupNewUser(user);
       let apiUser = await this.AuthDelegator._loadApiUser(email);
