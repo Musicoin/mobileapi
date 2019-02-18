@@ -15,5 +15,7 @@ Router.post('/verify', Controller.authenticateUser, Controller.sendJson);
 Router.post('/accesstoken', Controller.getAccessToken, Controller.sendJson);
 Router.post('/accesstoken/refresh', Controller.refreshAccessToken, Controller.sendJson);
 Router.post('/accesstoken/timeout', Controller.getTokenValidity, Controller.sendJson);
+Router.get('/google/oauthtoken', Controller.getGoogleOAuthToken, Controller.sendJson);
+
 
 module.exports = Router;

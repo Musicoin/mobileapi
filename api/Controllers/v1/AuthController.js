@@ -20,6 +20,7 @@ class AuthController extends BaseController {
     this.quickLogin = this.quickLogin.bind(this);
     this.login = this.login.bind(this);
     this.loginWithSocial = this.loginWithSocial.bind(this);
+    this.getGoogleOAuthToken = this.getGoogleOAuthToken.bind(this)
   }
 
   async loginWithSocial(Request,Response, next){
@@ -359,6 +360,10 @@ class AuthController extends BaseController {
     } catch (error) {
       this.error(Request, Response, error);
     }
+  }
+
+  async getGoogleOAuthToken(Request, Response, next){
+    this.success(Request,Response, next, {oauthToken: '592660758851-37e14es9auhhah8gk66mrsgfaqknhokf.apps.googleusercontent.com'});
   }
 }
 
