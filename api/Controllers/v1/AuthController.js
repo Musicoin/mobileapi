@@ -1,5 +1,7 @@
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
+const OAuth = require('oauth');
+
 
 // util
 const cryptoUtil = require('../../../utils/crypto-util');
@@ -20,7 +22,9 @@ class AuthController extends BaseController {
     this.quickLogin = this.quickLogin.bind(this);
     this.login = this.login.bind(this);
     this.loginWithSocial = this.loginWithSocial.bind(this);
-    this.getGoogleOAuthToken = this.getGoogleOAuthToken.bind(this)
+    this.getGoogleClientID = this.getGoogleClientID.bind(this)
+    this.getTwitterAccessToken = this.getTwitterAccessToken.bind(this)
+    this.getFacebookAppID = this.getFacebookAppID.bind(this)
   }
 
   async loginWithSocial(Request,Response, next){
@@ -362,9 +366,35 @@ class AuthController extends BaseController {
     }
   }
 
-  async getGoogleOAuthToken(Request, Response, next){
-    this.success(Request,Response, next, {oauthToken: '592660758851-37e14es9auhhah8gk66mrsgfaqknhokf.apps.googleusercontent.com'});
+  async getGoogleClientID(Request, Response, next){
+    const clientID = process.env.GOOGLE_CLIENT_ID? process.env.GOOGLE_CLIENT_ID: '';
+    this.success(Request,Response, next, {clientID});
   }
+
+  async getTwitterAccessToken(Request, Response, next){
+    const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
+    const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
+    const OAuth2 = OAuth.OAuth2;
+    const oauth2 = new OAuth2(twitterConsumerKey,
+        twitterConsumerSecret,
+        'https://api.twitter.com/',
+        null,
+        'oauth2/token',
+        null);
+    oauth2.getOAuthAccessToken(
+        '',
+        {'grant_type':'client_credentials'},
+        (e, access_token, refresh_token, results)=>{
+          console.log('bearer: ',e,access_token,refresh_token,results);
+          this.success(Request,Response, next, {accessToken: access_token});
+        })
+  }
+
+  async getFacebookAppID(Request, Response, next){
+    const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: ''
+    this.success(Request,Response, next, {appID});
+  }
+
 }
 
 

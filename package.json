@@ -39,6 +39,7 @@
     "mongoose": "^5.3.12",
     "morgan": "^1.9.1",
     "node-localstorage": "^1.3.0",
+    "oauth": "^0.9.15",
     "os": "*",
     "owasp-password-strength-test": "*",
     "promise-queue": "^2.2.3",
