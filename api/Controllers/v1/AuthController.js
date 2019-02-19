@@ -385,8 +385,8 @@ class AuthController extends BaseController {
         '',
         {'grant_type':'client_credentials'},
         (e, access_token, refresh_token, results)=>{
-          console.log('bearer: ',e,access_token,refresh_token,results);
-          this.success(Request,Response, next, {accessToken: access_token});
+          const accessToken = access_token? access_token: '';
+          this.success(Request,Response, next, {accessToken});
         })
   }
 
