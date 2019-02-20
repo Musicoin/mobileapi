@@ -383,7 +383,6 @@ class AuthController extends BaseController {
         null,
         'HMAC-SHA1'
     );
-
     oauth.getOAuthRequestToken(
         (e, oauthToken, oauthTokenSecret, results)=>{
           if (e){
