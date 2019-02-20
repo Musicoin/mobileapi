@@ -23,7 +23,7 @@ class AuthController extends BaseController {
     this.login = this.login.bind(this);
     this.loginWithSocial = this.loginWithSocial.bind(this);
     this.getGoogleClientID = this.getGoogleClientID.bind(this)
-    this.getTwitterAccessToken = this.getTwitterAccessToken.bind(this)
+    this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this)
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
   }
 
@@ -371,7 +371,7 @@ class AuthController extends BaseController {
     this.success(Request,Response, next, {clientID});
   }
 
-  async getTwitterAccessToken(Request, Response, next){
+  async getTwitterOAuthToken(Request, Response, next){
     const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
     const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
     const oauth = new OAuth.OAuth(
@@ -386,8 +386,11 @@ class AuthController extends BaseController {
 
     oauth.getOAuthRequestToken(
         (e, oauthToken, oauthTokenSecret, results)=>{
-          if (e)  this.error(Request, Response, e);
-          this.success(Request,Response, next, {oauthToken});
+          if (e){
+            this.error(Request, Response, e);
+          }else {
+            this.success(Request,Response, next, {oauthToken});
+          }
         })
 
   }
