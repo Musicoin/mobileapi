@@ -374,20 +374,22 @@ class AuthController extends BaseController {
   async getTwitterAccessToken(Request, Response, next){
     const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
     const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
-    const OAuth2 = OAuth.OAuth2;
-    const oauth2 = new OAuth2(twitterConsumerKey,
+    const oauth = new OAuth.OAuth(
+        'https://api.twitter.com/oauth/request_token',
+        'https://api.twitter.com/oauth/access_token',
+        twitterConsumerKey,
         twitterConsumerSecret,
-        'https://api.twitter.com/',
+        '1.0A',
         null,
-        'oauth2/token',
-        null);
-    oauth2.getOAuthAccessToken(
-        '',
-        {'grant_type':'client_credentials'},
-        (e, access_token, refresh_token, results)=>{
-          const accessToken = access_token? access_token: '';
-          this.success(Request,Response, next, {accessToken});
+        'HMAC-SHA1'
+    );
+
+    oauth.getOAuthRequestToken(
+        (e, oauthToken, oauthTokenSecret, results)=>{
+          if (e)  this.error(Request, Response, e);
+          this.success(Request,Response, next, {oauthToken});
         })
+
   }
 
   async getFacebookAppID(Request, Response, next){
