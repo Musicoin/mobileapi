@@ -16,7 +16,7 @@ class TrackDelegator extends ControllerDelegator {
   getLicenseKey(licenseAddress) {
     return new Promise((resolve, reject)=>{
       request({
-        url: `http://35.186.250.94/license/ppp/${licenseAddress}`,
+        url: `${process.env.CORE_API_URL}/${licenseAddress}`,
         json: true,
         headers: {
           clientID: CLIENT_ID
