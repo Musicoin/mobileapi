@@ -368,7 +368,8 @@ class AuthController extends BaseController {
 
   async getGoogleClientID(Request, Response, next){
     const clientID = process.env.GOOGLE_CLIENT_ID? process.env.GOOGLE_CLIENT_ID: '';
-    this.success(Request,Response, next, {clientID});
+    const data = {clientID}
+    this.success(Request,Response, next, data);
   }
 
   async getTwitterOAuthToken(Request, Response, next){
@@ -388,15 +389,17 @@ class AuthController extends BaseController {
           if (e){
             this.error(Request, Response, e);
           }else {
-            this.success(Request,Response, next, {oauthToken});
+            const data = {oauthToken}
+            this.success(Request,Response, next, data);
           }
         })
 
   }
 
   async getFacebookAppID(Request, Response, next){
-    const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: ''
-    this.success(Request,Response, next, {appID});
+    const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: '';
+    const data = {appID}
+    this.success(Request,Response, next, data);
   }
 
 }
