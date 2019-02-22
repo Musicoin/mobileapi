@@ -367,7 +367,12 @@ class AuthController extends BaseController {
   }
 
   async getGoogleClientID(Request, Response, next){
-    const clientID = process.env.GOOGLE_CLIENT_ID? process.env.GOOGLE_CLIENT_ID: '';
+    let clientID = '';
+    if(Request.query.platform === 'ios'){
+       clientID = process.env.GOOGLE_CLIENT_ID_IOS? process.env.GOOGLE_CLIENT_ID_IOS: '';
+    }else {
+       clientID = process.env.GOOGLE_CLIENT_ID? process.env.GOOGLE_CLIENT_ID: '';
+    }
     const data = {clientID}
     this.success(Request,Response, next, data);
   }
