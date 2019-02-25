@@ -56,29 +56,33 @@ class AuthController extends BaseController {
           if(body.error){
             this.error(Request, Response, body.error.message);
           }else {
-            const profile = body;
-            logger.info("loginWithSocial:" + body);
-            const email = body.email;
-            let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-            if (!user) {
-              user = await this.AuthDelegator.createSocialUser(channel, profile);
-            } else {
-              user[channel] = profile;
-              user = await user.save();
-            }
-            await this.AuthDelegator.setupNewUser(user);
-            let apiUser = await this.AuthDelegator._loadApiUser(email);
+            try {
+              const profile = body;
+              logger.info("loginWithSocial:" + body);
+              const email = body.email;
+              let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+              if (!user) {
+                user = await this.AuthDelegator.createSocialUser(channel, profile);
+              } else {
+                user[channel] = profile;
+                user = await user.save();
+              }
+              await this.AuthDelegator.setupNewUser(user);
+              let apiUser = await this.AuthDelegator._loadApiUser(email);
 
-            // carete a new api user if not found
-            if (!apiUser) {
-              apiUser = await this.AuthDelegator._createApiUser(email);
+              // carete a new api user if not found
+              if (!apiUser) {
+                apiUser = await this.AuthDelegator._createApiUser(email);
+              }
+              // response clientSecret and accessToken
+              const data = {
+                clientSecret: apiUser.clientSecret,
+                accessToken: apiUser.accessToken
+              };
+              this.success(Request, Response, next, data);
+            }catch (error){
+              this.error(Request, Response, error);
             }
-            // response clientSecret and accessToken
-            const data = {
-              clientSecret: apiUser.clientSecret,
-              accessToken: apiUser.accessToken
-            };
-            this.success(Request, Response, next, data);
           }
         }
       });
