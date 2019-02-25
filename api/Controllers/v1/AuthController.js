@@ -1,3 +1,5 @@
+const request = require('request');
+
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const OAuth = require('oauth');
@@ -31,34 +33,53 @@ class AuthController extends BaseController {
     try {
       const profile = Request.body.profile;
       const channel = Request.body.channel;
-      const email = Request.body.profile.email;
+      const accessToken = Request.body.accessToken;
 
       // check channel is valid
       if (this.constant.SOCIAL_CHANNELS.indexOf(channel) === -1) {
         return this.reject(Request, Response, "channel is invalid.")
       }
 
-      let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-      if (!user) {
-        user = await this.AuthDelegator.createSocialUser(channel, profile);
-      }else{
-        user[channel] = profile;
-        user = await user.save();
-      }
-      await this.AuthDelegator.setupNewUser(user);
-      let apiUser = await this.AuthDelegator._loadApiUser(email);
-
-      // carete a new api user if not found
-      if (!apiUser) {
-        apiUser = await this.AuthDelegator._createApiUser(email);
-      }
-      // response clientSecret and accessToken
-      const data = {
-        clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
+      const options = {
+        uri: "https://www.googleapis.com/oauth2/v1/userinfo",
+        method: "GET",
+        qs: {  // Query string like ?key=value&...
+          access_token : accessToken
+        },
+        json: true
       }
 
-      this.success(Request,Response, next, data);
+      request(options, async (error, response, body) => {
+        if(error){
+          this.error(Request, Response, error);
+        }else {
+          if(body.error){
+            this.error(Request, Response, body.error.message);
+          }
+          const email = body.email;
+          let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+          if (!user) {
+            user = await this.AuthDelegator.createSocialUser(channel, profile);
+          }else{
+            user[channel] = profile;
+            user = await user.save();
+          }
+          await this.AuthDelegator.setupNewUser(user);
+          let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+          // carete a new api user if not found
+          if (!apiUser) {
+            apiUser = await this.AuthDelegator._createApiUser(email);
+          }
+          // response clientSecret and accessToken
+          const data = {
+            clientSecret: apiUser.clientSecret,
+            accessToken: apiUser.accessToken
+          }
+
+          this.success(Request,Response, next, data);
+        }
+      });
 
     } catch (error) {
       this.error(Request, Response, error);
