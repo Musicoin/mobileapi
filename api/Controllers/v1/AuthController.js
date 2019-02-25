@@ -64,7 +64,7 @@ class AuthController extends BaseController {
               if (!user) {
                 user = await this.AuthDelegator.createSocialUser(channel, profile);
               } else {
-                user[channel] = profile;
+                //user[channel] = profile;
                 //user = await user.save();
               }
               await this.AuthDelegator.setupNewUser(user);
