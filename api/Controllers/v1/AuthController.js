@@ -31,7 +31,6 @@ class AuthController extends BaseController {
 
   async loginWithSocial(Request,Response, next){
     try {
-      const profile = Request.body.profile;
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
 
@@ -43,7 +42,7 @@ class AuthController extends BaseController {
       const options = {
         uri: "https://www.googleapis.com/oauth2/v1/userinfo",
         method: "GET",
-        qs: {  // Query string like ?key=value&...
+        qs: {
           access_token : accessToken
         },
         json: true
@@ -55,29 +54,22 @@ class AuthController extends BaseController {
         }else {
           if(body.error){
             this.error(Request, Response, body.error.message);
-          }
-          const email = body.email;
-          let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-          if (!user) {
-            user = await this.AuthDelegator.createSocialUser(channel, profile);
-          }else{
-            user[channel] = profile;
-            user = await user.save();
-          }
-          await this.AuthDelegator.setupNewUser(user);
-          let apiUser = await this.AuthDelegator._loadApiUser(email);
+          }else {
+            const email = body.email;
+            await this.AuthDelegator.setupNewUser(user);
+            let apiUser = await this.AuthDelegator._loadApiUser(email);
 
-          // carete a new api user if not found
-          if (!apiUser) {
-            apiUser = await this.AuthDelegator._createApiUser(email);
+            // carete a new api user if not found
+            if (!apiUser) {
+              apiUser = await this.AuthDelegator._createApiUser(email);
+            }
+            // response clientSecret and accessToken
+            const data = {
+              clientSecret: apiUser.clientSecret,
+              accessToken: apiUser.accessToken
+            };
+            this.success(Request,Response, next, data);
           }
-          // response clientSecret and accessToken
-          const data = {
-            clientSecret: apiUser.clientSecret,
-            accessToken: apiUser.accessToken
-          }
-
-          this.success(Request,Response, next, data);
         }
       });
 
