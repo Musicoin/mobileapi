@@ -61,14 +61,11 @@ class AuthController extends BaseController {
               logger.info("loginWithSocial:" + body);
               const email = body.email;
               let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-              logger.info("loginWithSocial:" + user);
-              this.success(Request, Response, next, user);
-              return
               if (!user) {
                 user = await this.AuthDelegator.createSocialUser(channel, profile);
               } else {
                 user[channel] = profile;
-                user = await user.save();
+                //user = await user.save();
               }
               await this.AuthDelegator.setupNewUser(user);
               let apiUser = await this.AuthDelegator._loadApiUser(email);
