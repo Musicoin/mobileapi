@@ -31,7 +31,6 @@ class AuthController extends BaseController {
 
   async loginWithSocial(Request,Response, next){
     try {
-      const profile = Request.body.profile;
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
       const logger = this.logger;
@@ -57,6 +56,8 @@ class AuthController extends BaseController {
           if(body.error){
             this.error(Request, Response, body.error.message);
           }
+
+          const profile = body;
           logger.info("loginWithSocial:"+body);
           const email = body.email;
           let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
