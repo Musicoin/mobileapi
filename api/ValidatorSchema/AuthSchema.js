@@ -16,27 +16,9 @@ const socialLogin = {
   channel: {
     type:"string"
   },
-  profile: {
-    type: "object",
-    props: {
-      email: {
-        type: "email"
-      },
-      username: {
-        type: "string"
-      },
-      picture: {
-        type: "string"
-      },
-      id: {
-        type: "string"
-      },
-      token: {
-        type: "string"
-      },
-    }
+  accessToken: {
+    type: "string"
   }
-  
 }
 
 const quickLogin = {

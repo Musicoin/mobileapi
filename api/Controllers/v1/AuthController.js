@@ -56,7 +56,6 @@ class AuthController extends BaseController {
             this.error(Request, Response, body.error.message);
           }else {
             const email = body.email;
-            await this.AuthDelegator.setupNewUser(user);
             let apiUser = await this.AuthDelegator._loadApiUser(email);
 
             // carete a new api user if not found
@@ -67,7 +66,7 @@ class AuthController extends BaseController {
             const data = {
               clientSecret: apiUser.clientSecret,
               accessToken: apiUser.accessToken
-            };
+            }
             this.success(Request,Response, next, data);
           }
         }
