@@ -34,6 +34,7 @@ class AuthController extends BaseController {
       const profile = Request.body.profile;
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
+      const logger = this.logger;
 
       // check channel is valid
       if (this.constant.SOCIAL_CHANNELS.indexOf(channel) === -1) {
@@ -56,6 +57,7 @@ class AuthController extends BaseController {
           if(body.error){
             this.error(Request, Response, body.error.message);
           }
+          logger.info("loginWithSocial:"+body);
           const email = body.email;
           let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
           if (!user) {
