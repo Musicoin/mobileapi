@@ -77,7 +77,8 @@ class AuthController extends BaseController {
               // response clientSecret and accessToken
               const data = {
                 clientSecret: apiUser.clientSecret,
-                accessToken: apiUser.accessToken
+                accessToken: apiUser.accessToken,
+                email: email
               };
               this.success(Request, Response, next, data);
             }catch (error){
