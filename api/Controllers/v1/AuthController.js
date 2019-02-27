@@ -1,5 +1,4 @@
-const request = require('request');
-const asyncRequest = require('async-request');
+const request = require('async-request');
 
 
 const BaseController = require('../base/BaseController');
@@ -47,7 +46,7 @@ class AuthController extends BaseController {
         uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
       }else if(channel === 'facebook'){
         const fbUri = `https://graph.facebook.com/me?access_token=${accessToken}`
-        const fbRes = await asyncRequest(fbUri);
+        const fbRes = await request(fbUri);
         if(fbRes.error){
           this.error(Request, Response, fbRes.error);
           return
@@ -61,7 +60,7 @@ class AuthController extends BaseController {
 
       }
 
-      const res = await asyncRequest(uri);
+      const res = await request(uri);
 
       if(res.error){
         this.error(Request, Response, res.error);
