@@ -32,7 +32,7 @@ class AuthMiddleware extends BaseController {
         });
         Request.apiUser = apiUser;
         next();
-      } else if (Date.now() - apiUser.timeout > this.constant.TOKEN_TIMEOUT) {
+      } else if (apiUser && (Date.now() - apiUser.timeout > this.constant.TOKEN_TIMEOUT)) {
         this.reject(Request, Response, 'Access Token Expired');
       } else {
         this.reject(Request, Response, 'Invalid Credentials');
