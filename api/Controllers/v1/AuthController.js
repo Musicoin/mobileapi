@@ -1,4 +1,6 @@
 const request = require('request');
+const asyncRequest = require('async-request');
+
 
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
@@ -40,53 +42,56 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "channel is invalid.")
       }
 
-      const options = {
-        uri: "https://www.googleapis.com/oauth2/v1/userinfo",
-        method: "GET",
-        qs: {
-          access_token : accessToken
-        },
-        json: true
+      let uri;
+      if(channel === 'google'){
+        uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
+      }else if(channel === 'facebook'){
+        const fbUri = `https://graph.facebook.com/me?access_token=${accessToken}`
+        const fbRes = await asyncRequest(fbUri);
+        if(fbRes.error){
+          this.error(Request, Response, fbRes.error);
+          return
+        }else if(fbRes.body.error){
+          this.error(Request, Response, fbRes.body.error);
+          return
+        }else {
+          uri = `https://graph.facebook.com/${fbRes.id}?fields=email,first_name,last_name&access_token=${accessToken}`;
+        }
+      }else if(channel === 'twitter'){
+
       }
 
-      request(options, async (error, response, body) => {
-        if(error){
-          this.error(Request, Response, error);
-        }else {
-          if(body.error){
-            this.error(Request, Response, body.error.message);
-          }else {
-            try {
-              const profile = body;
-              logger.info("loginWithSocial:" + body);
-              const email = body.email;
-              let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-              if (!user) {
-                user = await this.AuthDelegator.createSocialUser(channel, profile);
-                await this.AuthDelegator.setupNewUser(user);
-              } else {
-                user[channel] = profile;
-                await user.save();
-              }
-              let apiUser = await this.AuthDelegator._loadApiUser(email);
+      const res = await asyncRequest(uri);
 
-              // carete a new api user if not found
-              if (!apiUser) {
-                apiUser = await this.AuthDelegator._createApiUser(email);
-              }
-              // response clientSecret and accessToken
-              const data = {
-                clientSecret: apiUser.clientSecret,
-                accessToken: apiUser.accessToken,
-                email: email
-              };
-              this.success(Request, Response, next, data);
-            }catch (error){
-              this.error(Request, Response, error);
-            }
-          }
+      if(res.error){
+        this.error(Request, Response, res.error);
+      }else if(res.body.error){
+        this.error(Request, Response, body.error.message);
+      }else {
+        const profile = res.body;
+        const email = res.body.email?res.body.email:`${res.body.email}@facebook.com`;
+        let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+        if (!user) {
+          user = await this.AuthDelegator.createSocialUser(channel, profile);
+          await this.AuthDelegator.setupNewUser(user);
+        } else {
+          user[channel] = profile;
+          await user.save();
         }
-      });
+        let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+        // carete a new api user if not found
+        if (!apiUser) {
+          apiUser = await this.AuthDelegator._createApiUser(email);
+        }
+        // response clientSecret and accessToken
+        const data = {
+          clientSecret: apiUser.clientSecret,
+          accessToken: apiUser.accessToken,
+          email: email
+        };
+        this.success(Request, Response, next, data);
+      }
 
     } catch (error) {
       this.error(Request, Response, error);
