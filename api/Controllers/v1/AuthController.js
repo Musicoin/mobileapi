@@ -385,7 +385,7 @@ class AuthController extends BaseController {
       }
 
       const data = {
-        expried: timeElapsed
+        expired: timeElapsed
       }
       this.success(Request,Response, next, data);
 
