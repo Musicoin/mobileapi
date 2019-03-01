@@ -58,7 +58,7 @@ class AuthController extends BaseController {
         } else {
 
           const fbody = JSON.parse(fbres.body);
-          logger.debug("[socialLogin]facebook:"+fbody);
+          logger.debug("[socialLogin]facebook:"+JSON.stringify(fbody));
 
           fbid = fbody.id;
           uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
@@ -77,7 +77,7 @@ class AuthController extends BaseController {
       }else {
         const profile = JSON.parse(res.body);
         // TODO
-        logger.debug("[socialLogin]profile:"+profile);
+        logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
