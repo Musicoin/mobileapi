@@ -30,7 +30,7 @@ class AuthController extends BaseController {
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
   }
 
-  async socialLogin(Request,Response, next){
+  async socialLogin(Request, Response, next){
     try {
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
@@ -47,15 +47,15 @@ class AuthController extends BaseController {
         uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
 
       } else if (channel === 'facebook') {
-        const fbUri = `https://graph.facebook.com/me?access_token=${accessToken}`
-        const fbRes = await request(fbUri);
-        fbid = fbRes.id;
-        if (fbRes.error) {
-          return this.error(Request, Response, fbRes.error);
-        } else if (fbRes.body.error) {
-          return this.error(Request, Response, fbRes.body.error);
+        const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`
+        const fbres = await request(fburl);
+        fbid = fbres.id;
+        if (fbres.error) {
+          return this.error(Request, Response, fbres.error);
+        } else if (fbres.body.error) {
+          return this.error(Request, Response, fbres.body.error);
         } else {
-          uri = `https://graph.facebook.com/${fbRes.id}?fields=email,first_name,last_name&access_token=${accessToken}`;
+          uri = `https://graph.facebook.com/${fbres.id}?fields=email,first_name,last_name&access_token=${accessToken}`;
         }
       } else if (channel === 'twitter') {
         // TODO
@@ -71,7 +71,7 @@ class AuthController extends BaseController {
       }else {
         const profile = res.body;
         // TODO
-        logger.debug("socialLogin:"+JSON.stringify(profile));
+        logger.debug("socialLogin:"+profile);
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
