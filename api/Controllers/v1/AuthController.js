@@ -72,7 +72,7 @@ class AuthController extends BaseController {
         const profile = res.body;
         // TODO
         logger.debug("socialLogin:"+JSON.stringify(profile));
-        const email = profile.email ? profile.email `${fbid}@fbmusicon`;
+        const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
         if (!user) {
