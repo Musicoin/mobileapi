@@ -69,7 +69,7 @@ class AuthController extends BaseController {
       } else if (res.body.error) {
         return this.error(Request, Response, body.error.message);
       }else {
-        const profile = res.body;
+        const profile = JSON.parse(res.body);
         // TODO
         logger.debug("socialLogin:"+profile.email);
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
