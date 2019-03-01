@@ -49,13 +49,19 @@ class AuthController extends BaseController {
       } else if (channel === 'facebook') {
         const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`
         const fbres = await request(fburl);
-        fbid = fbres.id;
+
+
         if (fbres.error) {
           return this.error(Request, Response, fbres.error);
         } else if (fbres.body.error) {
           return this.error(Request, Response, fbres.body.error);
         } else {
-          uri = `https://graph.facebook.com/${fbres.id}?fields=email,first_name,last_name&access_token=${accessToken}`;
+
+          const fbody = JSON.parse(fbres.body);
+          logger.debug("[socialLogin]facebook:"+fbody);
+
+          fbid = fbody.id;
+          uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
         }
       } else if (channel === 'twitter') {
         // TODO
@@ -71,7 +77,7 @@ class AuthController extends BaseController {
       }else {
         const profile = JSON.parse(res.body);
         // TODO
-        logger.debug("socialLogin:"+profile.email);
+        logger.debug("[socialLogin]profile:"+profile);
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
