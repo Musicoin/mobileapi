@@ -16,8 +16,10 @@ class UserController extends BaseController {
   }
 
   async getUserInfo(Request, Response, next){
+    const logger = this.logger;
     const email = Request.query.email;
     try {
+      logger.info("[getUserInfo]email:"+email)
       const user = await this.db.User.findOne({
         $or:[
           {
@@ -34,7 +36,7 @@ class UserController extends BaseController {
           }
         ]
       }).exec();
-
+      logger.debug("[getUserInfo]user:"+JSON.stringify(user))
       const username = this.UserDelegator.getUserName(user);
       const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
       const avatar = user.draftProfile && user.draftProfile.ipfsImageUrl;
