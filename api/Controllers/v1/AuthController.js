@@ -42,12 +42,14 @@ class AuthController extends BaseController {
       }
 
       let uri;
+      let fbid;
       if (channel === 'google') {
         uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
 
       } else if (channel === 'facebook') {
         const fbUri = `https://graph.facebook.com/me?access_token=${accessToken}`
         const fbRes = await request(fbUri);
+        fbid = fbRes.id;
         if (fbRes.error) {
           return this.error(Request, Response, fbRes.error);
         } else if (fbRes.body.error) {
@@ -69,7 +71,7 @@ class AuthController extends BaseController {
       }else {
         const profile = res.body;
         // TODO
-        const email = res.body.email ? res.body.email:`${fbRes.id}@fbmusicon`;
+        const email = res.body.email ? res.body.email:`${fbid}@fbmusicon`;
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
         if (!user) {
           user = await this.AuthDelegator.createSocialUser(channel, profile);
