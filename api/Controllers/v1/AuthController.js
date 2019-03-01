@@ -24,13 +24,13 @@ class AuthController extends BaseController {
     this.getTokenValidity = this.getTokenValidity.bind(this);
     this.quickLogin = this.quickLogin.bind(this);
     this.login = this.login.bind(this);
-    this.loginWithSocial = this.loginWithSocial.bind(this);
+    this.socialLogin= this.socialLogin.bind(this);
     this.getGoogleClientID = this.getGoogleClientID.bind(this)
     this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this)
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
   }
 
-  async loginWithSocial(Request,Response, next){
+  async socialLogin(Request,Response, next){
     try {
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
@@ -42,33 +42,34 @@ class AuthController extends BaseController {
       }
 
       let uri;
-      if(channel === 'google'){
+      if (channel === 'google') {
         uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
-      }else if(channel === 'facebook'){
+
+      } else if (channel === 'facebook') {
         const fbUri = `https://graph.facebook.com/me?access_token=${accessToken}`
         const fbRes = await request(fbUri);
-        if(fbRes.error){
-          this.error(Request, Response, fbRes.error);
-          return
-        }else if(fbRes.body.error){
-          this.error(Request, Response, fbRes.body.error);
-          return
-        }else {
+        if (fbRes.error) {
+          return this.error(Request, Response, fbRes.error);
+        } else if (fbRes.body.error) {
+          return this.error(Request, Response, fbRes.body.error);
+        } else {
           uri = `https://graph.facebook.com/${fbRes.id}?fields=email,first_name,last_name&access_token=${accessToken}`;
         }
-      }else if(channel === 'twitter'){
-
+      } else if (channel === 'twitter') {
+        // TODO
+        return this.error(Request, Response, "Not support twitter yet");
       }
 
       const res = await request(uri);
 
-      if(res.error){
-        this.error(Request, Response, res.error);
-      }else if(res.body.error){
-        this.error(Request, Response, body.error.message);
+      if (res.error) {
+        return this.error(Request, Response, res.error);
+      } else if (res.body.error) {
+        return this.error(Request, Response, body.error.message);
       }else {
         const profile = res.body;
-        const email = res.body.email?res.body.email:`${res.body.email}@facebook.com`;
+        // TODO
+        const email = res.body.email ? res.body.email:`${fbRes.id}@fbmusicon`;
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
         if (!user) {
           user = await this.AuthDelegator.createSocialUser(channel, profile);
