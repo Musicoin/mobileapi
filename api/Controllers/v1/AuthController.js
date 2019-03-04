@@ -409,38 +409,6 @@ class AuthController extends BaseController {
     }
   }
 
-  async delUser(Request, Response, next) {
-    const debug = process.env.DEBUG || true; // should be change to false by default
-    if (!debug) {
-        return this.reject(Request, Response, "debug not allowed");
-    }
-
-      const body = Request.body;
-      const email = body.email;
-
-      const user = await this.AuthDelegator._loadUserByEmail(email);
-      if (!user || !user.local) {
-        return this.reject(Request, Response, "user not found");
-      } else {
-        await this.AuthDelegator._delUserByEmail(email);
-      }
-
-      const apiUser = await this.AuthDelegator._loadApiUser(email);
-      if (!apiUser) {
-        return this.reject(Request, Response, "API user not found");
-      } else {
-        await this.AuthDelegator._delApiUser(email);
-      }
-
-      // response clientSecret and accessToken
-      const data = {
-        message: "OK"
-      }
-
-      this.success(Request,Response, next, data);
-
-  }
-
 
   async getGoogleClientID(Request, Response, next){
     let clientID = '';
@@ -453,7 +421,7 @@ class AuthController extends BaseController {
     this.success(Request,Response, next, data);
   }
 
-  async getTwitterOAuthToken(Request, Response, next){
+  async getTwitterOAuthToken(Request, Response, next) {
     const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
     const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
     const oauth = new OAuth.OAuth(
@@ -481,6 +449,44 @@ class AuthController extends BaseController {
     const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: '';
     const data = {appID}
     this.success(Request,Response, next, data);
+  }
+
+  async delUser(Request, Response, next) {
+    const debug = true; // process.env.DEBUG ? process.env.DEBUG : false; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+    try {
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        return this.reject(Request, Response, "user not found");
+      } else {
+        await this.AuthDelegator._delUserByEmail(email);
+      }
+
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser) {
+        return this.reject(Request, Response, "API user not found");
+      } else {
+        await this.AuthDelegator._delApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+
+
   }
 
 
