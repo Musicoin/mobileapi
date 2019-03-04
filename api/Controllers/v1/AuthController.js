@@ -444,13 +444,13 @@ class AuthController extends BaseController {
 
   }
 
-  async getFacebookAppID(Request, Response, next){
+  async getFacebookAppID(Request, Response, next) {
     const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: '';
     const data = {appID}
     this.success(Request,Response, next, data);
   }
 
-  async delUser(Request, Response, next){
+  async delUser(Request, Response, next) {
     const debug = process.env.DEBUG || true; // should be change to false by default
     if (!debug) {
         return this.reject(Request, Response, "debug not allowed");
@@ -464,15 +464,13 @@ class AuthController extends BaseController {
       if (!user || !user.local) {
         return this.reject(Request, Response, "user not found");
       } else {
-        user.remove.exec();
+        await this.AuthDelegator._delUserByEmail(email);
       }
-      
 
-      let apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {
         return this.reject(Request, Response, "API user not found");
       } else {
-        apiUser.remove().exec();
+        await this.AuthDelegator._delApiUser(email);
       }
 
       // response clientSecret and accessToken
@@ -483,7 +481,7 @@ class AuthController extends BaseController {
       this.success(Request,Response, next, data);
 
     } catch (error) {
-      this.error(Request,Response, error);
+      this.error(Request, Response, error);
     }
   }
 

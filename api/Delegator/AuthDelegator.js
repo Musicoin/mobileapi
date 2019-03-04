@@ -10,6 +10,7 @@ class AuthDelegator extends ControllerDelegator {
     super(props);
 
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
+    this._delUserByEmail = this._delUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
     this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
@@ -128,6 +129,14 @@ class AuthDelegator extends ControllerDelegator {
     db_user.pendingInitialization = false;
     return db_user.save();
   }
+
+  //
+  _delUserByEmail(email) {
+    return this.db.User.findOne({
+      "local.email": email
+    }).remove().exec();
+  }
+
 
 }
 
