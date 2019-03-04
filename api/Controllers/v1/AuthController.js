@@ -83,9 +83,10 @@ class AuthController extends BaseController {
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+
+        await this.AuthDelegator.setupNewUser(user);
         if (!user) {
           user = await this.AuthDelegator.createSocialUser(channel, profile);
-          await this.AuthDelegator.setupNewUser(user);
         } else {
           user[channel] = profile;
           await user.save();
