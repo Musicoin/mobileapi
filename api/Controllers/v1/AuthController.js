@@ -451,7 +451,7 @@ class AuthController extends BaseController {
   }
 
   async delUser(Request, Response, next){
-    if (!config.debug) {
+    if (!this.config.debug) {
         return this.reject(Request, Response, "debug not allowed");
     }
 
