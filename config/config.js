@@ -57,6 +57,7 @@ function getDefaultKeyValueConfig() {
     sessionSecretKey: env.SESSION_SECRET_KEY || 'secret',
     contractVersion: env.CONTRACT_VERSION || "v0.3",
     forwardingAddress: env.FORWARDING_ADDRESS || '0x0',
+    debug: env.DEBUG || true,
   };
 }
 

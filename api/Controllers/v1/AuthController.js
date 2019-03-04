@@ -450,6 +450,43 @@ class AuthController extends BaseController {
     this.success(Request,Response, next, data);
   }
 
+  async delUser(Request, Response, next){
+    if (!config.debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+    try {
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        return this.reject(Request, Response, "user not found");
+      } else {
+        user.remove.exec();
+      }
+      
+
+      let apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser) {
+        return this.reject(Request, Response, "API user not found");
+      } else {
+        apiUser.remove().exec();
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request,Response, error);
+    }
+  }
+
+
 }
 
 
