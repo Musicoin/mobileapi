@@ -456,7 +456,6 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "debug not allowed");
     }
 
-    try {
       const body = Request.body;
       const email = body.email;
 
@@ -480,9 +479,6 @@ class AuthController extends BaseController {
 
       this.success(Request,Response, next, data);
 
-    } catch (error) {
-      this.error(Request, Response, error);
-    }
   }
 
 
