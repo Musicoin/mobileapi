@@ -409,6 +409,39 @@ class AuthController extends BaseController {
     }
   }
 
+  async delUser(Request, Response, next) {
+    const debug = process.env.DEBUG || true; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        return this.reject(Request, Response, "user not found");
+      } else {
+        await this.AuthDelegator._delUserByEmail(email);
+      }
+
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser) {
+        return this.reject(Request, Response, "API user not found");
+      } else {
+        await this.AuthDelegator._delApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+  }
+
+
   async getGoogleClientID(Request, Response, next){
     let clientID = '';
     if(Request.query.platform === 'ios'){
@@ -450,36 +483,6 @@ class AuthController extends BaseController {
     this.success(Request,Response, next, data);
   }
 
-  async delUser(Request, Response, next) {
-    const debug = process.env.DEBUG || true; // should be change to false by default
-    if (!debug) {
-        return this.reject(Request, Response, "debug not allowed");
-    }
-
-      const body = Request.body;
-      const email = body.email;
-
-      const user = await this.AuthDelegator._loadUserByEmail(email);
-      if (!user || !user.local) {
-        return this.reject(Request, Response, "user not found");
-      } else {
-        await this.AuthDelegator._delUserByEmail(email);
-      }
-
-      if (!apiUser) {
-        return this.reject(Request, Response, "API user not found");
-      } else {
-        await this.AuthDelegator._delApiUser(email);
-      }
-
-      // response clientSecret and accessToken
-      const data = {
-        message: "OK"
-      }
-
-      this.success(Request,Response, next, data);
-
-  }
 
 
 }
