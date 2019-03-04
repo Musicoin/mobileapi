@@ -465,14 +465,14 @@ class AuthController extends BaseController {
 
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !user.local) {
-        return this.reject(Request, Response, "user not found");
+        this.logger.info("user not found");
       } else {
         await this.AuthDelegator._delUserByEmail(email);
       }
 
       const apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {
-        return this.reject(Request, Response, "API user not found");
+        this.logger.info("API user not found");
       } else {
         await this.AuthDelegator._delApiUser(email);
       }
