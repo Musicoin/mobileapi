@@ -28,6 +28,8 @@ class AuthController extends BaseController {
     this.getGoogleClientID = this.getGoogleClientID.bind(this)
     this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this)
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
+    // debug
+    this.delUser = this.delUser.bind(this)
   }
 
   async socialLogin(Request, Response, next){
@@ -452,12 +454,12 @@ class AuthController extends BaseController {
   }
 
   async delUser(Request, Response, next) {
-    //const debug = true; // process.env.DEBUG ? process.env.DEBUG : false; // should be change to false by default
-    //if (!debug) {
-    //    return this.reject(Request, Response, "debug not allowed");
-    //}
+    const debug = true; // process.env.DEBUG ? process.env.DEBUG : false; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
 
-    //try {
+    try {
       const body = Request.body;
       const email = body.email;
 
@@ -482,9 +484,9 @@ class AuthController extends BaseController {
 
       this.success(Request,Response, next, data);
 
-    //} catch (error) {
-    //  this.error(Request, Response, error);
-    //}
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
 
 
   }
