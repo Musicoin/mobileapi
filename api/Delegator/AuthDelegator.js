@@ -23,8 +23,21 @@ class AuthDelegator extends ControllerDelegator {
 
   _loadUserByEmail(email) {
     return this.db.User.findOne({
-      "local.email": email
-    }).exec();
+        $or:[
+          {   
+            "local.email": email
+          },  
+          {   
+            "google.email": email
+          },  
+          {   
+            "facebook.email": email
+          },  
+          {   
+            "twitter.email": email
+          }   
+        ]   
+      }).exec();
   }
 
   findUserBySocialEmail(channel, email){
@@ -136,8 +149,21 @@ class AuthDelegator extends ControllerDelegator {
   //
   _delUserByEmail(email) {
     return this.db.User.findOne({
-      "local.email": email
-    }).remove().exec();
+        $or:[
+          {   
+            "local.email": email
+          },  
+          {   
+            "google.email": email
+          },  
+          {   
+            "facebook.email": email
+          },  
+          {   
+            "twitter.email": email
+          }   
+        ]   
+      }).remove().exec();
   }
 
 

@@ -181,7 +181,7 @@ class AuthController extends BaseController {
       }
       
       // check if user exists
-      const user = await this.db.User.findOne({"local.email": email}).exec();
+      const user = await this.AuthDelegator._loadUserByEmail(email);
       if (user) {
         return this.reject(Request, Response, "Email has been used");
       }
