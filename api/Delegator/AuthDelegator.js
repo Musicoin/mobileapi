@@ -138,7 +138,7 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _updateNewUserState(db_user, tx){
-    this.logger.debug("start update new user state");
+    this.logger.debug("start update new user state:"+JSON.stringify(db_user)+"-tx:"+tx);
     db_user.pendingTx = tx;
     db_user.updatePending = true;
     db_user.hideProfile = false;
