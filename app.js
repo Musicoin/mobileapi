@@ -61,6 +61,7 @@ app.use("/v1/user", require("./api/routes/v1/user"));
 app.use("/v1/release", require("./api/routes/v1/release"));
 
 app.use("/v2", require("./api/routes/v2/global"));
+app.use("/v2/release", require("./api/routes/v2/release"));
 
 apollo.config(app);
 
