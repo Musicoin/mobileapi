@@ -364,7 +364,7 @@ const _createNewContractListener = function(resolve, reject, account, contractDe
       console.log("Failed to deploy " + label + ": blockNumber: " + blockNumber + ": " + e);
       reject(e);
     } else {
-      console.log("Deploying " + label + ", blockNumber: " + blockNumber + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address);
+      console.log("Deploying " + label + ", blockNumber: " + blockNumber + ", transactionHash: " + contract.transactionHash + ", contractAddress: " + contract.address + resolve);
       resolve(contract.transactionHash);
     }
   }
