@@ -90,11 +90,11 @@ class AuthController extends BaseController {
                     'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
                     oauthAccessToken,
                      oauthAccessTokenSecret,
-                    async (e, data, res)=>{
+                    async (e, twdata, res)=>{
                       if(e){
                         this.error(Request, Response, e);
                       }else {
-                        const profile = JSON.parse(data);
+                        const profile = JSON.parse(twdata);
                         logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
                         const email =  `${profile.id}@twmusicon`;
                         logger.debug("socialLogin:"+email);
