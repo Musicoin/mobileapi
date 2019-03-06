@@ -10,6 +10,7 @@ class AuthDelegator extends ControllerDelegator {
     super(props);
 
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
+    this._delUserByEmail = this._delUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
     this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
@@ -22,8 +23,21 @@ class AuthDelegator extends ControllerDelegator {
 
   _loadUserByEmail(email) {
     return this.db.User.findOne({
-      "local.email": email
-    }).exec();
+        $or:[
+          {   
+            "local.email": email
+          },  
+          {   
+            "google.email": email
+          },  
+          {   
+            "facebook.email": email
+          },  
+          {   
+            "twitter.email": email
+          }   
+        ]   
+      }).exec();
   }
 
   findUserBySocialEmail(channel, email){
@@ -72,8 +86,11 @@ class AuthDelegator extends ControllerDelegator {
 
   async setupNewUser(db_user){
     if (db_user.pendingInitialization) {
-      this.logger.debug("start setup new user");
+      this.logger.debug("start setup new user:"+JSON.stringify(db_user));
+
       const user = await this._setupNewUserDraftProfile(db_user);
+      this.logger.debug("user:"+JSON.stringify(user));
+
       const uploadResult = await this._uploadNewUserProfile(user);
       const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
       await this._updateNewUserState(user, tx);
@@ -121,13 +138,34 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _updateNewUserState(db_user, tx){
-    this.logger.debug("start update new user state");
+    this.logger.debug("start update new user state:"+JSON.stringify(db_user)+"-tx:"+tx);
     db_user.pendingTx = tx;
     db_user.updatePending = true;
     db_user.hideProfile = false;
     db_user.pendingInitialization = false;
     return db_user.save();
   }
+
+  //
+  _delUserByEmail(email) {
+    return this.db.User.findOne({
+        $or:[
+          {   
+            "local.email": email
+          },  
+          {   
+            "google.email": email
+          },  
+          {   
+            "facebook.email": email
+          },  
+          {   
+            "twitter.email": email
+          }   
+        ]   
+      }).remove().exec();
+  }
+
 
 }
 

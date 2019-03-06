@@ -39,6 +39,8 @@ class AuthController extends BaseController {
     this.getGoogleClientID = this.getGoogleClientID.bind(this)
     this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this)
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
+    // debug
+    this.delUser = this.delUser.bind(this)
   }
 
   async socialLogin(Request, Response, next){
@@ -140,13 +142,18 @@ class AuthController extends BaseController {
         const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
         logger.debug("socialLogin:"+email);
         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+        profile.email = email;
+
         if (!user) {
           user = await this.AuthDelegator.createSocialUser(channel, profile);
-          await this.AuthDelegator.setupNewUser(user);
         } else {
           user[channel] = profile;
           await user.save();
         }
+
+        // setupNewUser
+        await this.AuthDelegator.setupNewUser(user);
+
         let apiUser = await this.AuthDelegator._loadApiUser(email);
 
         // carete a new api user if not found
@@ -233,7 +240,7 @@ class AuthController extends BaseController {
       }
       
       // check if user exists
-      const user = await this.db.User.findOne({"local.email": email}).exec();
+      const user = await this.AuthDelegator._loadUserByEmail(email);
       if (user) {
         return this.reject(Request, Response, "Email has been used");
       }
@@ -468,6 +475,7 @@ class AuthController extends BaseController {
     }
   }
 
+
   async getGoogleClientID(Request, Response, next){
     let clientID = '';
     if(Request.query.platform === 'ios'){
@@ -492,11 +500,51 @@ class AuthController extends BaseController {
 
   }
 
-  async getFacebookAppID(Request, Response, next){
+  async getFacebookAppID(Request, Response, next) {
     const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: '';
     const data = {appID}
     this.success(Request,Response, next, data);
   }
+
+  async delUser(Request, Response, next) {
+    const debug = true; // process.env.DEBUG ? process.env.DEBUG : false; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+    try {
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        this.logger.info("user not found");
+      } else {
+        await this.AuthDelegator._delUserByEmail(email);
+      }
+
+      const apiUser = await this.AuthDelegator._loadApiUser(email);
+      if (!apiUser) {
+        this.logger.info("API user not found");
+      } else {
+        await this.AuthDelegator._delApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+
+
+  }
+
+
 
 }
 

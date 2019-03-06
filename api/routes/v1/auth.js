@@ -18,6 +18,7 @@ Router.post('/accesstoken/timeout', Controller.getTokenValidity, Controller.send
 Router.get('/google/clientid', Controller.getGoogleClientID, Controller.sendJson);
 Router.get('/twitter/oauthtoken', Controller.getTwitterOAuthToken, Controller.sendJson);
 Router.get('/facebook/appid', Controller.getFacebookAppID, Controller.sendJson);
+Router.post('/dev/deluser', Controller.delUser, Controller.sendJson);
 
 
 

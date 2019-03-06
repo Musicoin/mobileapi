@@ -16,6 +16,7 @@ class ControllerDelegator extends BaseController{
     this.updatePlayStats = this.updatePlayStats.bind(this);
     this._loadUser = this._loadUser.bind(this);
     this._loadApiUser = this._loadApiUser.bind(this);
+    this._delApiUser = this._delApiUser.bind(this);
     this._notBlank = this._notBlank.bind(this);
     this.getUserName = this.getUserName.bind(this);
   }
@@ -122,6 +123,14 @@ class ControllerDelegator extends BaseController{
       email: email
     }).exec();
   }
+
+  //
+  _delApiUser(email){
+    return this.db.ApiUser.findOne({
+      email: email
+    }).remove().exec();
+  }
+
 
 }
 
