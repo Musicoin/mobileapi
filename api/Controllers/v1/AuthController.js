@@ -96,7 +96,7 @@ class AuthController extends BaseController {
                       }else {
                         const profile = JSON.parse(twdata);
                         logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
-                        const email =  `${profile.id}@twmusicon`;
+                        const email = profile.email? profile.email: `${profile.id}@twmusicon`;
                         logger.debug("socialLogin:"+email);
                         let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
                         if (!user) {
