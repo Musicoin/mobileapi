@@ -4,7 +4,7 @@ const AuthController = require('../../Controllers/v1/AuthController');
 const Controller = new AuthController();
 
 const checkLoginParams = Controller.checkParams(Controller.schema.AuthSchema.quickLogin);
-const checkSocialLoginParams = Controller.checkParams(Controller.schema.AuthSchema.socialLogin);
+//const checkSocialLoginParams = Controller.checkParams(Controller.schema.AuthSchema.socialLogin);
 
 Router.post('/signup', Controller.registerNewUser, Controller.sendJson);
 Router.post('/login', checkLoginParams, Controller.login, Controller.sendJson);
