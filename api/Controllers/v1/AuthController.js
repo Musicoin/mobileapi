@@ -88,8 +88,8 @@ class AuthController extends BaseController {
               }else {
                 oauth.get(
                     'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
-                    oauthAccessToken, //test user token
-                     oauthAccessTokenSecret, //test user secret
+                    oauthAccessToken,
+                     oauthAccessTokenSecret,
                     async (e, data, res)=>{
                       if(e){
                         this.error(Request, Response, e);
@@ -121,8 +121,6 @@ class AuthController extends BaseController {
                         this.success(Request, Response, next, data);
                       }
                     });
-                const data = {oauthToken, oauthTokenSecret}
-                this.success(Request,Response, next, data);
               }
             });
 
