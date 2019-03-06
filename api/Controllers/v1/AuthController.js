@@ -4,6 +4,17 @@ const request = require('async-request');
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const OAuth = require('oauth');
+const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
+const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
+const oauth = new OAuth.OAuth(
+    'https://api.twitter.com/oauth/request_token',
+    'https://api.twitter.com/oauth/access_token',
+    twitterConsumerKey,
+    twitterConsumerSecret,
+    '1.0A',
+    null,
+    'HMAC-SHA1'
+);
 
 
 // util
@@ -64,8 +75,56 @@ class AuthController extends BaseController {
           uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
         }
       } else if (channel === 'twitter') {
-        // TODO
-        return this.error(Request, Response, "Not support twitter yet");
+        const oauthToken = Request.body.oauthToken;
+        const oauthTokenSecret = Request.body.oauthTokenSecret;
+        const oauthVerifier = Request.body.oauthVerifier;
+
+        oauth.getOAuthAccessToken(oauthToken,oauthTokenSecret,oauthVerifier,
+            (e, oauthAccessToken, oauthAccessTokenSecret, results)=>{
+              if (e){
+                this.error(Request, Response, e);
+              }else {
+                oauth.get(
+                    'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+                    oauthAccessToken, //test user token
+                     oauthAccessTokenSecret, //test user secret
+                    async (e, data, res)=>{
+                      if(e){
+                        this.error(Request, Response, e);
+                      }else {
+                        const profile = JSON.parse(data);
+                        logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
+                        const email =  `${profile.id}@twmusicon`;
+                        logger.debug("socialLogin:"+email);
+                        let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+                        if (!user) {
+                          user = await this.AuthDelegator.createSocialUser(channel, profile);
+                          await this.AuthDelegator.setupNewUser(user);
+                        } else {
+                          user[channel] = profile;
+                          await user.save();
+                        }
+                        let apiUser = await this.AuthDelegator._loadApiUser(email);
+
+                        // carete a new api user if not found
+                        if (!apiUser) {
+                          apiUser = await this.AuthDelegator._createApiUser(email);
+                        }
+                        // response clientSecret and accessToken
+                        const data = {
+                          clientSecret: apiUser.clientSecret,
+                          accessToken: apiUser.accessToken,
+                          email: email
+                        };
+                        this.success(Request, Response, next, data);
+                      }
+                    });
+                const data = {oauthToken, oauthTokenSecret}
+                this.success(Request,Response, next, data);
+              }
+            });
+
+        return
       }
 
       const res = await request(uri);
@@ -421,23 +480,12 @@ class AuthController extends BaseController {
   }
 
   async getTwitterOAuthToken(Request, Response, next){
-    const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
-    const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
-    const oauth = new OAuth.OAuth(
-        'https://api.twitter.com/oauth/request_token',
-        'https://api.twitter.com/oauth/access_token',
-        twitterConsumerKey,
-        twitterConsumerSecret,
-        '1.0A',
-        null,
-        'HMAC-SHA1'
-    );
     oauth.getOAuthRequestToken(
         (e, oauthToken, oauthTokenSecret, results)=>{
           if (e){
             this.error(Request, Response, e);
           }else {
-            const data = {oauthToken}
+            const data = {oauthToken, oauthTokenSecret}
             this.success(Request,Response, next, data);
           }
         })
