@@ -24,19 +24,19 @@ class AuthDelegator extends ControllerDelegator {
   _loadUserByEmail(email) {
     return this.db.User.findOne({
         $or:[
-          {   
+          {
             "local.email": email
-          },  
-          {   
+          },
+          {
             "google.email": email
-          },  
-          {   
+          },
+          {
             "facebook.email": email
-          },  
-          {   
+          },
+          {
             "twitter.email": email
-          }   
-        ]   
+          }
+        ]
       }).exec();
   }
 
@@ -123,7 +123,7 @@ class AuthDelegator extends ControllerDelegator {
     }
   }
 
-  async _publishNewUserProfile(name, descUrl, socialUrl){
+  async _publishNewUserProfile(name, descUrl, socialUrl) {
     this.logger.debug("start publish new user to blockchain");
     const credentials = await publishCredentialsProvider.getCredentials();
     const releaseRequest = {
@@ -138,11 +138,12 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _updateNewUserState(db_user, tx){
-    this.logger.debug("start update new user state:"+JSON.stringify(db_user)+"-tx:"+tx);
     db_user.pendingTx = tx;
     db_user.updatePending = true;
     db_user.hideProfile = false;
     db_user.pendingInitialization = false;
+
+    this.logger.debug("start update new user state:"+JSON.stringify(db_user)+"-tx:"+tx);
     return db_user.save();
   }
 
@@ -150,19 +151,19 @@ class AuthDelegator extends ControllerDelegator {
   _delUserByEmail(email) {
     return this.db.User.findOne({
         $or:[
-          {   
+          {
             "local.email": email
-          },  
-          {   
+          },
+          {
             "google.email": email
-          },  
-          {   
+          },
+          {
             "facebook.email": email
-          },  
-          {   
+          },
+          {
             "twitter.email": email
-          }   
-        ]   
+          }
+        ]
       }).remove().exec();
   }
 

@@ -120,6 +120,7 @@ class MusicoinAPI {
         }).then(body => body.tx);
     }
     publishProfile(profileAddress, artistName, descriptionUrl, imageUrl, socialUrl) {
+        console.log(`publishProfile ${this.apiConfig.publishProfile} ${profileAddress} {artistName} {descriptionUrl} {imageUrl} {socialUrl}`);
         return this.postJson(this.apiConfig.publishProfile, {
             profileAddress: profileAddress,
             artistName: artistName,
