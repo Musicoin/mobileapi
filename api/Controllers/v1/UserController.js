@@ -19,24 +19,9 @@ class UserController extends BaseController {
     const logger = this.logger;
     const email = Request.query.email;
     try {
-      logger.info("[getUserInfo]email:"+email)
-      const user = await this.db.User.findOne({
-        $or:[
-          {
-            "local.email": email
-          },
-          {
-            "google.email": email
-          },
-          {
-            "facebook.email": email
-          },
-          {
-            "twitter.email": email
-          }
-        ]
-      }).exec();
+      const user = await this.AuthDelegator._loadUserByEmail(email);
       logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+
       const username = this.UserDelegator.getUserName(user);
       const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
       const avatar = user.draftProfile && user.draftProfile.ipfsImageUrl;

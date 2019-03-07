@@ -19,11 +19,17 @@ class ReleaseController extends BaseController {
    * musicoins
    */
   async tipTrack(Request, Response, next) {
+    const logger = this.logger;
+    const email = Request.query.email;
+
+    const user = await this.AuthDelegator._loadUserByEmail(email);
+    logger.debug("[tipTrack]user:"+JSON.stringify(user))
+
     try {
       const musicoins = Request.body.musicoins || 10;
       const trackAddress = Request.body.trackAddress;
-      const USER_ACCOUNT = "0xc973b1c475f160c361d017fa762e6a3aa991f11c";
-      const logger = this.logger;
+      const USER_ACCOUNT = user.profileAddress; //"0xc973b1c475f160c361d017fa762e6a3aa991f11c";
+      const balance = + user.balance;
 
       const validateResult = this.validate({
         trackAddress,
@@ -33,6 +39,9 @@ class ReleaseController extends BaseController {
       if (validateResult !== true) {
         return this.reject(Request, Response, validateResult);
       }
+      if (balance < musicoins) {
+        return this.reject(Request, Response, "Balance is not enough");
+      }
 
 
       // find track
@@ -41,7 +50,7 @@ class ReleaseController extends BaseController {
         return this.reject(Request, Response, "Track not found: " + trackAddress);
       }
 
-      // find ubimusic
+      // find user
       const sender = await this.ReleaseDelegator._loadUser(USER_ACCOUNT);
       if (!sender) {
         return this.reject(Request, Response, "sender not found: " + USER_ACCOUNT);
