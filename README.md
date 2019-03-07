@@ -61,3 +61,7 @@ screen -S ipfs ./go-ipfs/ipfs daemon --init=true --migrate=true
 
 Requires environment variables to be set (refer config.js)
 
+
+### Test
+
+Checkout test shells in test directory
