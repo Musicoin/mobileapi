@@ -7,6 +7,7 @@ class UserController extends BaseController {
     super(props);
 
     this.UserDelegator = new UserDelegator();
+    this.AuthDelegator = new AuthDelegator();
 
     this.getPlayList = this.getPlayList.bind(this);
     this.addPlayList = this.addPlayList.bind(this);
