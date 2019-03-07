@@ -1,6 +1,8 @@
 const BaseController = require('../base/BaseController');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 
+const uuidV4 = require('uuid/v4');
+
 class ReleaseController extends BaseController {
   constructor(props) {
     super(props);
