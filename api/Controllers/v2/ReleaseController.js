@@ -41,10 +41,6 @@ class ReleaseController extends BaseController {
       if (validateResult !== true) {
         return this.reject(Request, Response, validateResult);
       }
-      if (balance < musicoins) {
-        return this.reject(Request, Response, "Balance is not enough");
-      }
-
 
       // find track
       const release = await this.ReleaseDelegator._loadTrack(trackAddress);
