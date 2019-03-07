@@ -20,7 +20,7 @@ class ReleaseController extends BaseController {
     try {
       const musicoins = Request.body.musicoins || 10;
       const trackAddress = Request.body.trackAddress;
-      const UBIMUSIC_ACCOUNT = "0x583643d320830fa5e1b557f7c8f23929d68d61e5";
+      const USER_ACCOUNT = "0xc973b1c475f160c361d017fa762e6a3aa991f11c";
       const logger = this.logger;
 
       const validateResult = this.validate({
@@ -40,13 +40,13 @@ class ReleaseController extends BaseController {
       }
 
       // find ubimusic
-      const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
+      const sender = await this.ReleaseDelegator._loadUser(USER_ACCOUNT);
       if (!sender) {
-        return this.reject(Request, Response, "sender not found: " + UBIMUSIC_ACCOUNT);
+        return this.reject(Request, Response, "sender not found: " + USER_ACCOUNT);
       }
 
       // send tip amount to track address
-      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
+      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
       logger.debug("tip complete: ", tx);
       // increase tip count
       const tipCount = release.directTipCount || 0;
