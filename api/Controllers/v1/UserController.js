@@ -1,5 +1,6 @@
 const BaseController = require('../base/BaseController');
 const UserDelegator = require('../../Delegator/UserDelegator');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 class UserController extends BaseController {
 
