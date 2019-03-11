@@ -78,7 +78,7 @@ class AuthController extends BaseController {
         }
       } else if (channel === 'twitter') {
         const oauthToken = Request.body.oauthToken;
-        const oauthTokenSecret = Request.body.oauthTokenSecret;
+        const oauthTokenSecret = Request.body.oauthTokenSecret ? Request.body.oauthTokenSecret : twitterConsumerSecret;
         const oauthVerifier = Request.body.oauthVerifier;
 
         oauth.getOAuthAccessToken(oauthToken,oauthTokenSecret,oauthVerifier,
@@ -89,7 +89,7 @@ class AuthController extends BaseController {
                 oauth.get(
                     'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
                     oauthAccessToken,
-                     oauthAccessTokenSecret,
+                    oauthAccessTokenSecret,
                     async (e, twdata, res)=>{
                       if(e){
                         this.error(Request, Response, e);
