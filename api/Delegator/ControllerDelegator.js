@@ -1,3 +1,4 @@
+const MediaProvider = require('../../utils/media-provider-instance');
 const BaseController = require('../Controllers/base/BaseController');
 
 const moment = require('moment');
@@ -14,11 +15,14 @@ class ControllerDelegator extends BaseController{
     this.getDatePeriodStart = this.getDatePeriodStart.bind(this);
     this.updateTipStats = this.updateTipStats.bind(this);
     this.updatePlayStats = this.updatePlayStats.bind(this);
+    this.getUserName = this.getUserName.bind(this);
+    this.getUserAvatar = this.getUserAvatar.bind(this);
+
+
     this._loadUser = this._loadUser.bind(this);
     this._loadApiUser = this._loadApiUser.bind(this);
     this._delApiUser = this._delApiUser.bind(this);
     this._notBlank = this._notBlank.bind(this);
-    this.getUserName = this.getUserName.bind(this);
   }
 
   /**
@@ -39,6 +43,14 @@ class ControllerDelegator extends BaseController{
     if (user.twitter && user.twitter.email) return user.twitter.email;
     if (user.invite && user.invite.invitedAs) return user.invite.invitedAs;
     return null;
+  }
+
+ /*
+    Get User Avatar (Change ipfs to https link)
+ */
+  getUserAvatar(avatar) {
+    if (!avatar) return null;
+    return MediaProvider.resolveIpfsUrl(avatar)
   }
 
   getUserName(user){

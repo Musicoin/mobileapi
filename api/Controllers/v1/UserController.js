@@ -35,7 +35,7 @@ class UserController extends BaseController {
         profileAddress: user.profileAddress || null,
         email: email,
         username: username || null,
-        avatar: avatar || null,
+        avatar: this.UserDelegator.getUserAvatar(avatar),
         description: description || null,
         balance: balance || 0,
         socials: socials || {},
