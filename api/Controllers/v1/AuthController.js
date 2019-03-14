@@ -1,6 +1,5 @@
 const request = require('async-request');
 
-
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const OAuth = require('oauth');
@@ -220,10 +219,10 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
    * password
-   * username 
+   * username
    */
   async registerNewUser(Request, Response, next) {
     const body = Request.body;
@@ -236,7 +235,7 @@ class AuthController extends BaseController {
       if (validResult !== true) {
         return this.reject(Request, Response, validResult);
       }
-      
+
       // check if user exists
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (user) {
@@ -244,7 +243,7 @@ class AuthController extends BaseController {
       }
 
       // create user
-      await this.AuthDelegator._createUser(email,password,username);
+      await this.AuthDelegator._createUser(email, password, username);
       // create api user
       const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
@@ -259,7 +258,7 @@ class AuthController extends BaseController {
     }
   }
 
-  async login(Request, Response, next){
+  async login(Request, Response, next) {
     try {
       const body = Request.body;
       const email = body.email;
