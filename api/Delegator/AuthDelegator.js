@@ -93,6 +93,8 @@ class AuthDelegator extends ControllerDelegator {
       this.logger.debug("user:"+JSON.stringify(user));
 
       const uploadResult = await this._uploadNewUserProfile(user);
+      this.logger.debug("user:"+JSON.stringify(user));
+
       const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
       await this._updateNewUserState(user, tx);
     }
@@ -114,13 +116,10 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   async _uploadNewUserProfile(db_user){
-    this.logger.debug("start upload new user profile to ipfs");
+    this.logger.debug("start upload new user profile to ipfs:"+JSON.stringify(db_user.draftProfile));
 
     const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description);
-    this.logger.debug("_uploadNewUserProfile descPromise:"+JSON.stringify(descPromise));
-
     const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
-    this.logger.debug("_uploadNewUserProfile socialPromise:"+JSON.stringify(socialPromise));
 
     const result = await Promise.all([descPromise, socialPromise]);
     this.logger.debug("_uploadNewUserProfile:"+JSON.stringify(result));
