@@ -278,6 +278,7 @@ class AuthController extends BaseController {
 
       await this.AuthDelegator.setupNewUser(user);
 
+      this.logger.debug("login setupNewUser");
       let apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {
         apiUser = await this.AuthDelegator._createApiUser(email);

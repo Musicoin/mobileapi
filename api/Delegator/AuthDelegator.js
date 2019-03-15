@@ -117,6 +117,7 @@ class AuthDelegator extends ControllerDelegator {
     const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description); 
     const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
     const result = await Promise.all([descPromise, socialPromise]);
+    this.logger.debug("_uploadNewUserProfile:"+JSON.stringify(result));
     return {
       descUrl: result[0],
       socialUrl: result[1]
