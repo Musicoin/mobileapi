@@ -264,10 +264,13 @@ class AuthController extends BaseController {
       const email = body.email;
       const password = body.password;
 
+      this.logger.info("login:"+JSON.stringify(body));
+
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !user.local) {
         return this.reject(Request, Response, "user not found");
       }
+      this.logger.debug("login:"+JSON.stringify(user.local));
       // verify password
       if (!cryptoUtil.comparePassword(password, user.local.password)) {
         return this.reject(Request, Response, "email and password dont match");
