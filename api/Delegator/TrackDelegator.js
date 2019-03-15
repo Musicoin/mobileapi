@@ -14,6 +14,8 @@ class TrackDelegator extends ControllerDelegator {
   }
 
   getLicenseKey(licenseAddress) {
+    const licenseUrl = `${process.env.CORE_API_URL}/${licenseAddress}`;
+    console.log("getLicenseKey:"+licenseUrl);
     return new Promise((resolve, reject)=>{
       request({
         url: `${process.env.CORE_API_URL}/${licenseAddress}`,
