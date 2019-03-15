@@ -508,7 +508,7 @@ class AuthController extends BaseController {
   }
 
   async delUser(Request, Response, next) {
-    const debug = true; // process.env.DEBUG ? process.env.DEBUG : false; // should be change to false by default
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     if (!debug) {
         return this.reject(Request, Response, "debug not allowed");
     }
