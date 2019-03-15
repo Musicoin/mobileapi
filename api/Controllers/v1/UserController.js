@@ -1,5 +1,6 @@
 const BaseController = require('../base/BaseController');
 const UserDelegator = require('../../Delegator/UserDelegator');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 class UserController extends BaseController {
 
@@ -7,11 +8,50 @@ class UserController extends BaseController {
     super(props);
 
     this.UserDelegator = new UserDelegator();
+    this.AuthDelegator = new AuthDelegator();
 
     this.getPlayList = this.getPlayList.bind(this);
     this.addPlayList = this.addPlayList.bind(this);
     this.getAllPlayList = this.getAllPlayList.bind(this);
     this.deletePlayList = this.deletePlayList.bind(this);
+    this.getUserInfo = this.getUserInfo.bind(this);
+  }
+
+  async getUserInfo(Request, Response, next){
+    const logger = this.logger;
+    const email = Request.query.email;
+    try {
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+
+      const username = this.UserDelegator.getUserName(user);
+      const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
+      const avatar = user.draftProfile && user.draftProfile.ipfsImageUrl;
+      const description = user.draftProfile && user.draftProfile.description;
+      const socials = user.draftProfile && user.draftProfile.social;
+      const genres = user.draftProfile && user.draftProfile.genres;
+
+      const userInfo = {
+        profileAddress: user.profileAddress || null,
+        email: email,
+        username: username || null,
+        avatar: this.UserDelegator.getUserAvatar(avatar),
+        description: description || null,
+        balance: balance || 0,
+        socials: socials || {},
+        genres: genres || []
+      }
+
+      const response = {
+        user: userInfo
+      }
+
+      this.success(Request,Response,next,response);
+
+    } catch (error) {
+      this.error(Request,Response, error);
+    }
+
   }
 
   async getPlayList(Request, Response, next) {

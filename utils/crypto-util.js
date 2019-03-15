@@ -14,7 +14,7 @@ function generateToken(count) {
  * @param {*} password 
  */
 function hashPassword(password) {
-  return bcrypt.hashSync(password);
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 }
 
 /**

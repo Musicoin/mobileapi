@@ -53,7 +53,7 @@ module.exports = mongoose.model('User', mongoose.Schema({
     id: String,
     token: String,
     email: String,
-    name: String,
+    username: String,
     url: String,
     picture: String
   },

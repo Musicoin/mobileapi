@@ -12,6 +12,15 @@ const signup = {
   }
 };
 
+const socialLogin = {
+  channel: {
+    type:"string"
+  },
+  accessToken: {
+    type: "string"
+  }
+}
+
 const quickLogin = {
   password: {
     type: "string",
@@ -62,5 +71,6 @@ module.exports = {
   authenticate,
   accessToken,
   tokenValidity,
-  quickLogin
+  quickLogin,
+  socialLogin
 };

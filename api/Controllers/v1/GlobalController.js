@@ -1,6 +1,9 @@
 const BaseController = require('../base/BaseController');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
+
+const uuidV4 = require('uuid/v4');
 
 class GlobalController extends BaseController {
 
@@ -98,6 +101,7 @@ class GlobalController extends BaseController {
     }
   }
 
+
   async checkServices(Request, Response, next) {
     // load a artist info to check if serices is running
     const artistAddress = "0x411eedd91f172766061d705ed7e71131b84a7654";
@@ -142,6 +146,52 @@ class GlobalController extends BaseController {
 
     this.success(Request, Response, next, response);
   }
+
+  /**
+   * Direct Send: TODO
+   * body:
+   * profileAddress
+   * musicoins
+   */
+  async directSend(Request, Response, next) {
+    const logger = this.logger;
+    const email = Request.query.email;
+
+    const user = await this.AuthDelegator._loadUserByEmail(email);
+    logger.debug("[directSend]user:"+JSON.stringify(user))
+
+    try {
+      const musicoins = Request.body.musicoins || 10;
+      const trackAddress = Request.body.trackAddress;
+      const USER_ACCOUNT = user.profileAddress; //"0xc973b1c475f160c361d017fa762e6a3aa991f11c";
+      const balance = + user.balance;
+
+      const validateResult = this.validate({
+        trackAddress,
+        musicoins
+      }, this.schema.ReleaseSchema.tip);
+
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult);
+      }
+
+      // find user
+      const sender = await this.ReleaseDelegator._loadUser(USER_ACCOUNT);
+      if (!sender) {
+        return this.reject(Request, Response, "sender not found: " + USER_ACCOUNT);
+      }
+
+      // TODO
+
+      const data = {
+        tx: ""
+      }
+      this.success(Request, Response, next, data);
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
+
 
 }
 

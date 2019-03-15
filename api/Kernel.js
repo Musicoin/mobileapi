@@ -38,5 +38,7 @@ module.exports = {
   releaseModule: ReleaseModule,
   userModule: UserModule,
   globalController: GlobalModule,
-  musicoinCore
+  musicoinCore,
+  publishCredentialsProvider,
+  paymentAccountCredentialsProvider
 };
