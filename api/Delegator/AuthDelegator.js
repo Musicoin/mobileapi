@@ -114,8 +114,13 @@ class AuthDelegator extends ControllerDelegator {
 
   async _uploadNewUserProfile(db_user){
     this.logger.debug("start upload new user profile to ipfs");
-    const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description); 
+
+    const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description);
+    this.logger.debug("_uploadNewUserProfile descPromise:"+JSON.stringify(descPromise));
+
     const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
+    this.logger.debug("_uploadNewUserProfile socialPromise:"+JSON.stringify(socialPromise));
+
     const result = await Promise.all([descPromise, socialPromise]);
     this.logger.debug("_uploadNewUserProfile:"+JSON.stringify(result));
     return {
