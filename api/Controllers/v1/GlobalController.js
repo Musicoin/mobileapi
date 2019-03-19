@@ -5,6 +5,8 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
 
+const IAPVerifier = require('iap_verifier');
+
 class GlobalController extends BaseController {
 
   constructor(props) {
@@ -17,6 +19,7 @@ class GlobalController extends BaseController {
     this.reportRelease = this.reportRelease.bind(this);
 
     this.checkServices = this.checkServices.bind(this);
+    this.appleIAP = this.appleIAP.bind(this);
   }
 
   async search(Request, Response, next) {
@@ -145,6 +148,34 @@ class GlobalController extends BaseController {
     }
 
     this.success(Request, Response, next, response);
+  }
+
+
+  /*
+
+    Apple IAP callback
+
+  */
+  async appleIAP(Request, Response, next) {
+    const logger = this.logger;
+    logger.info("[GlobalController]appleIAP:")
+
+    const receipt = 'raw_receipt_data_from_ios'
+
+    var client = new IAPVerifier(itunes_shared_secret);
+    client.verifyReceipt(receipt, function(valid, msg, data) {
+      if (valid) {
+        // update status of payment in your system
+        logger.info("Valid receipt");
+      } else {
+        logger.info("Invalid receipt");
+      }
+    });
+
+    const data = {
+        code: 0
+    };
+    this.success(Request, Response, next, data);
   }
 
   /**

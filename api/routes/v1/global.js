@@ -11,5 +11,7 @@ Router.post('/report/release', checkReportRelease,Controller.reportRelease, Cont
 Router.post('/report/artist', checkReportArtist,Controller.reportArtist, Controller.sendJson);
 
 Router.get("/check_services", Controller.checkServices, Controller.sendJson);
+// apple iap
+Router.get("/apple/iap/", Controller.appleIAP, Controller.sendJson);
 
 module.exports = Router;
