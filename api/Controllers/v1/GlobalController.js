@@ -158,9 +158,10 @@ class GlobalController extends BaseController {
   */
   async appleIAP(Request, Response, next) {
     const logger = this.logger;
-    logger.info("[GlobalController]appleIAP:")
+    logger.info("[GlobalController]appleIAP")
 
-    const receipt = 'raw_receipt_data_from_ios'
+    const receipt = 'raw_receipt_data_from_ios';
+    const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
 
     var client = new IAPVerifier(itunes_shared_secret);
     client.verifyReceipt(receipt, function(valid, msg, data) {

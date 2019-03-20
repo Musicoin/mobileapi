@@ -60,7 +60,7 @@ async function checkUserVerified(){
     } catch (error) {
       setTimeout(checkUserVerified, 1000*5);
       Logger.debug("get verified users error: ", error.message);
-    }     
+    }
 }
 
 checkUserVerified();

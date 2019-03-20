@@ -28,7 +28,8 @@
             "MUSICOIN_API_PORT": 8082,
             "MONGO_ENDPOINT": "mongodb://localhost",
             "IPFS_READ_ENDPOINT": "http://staging.musicoin.org/ipfs",
-            "SENDGRID_API_KEY": "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"
+            "SENDGRID_API_KEY": "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",
+            "ITUNES_SHARED_SECRET":""
         }
     }
 }
