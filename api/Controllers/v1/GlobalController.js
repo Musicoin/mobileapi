@@ -15,6 +15,7 @@ class GlobalController extends BaseController {
 
     this.GlobalDelegator = new GlobalDelegator();
     this.ReleaseDelegator = new ReleaseDelegator(props);
+    this.AuthDelegator = new AuthDelegator(props);
 
     this.search = this.search.bind(this);
     this.reportArtist = this.reportArtist.bind(this);
