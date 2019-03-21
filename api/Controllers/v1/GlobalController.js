@@ -181,7 +181,7 @@ class GlobalController extends BaseController {
         const product_id = recv.receipt.in_app;
 
         // TODO
-        await this.GlobalDelegator.directPay(user.profileAddress, 100);
+        this.GlobalDelegator.directPay(user.profileAddress, 100);
 
       } else {
         logger.info("Invalid receipt");
