@@ -103,6 +103,40 @@ class GlobalDelegator extends ControllerDelegator {
 
   }
 
+  async directPay(walletAddress, amount) {
+    try {
+      const logger = this.logger;
+      logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+amount)
+      const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
+
+      const validateResult = this.validate({
+        walletAddress,
+        musicoins
+      }, this.schema.ReleaseSchema.tip);
+
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult);
+      }
+
+      // find ubimusic
+      const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
+      if (!sender) {
+        return this.reject(Request, Response, "sender not found: " + UBIMUSIC_ACCOUNT);
+      }
+
+      // send tip amount to address
+      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, walletAddress, musicoins);
+      logger.debug("tip complete: ", tx);
+
+      const data = {
+        tx: tx
+      }
+      this.success(Request, Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
 }
 
 module.exports = GlobalDelegator;

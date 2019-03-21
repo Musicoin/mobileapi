@@ -1,6 +1,7 @@
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
-
+const UserDelegator = require('../../Delegator/UserDelegator');
+const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
@@ -13,6 +14,7 @@ class GlobalController extends BaseController {
     super(props);
 
     this.GlobalDelegator = new GlobalDelegator();
+    this.ReleaseDelegator = new ReleaseDelegator(props);
 
     this.search = this.search.bind(this);
     this.reportArtist = this.reportArtist.bind(this);
@@ -158,16 +160,28 @@ class GlobalController extends BaseController {
   */
   async appleIAP(Request, Response, next) {
     const logger = this.logger;
-    logger.info("[GlobalController]appleIAP")
+    const email = Request.query.email;
+    const orderid = Request.query.orderid;
+    const receipt = Request.query.receipt;
 
-    const receipt = 'raw_receipt_data_from_ios';
+    logger.info("[GlobalController]appleIAP:"+email+"-:"+receipt);
+
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
+    if (itunes_shared_secret == '') {
+        return this.reject(Request, Response, "Empty itunes_shared_secret");
+    }
 
     var client = new IAPVerifier(itunes_shared_secret);
-    client.verifyReceipt(receipt, function(valid, msg, data) {
+    client.verifyReceipt(receipt, function(valid, msg, recv) {
       if (valid) {
         // update status of payment in your system
         logger.info("Valid receipt");
+        const product_id = recv.receipt.in_app;
+
+        // TODO
+        const user = await this.AuthDelegator._loadUserByEmail(email);
+        await this.GlobalDelegator.directPay(user.profileAddress, 100);
+
       } else {
         logger.info("Invalid receipt");
       }
@@ -185,7 +199,7 @@ class GlobalController extends BaseController {
    * profileAddress
    * musicoins
    */
-  async directSend(Request, Response, next) {
+  async directPay(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
 
@@ -223,8 +237,6 @@ class GlobalController extends BaseController {
       this.error(Request, Response, error);
     }
   }
-
-
 }
 
 module.exports = GlobalController;
