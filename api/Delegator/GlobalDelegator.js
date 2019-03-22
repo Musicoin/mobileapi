@@ -115,13 +115,15 @@ class GlobalDelegator extends ControllerDelegator {
       }, this.schema.ReleaseSchema.tip);
 
       if (validateResult !== true) {
-        return this.reject(Request, Response, validateResult);
+        //return validateResult;
+        return false;
       }
 
       // find ubimusic
       const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
       if (!sender) {
-        return this.reject(Request, Response, "sender not found: " + UBIMUSIC_ACCOUNT);
+        //"sender not found: " + UBIMUSIC_ACCOUNT;
+        return false;
       }
 
       // send tip amount to address
@@ -131,10 +133,10 @@ class GlobalDelegator extends ControllerDelegator {
       const data = {
         tx: tx
       }
-      this.success(Request, Response, next, data);
+      return data;
 
     } catch (error) {
-      this.error(Request, Response, error);
+      return false;
     }
   }
 }
