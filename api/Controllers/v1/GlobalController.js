@@ -162,8 +162,8 @@ class GlobalController extends BaseController {
   async appleIAP(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
-    const orderid = Request.query.orderid;
-    const receipt = Request.query.receipt;
+    const orderid = Request.params.orderid;
+    const receipt = Request.params.receipt;
 
     logger.info("[GlobalController]appleIAP:"+email+"-:"+receipt);
 
@@ -184,7 +184,7 @@ class GlobalController extends BaseController {
           const product_id = recv.receipt.in_app;
 
           // TODO
-          this.GlobalDelegator.directPay(user.profileAddress, 100);
+          await this.GlobalDelegator.directPay(user.profileAddress, 100);
 
         } else {
           logger.info("Invalid receipt");
