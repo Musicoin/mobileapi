@@ -182,20 +182,26 @@ class GlobalController extends BaseController {
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
 
+    const iap_verify = true;
+
     try {
-      client.verifyReceipt(receipt, function(valid, msg, recv) {
+      await client.verifyReceipt(receipt, function(valid, msg, recv) {
         if (valid) {
           // update status of payment in your system
           logger.info("Valid receipt");
           const product_id = recv.receipt.in_app;
+          iap_verify = true;
 
         } else {
           logger.info("Invalid receipt");
+          iap_verify = false;
         }
       });
 
       // add coin
-      await this.GlobalDelegator.directPay(user.profileAddress, 100);
+      if (iap_verify) {
+        await this.GlobalDelegator.directPay(user.profileAddress, 100);
+      }
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
