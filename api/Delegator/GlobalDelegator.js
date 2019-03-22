@@ -104,7 +104,7 @@ class GlobalDelegator extends ControllerDelegator {
 
   }
 
-  async directPay(walletAddress, musicoins) {
+  async directPay(trackAddress, musicoins) {
 
     const logger = this.logger;
     logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+musicoins)
@@ -113,7 +113,7 @@ class GlobalDelegator extends ControllerDelegator {
       const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
       const validateResult = this.validate({
-        walletAddress,
+        trackAddress,
         musicoins
       }, this.schema.ReleaseSchema.tip);
 
@@ -131,7 +131,7 @@ class GlobalDelegator extends ControllerDelegator {
       }
 
       // send tip amount to address
-      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, walletAddress, musicoins);
+      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
       logger.debug("tip complete: ", tx);
 
       const data = {
