@@ -162,8 +162,8 @@ class GlobalController extends BaseController {
   async appleIAP(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
-    const orderid = Request.params.orderid;
-    const receipt = Request.params.receipt;
+    const orderid = Request.body.orderid;
+    const receipt = Request.body.receipt;
 
     logger.info("[GlobalController]appleIAP:"+email+"-:"+receipt);
 
@@ -185,7 +185,6 @@ class GlobalController extends BaseController {
 
         } else {
           logger.info("Invalid receipt");
-
         }
       });
 
@@ -209,7 +208,7 @@ class GlobalController extends BaseController {
    * profileAddress
    * musicoins
    */
-  async directPay(Request, Response, next) {
+  async directTransfer(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
 
