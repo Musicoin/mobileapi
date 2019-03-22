@@ -105,9 +105,11 @@ class GlobalDelegator extends ControllerDelegator {
   }
 
   async directPay(walletAddress, amount) {
-    try {
-      const logger = this.logger;
-      logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+amount)
+
+    const logger = this.logger;
+    logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+amount)
+
+    //try {
       const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
       const validateResult = this.validate({
@@ -137,10 +139,10 @@ class GlobalDelegator extends ControllerDelegator {
       }
       return data;
 
-    } catch (error) {
+    /*} catch (error) {
       logger.error("Exception: "+error);
       return false;
-    }
+    }*/
   }
 }
 
