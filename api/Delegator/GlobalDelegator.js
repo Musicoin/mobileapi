@@ -123,13 +123,6 @@ class GlobalDelegator extends ControllerDelegator {
         return false;
       }
 
-      // find ubimusic
-      /*const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
-      if (!sender) {
-        logger.error("sender not found: "+UBIMUSIC_ACCOUNT);
-        return false;
-      }*/
-
       // send tip amount to address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
       logger.debug("tip complete: ", tx);

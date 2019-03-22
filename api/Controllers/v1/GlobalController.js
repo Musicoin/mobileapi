@@ -164,8 +164,14 @@ class GlobalController extends BaseController {
     const email = Request.query.email;
     const orderid = Request.body.orderid;
     const receipt = Request.body.receipt;
+    const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
     logger.info("[GlobalController]appleIAP:"+email+"-:"+receipt);
+
+    const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
+    if (!sender) {
+      return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
+    }
 
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
