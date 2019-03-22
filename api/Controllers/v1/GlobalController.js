@@ -182,7 +182,7 @@ class GlobalController extends BaseController {
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
 
-    const iap_verify = true;
+    let iap_verify = true;
 
     try {
       await client.verifyReceipt(receipt, function(valid, msg, recv) {
