@@ -183,20 +183,18 @@ class GlobalController extends BaseController {
           logger.info("Valid receipt");
           const product_id = recv.receipt.in_app;
 
-          // TODO
-          await this.GlobalDelegator.directPay(user.profileAddress, 100);
-
         } else {
           logger.info("Invalid receipt");
 
-          // TODO
-          this.GlobalDelegator.directPay(user.profileAddress, 100);
         }
       });
+
+      // add coin
+      await this.GlobalDelegator.directPay(user.profileAddress, 100);
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
-      this.GlobalDelegator.directPay(user.profileAddress, 100);
+      //this.GlobalDelegator.directPay(user.profileAddress, 100);
     }
 
     const data = {
