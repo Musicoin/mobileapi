@@ -104,17 +104,17 @@ class GlobalDelegator extends ControllerDelegator {
 
   }
 
-  async directPay(walletAddress, amount) {
+  async directPay(walletAddress, musicoins) {
 
     const logger = this.logger;
-    logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+amount)
+    logger.info("[UserDelegator]directPay:"+walletAddress+"-mount:"+musicoins)
 
     //try {
       const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
       const validateResult = this.validate({
         walletAddress,
-        amount
+        musicoins
       }, this.schema.ReleaseSchema.tip);
 
       if (validateResult !== true) {
