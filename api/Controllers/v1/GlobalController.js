@@ -176,22 +176,28 @@ class GlobalController extends BaseController {
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
 
-    client.verifyReceipt(receipt, function(valid, msg, recv) {
-      if (valid) {
-        // update status of payment in your system
-        logger.info("Valid receipt");
-        const product_id = recv.receipt.in_app;
+    try {
+      client.verifyReceipt(receipt, function(valid, msg, recv) {
+        if (valid) {
+          // update status of payment in your system
+          logger.info("Valid receipt");
+          const product_id = recv.receipt.in_app;
 
-        // TODO
-        this.GlobalDelegator.directPay(user.profileAddress, 100);
+          // TODO
+          this.GlobalDelegator.directPay(user.profileAddress, 100);
 
-      } else {
-        logger.info("Invalid receipt");
+        } else {
+          logger.info("Invalid receipt");
 
-        // TODO
-        this.GlobalDelegator.directPay(user.profileAddress, 100);
-      }
-    });
+          // TODO
+          this.GlobalDelegator.directPay(user.profileAddress, 100);
+        }
+      });
+    } catch (error) {
+      logger.error("error:"+error);
+      // DEBUG
+      this.GlobalDelegator.directPay(user.profileAddress, 100);
+    }
 
     const data = {
         code: 0
