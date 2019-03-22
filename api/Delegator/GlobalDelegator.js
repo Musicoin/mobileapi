@@ -114,7 +114,7 @@ class GlobalDelegator extends ControllerDelegator {
 
       const validateResult = this.validate({
         walletAddress,
-        musicoins
+        amount
       }, this.schema.ReleaseSchema.tip);
 
       if (validateResult !== true) {
