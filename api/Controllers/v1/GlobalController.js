@@ -174,6 +174,8 @@ class GlobalController extends BaseController {
 
     var client = new IAPVerifier(itunes_shared_secret);
     const user = await this.AuthDelegator._loadUserByEmail(email);
+    logger.info("User:"+JSON.stringify(user));
+
     client.verifyReceipt(receipt, function(valid, msg, recv) {
       if (valid) {
         // update status of payment in your system
@@ -185,6 +187,9 @@ class GlobalController extends BaseController {
 
       } else {
         logger.info("Invalid receipt");
+
+        // TODO
+        this.GlobalDelegator.directPay(user.profileAddress, 100);
       }
     });
 
