@@ -189,19 +189,17 @@ class GlobalController extends BaseController {
           logger.info("Valid receipt");
           const product_id = recv.receipt.in_app;
 
-          this.GlobalDelegator.directPay(user.profileAddress, 100);
         } else {
           logger.info("Invalid receipt");
-          this.GlobalDelegator.directPay(user.profileAddress, 100);
         }
       });
 
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
-      //this.GlobalDelegator.directPay(user.profileAddress, 100);
     }
 
+    this.GlobalDelegator.directPay(user.profileAddress, 100);
     const data = {
         code: 0
     };
