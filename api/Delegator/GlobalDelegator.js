@@ -13,6 +13,7 @@ class GlobalDelegator extends ControllerDelegator {
     this.findUserByAddress = this.findUserByAddress.bind(this);
     this.findRleaseByAddress = this.findRleaseByAddress.bind(this);
     this.createReport = this.createReport.bind(this);
+    this.directPay = this.directPay.bind(this);
   }
 
   _searchArtists(reg, limit, skip) {
