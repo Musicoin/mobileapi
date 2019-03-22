@@ -116,13 +116,14 @@ class GlobalDelegator extends ControllerDelegator {
 
       if (validateResult !== true) {
         //return validateResult;
+        logger.error("validateResult: "+validateResult);
         return false;
       }
 
       // find ubimusic
       const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
       if (!sender) {
-        //"sender not found: " + UBIMUSIC_ACCOUNT;
+        logger.error("sender not found: "+UBIMUSIC_ACCOUNT);
         return false;
       }
 
@@ -136,6 +137,7 @@ class GlobalDelegator extends ControllerDelegator {
       return data;
 
     } catch (error) {
+      logger.error("Exception: "+error);
       return false;
     }
   }
