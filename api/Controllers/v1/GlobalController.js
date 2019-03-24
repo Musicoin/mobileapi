@@ -185,7 +185,7 @@ class GlobalController extends BaseController {
     logger.info("User:"+JSON.stringify(user));
 
     try {
-      const validationData = await validateReceipt(receiptData);
+      const validationData = await validateReceipt(receipt);
       logger.info("validationData:"+JSON.stringify(validationData));
 
       const result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
