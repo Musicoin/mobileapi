@@ -1,3 +1,4 @@
+const fetch = require("node-fetch");
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const UserDelegator = require('../../Delegator/UserDelegator');
