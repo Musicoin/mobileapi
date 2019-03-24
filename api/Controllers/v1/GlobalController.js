@@ -7,7 +7,7 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
 
-const iapReceiptValidator = require('iap-receipt-validator2').default;
+const iapReceiptValidator = require('iap-receipt-validator').default;
 
 class GlobalController extends BaseController {
 

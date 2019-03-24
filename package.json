@@ -42,7 +42,7 @@
     "node-localstorage": "^1.3.0",
     "oauth": "^0.9.15",
     "os": "*",
-    "iap-receipt-validator2": "git+https://github.com/Musicoin/iap-receipt-validator2.git",
+    "iap-receipt-validator": "*",
     "babel-polyfill": "*",
     "node-fetch": "*",
     "owasp-password-strength-test": "*",
