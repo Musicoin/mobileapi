@@ -1,5 +1,6 @@
 require('dotenv').config();
 require('babel-polyfill');
+const fetch = require("node-fetch");
 const express = require('express');
 const session = require('express-session');
 const app = express();
