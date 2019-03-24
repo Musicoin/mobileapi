@@ -6,7 +6,7 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
 
-const IAPVerifier = require('iap_verifier');
+import iapReceiptValidator from 'iap-receipt-validator';
 
 class GlobalController extends BaseController {
 
@@ -173,33 +173,28 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
         return this.reject(Request, Response, "Empty itunes_shared_secret");
     }
 
-    var client = new IAPVerifier(itunes_shared_secret);
+    const validateReceipt = iapReceiptValidator(itunes_shared_secret, (debug==0));
+
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
 
     try {
-      await client.verifyReceipt(receipt, function(valid, msg, recv) {
-        if (valid) {
-          // update status of payment in your system
-          logger.info("Valid receipt");
-          const product_id = recv.receipt.in_app;
+      const validationData = await validateReceipt(receiptData);
+      logger.info("validationData:"+JSON.stringify(validationData));
 
-        } else {
-          logger.info("Invalid receipt");
-        }
-      });
+      const result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
 
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
     }
 
-    this.GlobalDelegator.directPay(user.profileAddress, 100);
     const data = {
         code: 0
     };
