@@ -183,7 +183,7 @@ class GlobalController extends BaseController {
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
-    const result;
+    var result = {};
     try {
       const validationData = await validateReceipt(receipt);
       logger.info("validationData:"+JSON.stringify(validationData));
