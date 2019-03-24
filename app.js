@@ -11,6 +11,8 @@ const config = ConfigUtils.loadConfig(process.argv);
 const apollo = require('./apollo/server');
 const Logger = require('./utils/Logger');
 
+global.fetch = require("node-fetch");
+
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
