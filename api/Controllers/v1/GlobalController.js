@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const UserDelegator = require('../../Delegator/UserDelegator');
@@ -184,22 +183,20 @@ class GlobalController extends BaseController {
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
-
+    const result;
     try {
       const validationData = await validateReceipt(receipt);
       logger.info("validationData:"+JSON.stringify(validationData));
 
-      const result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
+      result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
 
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
+      result = await this.GlobalDelegator.directPay(user.profileAddress, 10);
     }
 
-    const data = {
-        code: 0
-    };
-    this.success(Request, Response, next, data);
+    this.success(Request, Response, next, result);
   }
 
   /**
