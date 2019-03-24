@@ -43,6 +43,7 @@
     "oauth": "^0.9.15",
     "os": "*",
     "iap-receipt-validator": "*",
+    "babel-preset-react-native-stage-0":"*",
     "owasp-password-strength-test": "*",
     "promise-queue": "^2.2.3",
     "pug": "^2.0.3",
