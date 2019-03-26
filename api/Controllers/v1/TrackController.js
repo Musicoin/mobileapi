@@ -15,7 +15,9 @@ class TrackController extends BaseController {
   async downloadTrack(Request, Response, next) {
     const address = Request.params.address;
     const release = await this.db.Release.findOne({contractAddress: address});
-    this.logger.debug("downloadTrack:"+JSON.stringify(release));
+    const artist = this.ArtistDelegator.loadArtist(release.artistAddress);
+    this.logger.debug("downloadTrack release:"+JSON.stringify(release));
+    this.logger.debug("downloadTrack artist:"+JSON.stringify(artist));
     if (!release) {
         return this.reject(Request, Response, `release is not found : ${address}`);
     } else if (release && release.markedAsAbuse) {
