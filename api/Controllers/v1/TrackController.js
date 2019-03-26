@@ -15,7 +15,10 @@ class TrackController extends BaseController {
   async downloadTrack(Request, Response, next) {
     const address = Request.params.address;
     const release = await this.db.Release.findOne({contractAddress: address});
-    const artist = this.ArtistDelegator.loadArtist(release.artistAddress);
+    const artist = await this.db.User.findOne({
+      profileAddress: release.artistAddress
+    }).exec();
+
     this.logger.debug("downloadTrack release:"+JSON.stringify(release));
     this.logger.debug("downloadTrack artist:"+JSON.stringify(artist));
     if (!release) {
