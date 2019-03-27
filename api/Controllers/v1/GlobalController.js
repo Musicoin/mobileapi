@@ -191,9 +191,9 @@ class GlobalController extends BaseController {
 
       logger.info("validationData:"+JSON.stringify(validationData));
       logger.info("validationData product_type:"+product_type);
-      logger.info("validationData xx:"+xx);
+      logger.info("validationData xx:"+JSON.stringify(xx));
 
-      result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
+      result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
 
     } catch (error) {
       logger.error("error:"+error);
