@@ -5,6 +5,7 @@ const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
+const inArray = require('in-array');
 
 const iapReceiptValidator = require('iap-receipt-validator').default;
 
@@ -173,13 +174,14 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    const prod = ! inArray(["river7@gmail.com", "beng@musicoin.org"], email)
+    //process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
-        return this.reject(Request, Response, "Empty itunes_shared_secret");
+        return this.reject(Request, Response, "Invaid secret");
     }
 
-    const validateReceipt = iapReceiptValidator(itunes_shared_secret, (debug!=0));
+    const validateReceipt = iapReceiptValidator(itunes_shared_secret, prod);
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
@@ -189,9 +191,8 @@ class GlobalController extends BaseController {
       const product_type = validationData.receipt.in_app[0].product_id;
       var xx = product_type.split("_");
 
-      logger.info("validationData:"+JSON.stringify(validationData));
-      logger.info("validationData product_type:"+product_type);
-      logger.info("validationData xx:"+JSON.stringify(xx));
+      logger.debug("validationData:"+JSON.stringify(validationData));
+      logger.debug("validationData xx:"+JSON.stringify(xx));
 
       result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
 
