@@ -17,7 +17,7 @@ class TrackController extends BaseController {
     const release = await this.db.Release.findOne({contractAddress: address});
     this.logger.debug("downloadTrack release:"+JSON.stringify(release));
 
-    const artist = this.ArtistDelegator.loadArtist(release.artistAddress);
+    const artist = await this.ArtistDelegator.loadArtist(release.artistAddress);
     this.logger.debug("downloadTrack artist:"+JSON.stringify(artist));
     /*if (!artist || !artist.verified) {
         return this.reject(Request, Response, `Artist is not verified : ${address}`);
