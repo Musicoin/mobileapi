@@ -179,7 +179,7 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Empty itunes_shared_secret");
     }
 
-    const validateReceipt = iapReceiptValidator(itunes_shared_secret, (debug==0));
+    const validateReceipt = iapReceiptValidator(itunes_shared_secret, (debug!=0));
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
     logger.info("User:"+JSON.stringify(user));
