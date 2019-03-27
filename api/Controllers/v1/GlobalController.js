@@ -186,14 +186,20 @@ class GlobalController extends BaseController {
     var result = {};
     try {
       const validationData = await validateReceipt(receipt);
+      const product_type = validationData.receipt.in_app[0].product_id;
+      var xx = product_type.split("_");
+
       logger.info("validationData:"+JSON.stringify(validationData));
+      logger.info("validationData product_type:"+product_type);
+      logger.info("validationData xx:"+xx);
 
       result = await this.GlobalDelegator.directPay(user.profileAddress, 100);
 
     } catch (error) {
       logger.error("error:"+error);
       // DEBUG
-      result = await this.GlobalDelegator.directPay(user.profileAddress, 10);
+      //result = await this.GlobalDelegator.directPay(user.profileAddress, 10);
+      return this.reject(Request, Response, "Invalid payment receipt");
     }
 
     this.success(Request, Response, next, result);
