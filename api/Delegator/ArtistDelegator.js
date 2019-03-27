@@ -49,7 +49,7 @@ class ArtistDelegator extends ControllerDelegator{
       profileAddress: address
     }).exec();
 
-    this.logger.debug("loadArtist:",user);
+    //this.logger.debug("loadArtist:",user);
     if (!user) {
       return {
         error: "user not found: "+address
