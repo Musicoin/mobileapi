@@ -24,6 +24,8 @@ class GlobalController extends BaseController {
 
     this.checkServices = this.checkServices.bind(this);
     this.appleIAP = this.appleIAP.bind(this);
+    // debug
+    this.delReceipt = this.delReceipt.bind(this);
   }
 
   async search(Request, Response, next) {
@@ -212,6 +214,28 @@ class GlobalController extends BaseController {
     }
 
     this.success(Request, Response, next, result);
+  }
+
+
+  async delReceipt(Request, Response, next) {
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+    try {
+      const body = Request.body;
+      const receipt = body.receipt;
+
+      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+      if (!receipt_obj) {
+        return this.error(Request, Response, "Receipt not found");
+      } else {
+
+        await this.AuthDelegator.delReceipt(receipt);
+        this.success(Request,Response, next, {message: "OK"});
+      }
+
+
   }
 
   /**

@@ -14,12 +14,22 @@ class GlobalDelegator extends ControllerDelegator {
     this.findRleaseByAddress = this.findRleaseByAddress.bind(this);
     this.createReport = this.createReport.bind(this);
     this.directPay = this.directPay.bind(this);
+    //
+    this.findReceipt = this.findReceipt.bind(this);
+    this.delReceipt = this.delReceipt.bind(this);
+    this.createReceipt = this.createReceipt.bind(this);
   }
 
   findReceipt(receipt) {
     return this.db.Receipt.findOne({
         receipt: receipt
     }).exec()
+  }
+
+  delReceipt(receipt) {
+    return this.db.Receipt.findOne({
+        receipt: receipt
+    }).remove().exec()
   }
 
   createReceipt(receipt, email, type) {
