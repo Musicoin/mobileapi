@@ -230,7 +230,7 @@ class GlobalController extends BaseController {
       return this.error(Request, Response, "Receipt not found");
     } else {
 
-      await this.AuthDelegator.delReceipt(receipt);
+      await this.GlobalDelegator.delReceipt(receipt);
       this.success(Request,Response, next, {message: "OK"});
     }
   }
