@@ -16,6 +16,21 @@ class GlobalDelegator extends ControllerDelegator {
     this.directPay = this.directPay.bind(this);
   }
 
+  findReceipt(receipt) {
+    return this.db.Receipt.findOne({
+        receipt: receipt
+    }).exec()
+  }
+
+  createReceipt(receipt, email, type) {
+    return this.db.Receipt.create({
+      receipt: receipt,
+      email: email,
+      type: type,
+      create_at: Date.now()
+    });
+  }
+
   _searchArtists(reg, limit, skip) {
     return this.db.User.find({
       profileAddress: {

@@ -193,8 +193,16 @@ class GlobalController extends BaseController {
 
       logger.debug("validationData:"+JSON.stringify(validationData));
       logger.debug("validationData xx:"+JSON.stringify(xx));
+      const receipt_obj = this.GlobalDelegator.findReceipt(receipt);
+      if (receipt_obj) {
 
-      result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+        logger.warning("receipt_obj:"+JSON.stringify(receipt_obj));
+        return this.reject(Request, Response, "Receipt is expired");
+      } else {
+        // save receipt
+        this.GlobalDelegator.createReceipt(receipt, email, "apple");
+        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+      }
 
     } catch (error) {
       logger.error("error:"+error);
