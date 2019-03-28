@@ -193,7 +193,7 @@ class GlobalController extends BaseController {
 
       logger.debug("validationData:"+JSON.stringify(validationData));
       logger.debug("validationData xx:"+JSON.stringify(xx));
-      const receipt_obj = this.GlobalDelegator.findReceipt(receipt);
+      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
       if (receipt_obj) {
 
         logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
