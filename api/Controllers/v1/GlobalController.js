@@ -196,7 +196,7 @@ class GlobalController extends BaseController {
       const receipt_obj = this.GlobalDelegator.findReceipt(receipt);
       if (receipt_obj) {
 
-        logger.warning("receipt_obj:"+JSON.stringify(receipt_obj));
+        logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
         return this.reject(Request, Response, "Receipt is expired");
       } else {
         // save receipt
