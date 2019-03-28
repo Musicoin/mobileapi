@@ -18,6 +18,7 @@ const UserPlayback = require('../../../db/core/user-playback');
 const UserStats = require('../../../db/core/user-stats');
 const Report = require("../../../db/core/report");
 const Follow = require("../../../db/core/follow");
+const Receipt = require("../../../db/core/receipt");
 
 // validator schema
 const AuthSchema = require('../../ValidatorSchema/AuthSchema');
@@ -92,6 +93,7 @@ class BaseController {
       UserStats,
       Report,
       Follow,
+      Receipt
     }
 
     // validator schema
