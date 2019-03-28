@@ -222,20 +222,17 @@ class GlobalController extends BaseController {
     if (!debug) {
         return this.reject(Request, Response, "debug not allowed");
     }
-    try {
-      const body = Request.body;
-      const receipt = body.receipt;
+    const body = Request.body;
+    const receipt = body.receipt;
 
-      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
-      if (!receipt_obj) {
-        return this.error(Request, Response, "Receipt not found");
-      } else {
+    let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+    if (!receipt_obj) {
+      return this.error(Request, Response, "Receipt not found");
+    } else {
 
-        await this.AuthDelegator.delReceipt(receipt);
-        this.success(Request,Response, next, {message: "OK"});
-      }
-
-
+      await this.AuthDelegator.delReceipt(receipt);
+      this.success(Request,Response, next, {message: "OK"});
+    }
   }
 
   /**
