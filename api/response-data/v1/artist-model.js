@@ -7,6 +7,7 @@ function responseData(artist) {
     artistName: artist.draftProfile.artistName,
     imageUrl: MediaProvider.resolveIpfsUrl(artist.draftProfile.ipfsImageUrl),
     social: artist.draftProfile.social,
+    verified: artist.verified,
     followers: artist.followerCount || 0,
     tipCount: artist.directTipCount || 0
   }

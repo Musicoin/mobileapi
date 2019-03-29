@@ -1,9 +1,13 @@
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
-
+const UserDelegator = require('../../Delegator/UserDelegator');
+const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
+const inArray = require('in-array');
+
+const iapReceiptValidator = require('iap-receipt-validator').default;
 
 class GlobalController extends BaseController {
 
@@ -11,12 +15,17 @@ class GlobalController extends BaseController {
     super(props);
 
     this.GlobalDelegator = new GlobalDelegator();
+    this.ReleaseDelegator = new ReleaseDelegator(props);
+    this.AuthDelegator = new AuthDelegator(props);
 
     this.search = this.search.bind(this);
     this.reportArtist = this.reportArtist.bind(this);
     this.reportRelease = this.reportRelease.bind(this);
 
     this.checkServices = this.checkServices.bind(this);
+    this.appleIAP = this.appleIAP.bind(this);
+    // debug
+    this.delReceipt = this.delReceipt.bind(this);
   }
 
   async search(Request, Response, next) {
@@ -147,13 +156,92 @@ class GlobalController extends BaseController {
     this.success(Request, Response, next, response);
   }
 
+
+  /*
+
+    Apple IAP callback
+
+  */
+  async appleIAP(Request, Response, next) {
+    const logger = this.logger;
+    const email = Request.query.email;
+    const orderid = Request.body.orderid;
+    const receipt = Request.body.receipt;
+    const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
+
+    logger.info("[GlobalController]appleIAP:"+email+"-:"+receipt);
+
+    const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
+    if (!sender) {
+      return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
+    }
+
+    const prod = ! inArray(["bengyles@hotmail.com", "river7@gmail.com", "beng@musicoin.org"], email)
+    //process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
+    if (itunes_shared_secret == '') {
+        return this.reject(Request, Response, "Invaid secret");
+    }
+
+    const validateReceipt = iapReceiptValidator(itunes_shared_secret, prod);
+
+    const user = await this.AuthDelegator._loadUserByEmail(email);
+    logger.info("User:"+JSON.stringify(user));
+    var result = {};
+    try {
+      const validationData = await validateReceipt(receipt);
+      const product_type = validationData.receipt.in_app[0].product_id;
+      var xx = product_type.split("_");
+
+      logger.debug("validationData:"+JSON.stringify(validationData));
+      logger.debug("validationData xx:"+JSON.stringify(xx));
+      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+      if (receipt_obj) {
+
+        logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
+        return this.reject(Request, Response, "Receipt is expired");
+      } else {
+        // save receipt
+        this.GlobalDelegator.createReceipt(receipt, email, "apple");
+        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+      }
+
+    } catch (error) {
+      logger.error("error:"+error);
+      // DEBUG
+      //result = await this.GlobalDelegator.directPay(user.profileAddress, 10);
+      return this.reject(Request, Response, "Invalid payment receipt");
+    }
+
+    this.success(Request, Response, next, result);
+  }
+
+
+  async delReceipt(Request, Response, next) {
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+    const body = Request.body;
+    const receipt = body.receipt;
+
+    let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+    if (!receipt_obj) {
+      return this.error(Request, Response, "Receipt not found");
+    } else {
+
+      await this.GlobalDelegator.delReceipt(receipt);
+      this.success(Request,Response, next, {message: "OK"});
+    }
+  }
+
   /**
    * Direct Send: TODO
    * body:
    * profileAddress
    * musicoins
    */
-  async directSend(Request, Response, next) {
+  async directTransfer(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
 
@@ -191,8 +279,6 @@ class GlobalController extends BaseController {
       this.error(Request, Response, error);
     }
   }
-
-
 }
 
 module.exports = GlobalController;

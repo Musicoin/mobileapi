@@ -541,12 +541,7 @@ class AuthController extends BaseController {
     } catch (error) {
       this.error(Request, Response, error);
     }
-
-
   }
-
-
-
 }
 
 

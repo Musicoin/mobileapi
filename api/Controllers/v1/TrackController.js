@@ -1,19 +1,27 @@
 const BaseController = require('../base/BaseController');
 const TrackDelegator = require('../../Delegator/TrackDelegator');
+const ArtistDelegator = require('../../Delegator/ArtistDelegator');
 
 class TrackController extends BaseController {
   constructor(props) {
     super(props);
 
     this.TrackDelegator = new TrackDelegator(props);
+    this.ArtistDelegator = new ArtistDelegator(props);
 
     this.downloadTrack = this.downloadTrack.bind(this);
   }
 
   async downloadTrack(Request, Response, next) {
     const address = Request.params.address;
-
     const release = await this.db.Release.findOne({contractAddress: address});
+    this.logger.debug("downloadTrack release:"+JSON.stringify(release));
+
+    const artist = await this.ArtistDelegator.loadArtist(release.artistAddress);
+    this.logger.debug("downloadTrack artist:"+JSON.stringify(artist));
+    if (!(artist.data && artist.data.verified)) {
+        return this.reject(Request, Response, `Artist is not verified : ${address}`);
+    }
     if (!release) {
         return this.reject(Request, Response, `release is not found : ${address}`);
     } else if (release && release.markedAsAbuse) {

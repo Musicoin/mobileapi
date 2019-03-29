@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('babel-polyfill');
 const express = require('express');
 const session = require('express-session');
 const app = express();
@@ -9,6 +10,8 @@ const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const config = ConfigUtils.loadConfig(process.argv);
 const apollo = require('./apollo/server');
 const Logger = require('./utils/Logger');
+
+global.fetch = require("node-fetch");
 
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');

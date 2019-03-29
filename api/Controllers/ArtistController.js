@@ -216,9 +216,11 @@ class ArtistController {
           totalTrackTips: 0,
           totalFollowers: 0,
           totalReleases: 0,
-          totalPlays: 0
+          totalPlays: 0,
+          releases: []
         };
         for (var i = 0; i < releases.length; i++) {
+          ResponseInstance.releases.push(releases[i].contractAddress);
           if (typeof releases[i].directTipCount != 'undefined') {
             ResponseInstance.totalTrackTips += releases[i].directTipCount;
           }

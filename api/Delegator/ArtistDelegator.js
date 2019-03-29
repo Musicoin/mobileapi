@@ -16,8 +16,8 @@ class ArtistDelegator extends ControllerDelegator{
 
   /**
    * update user tip count when people tip the artist
-   * @param {*} userId 
-   * @param {*} amount 
+   * @param {*} userId
+   * @param {*} amount
    * @returns promise
    */
   async updateArtistStats(userId, amount) {
@@ -48,7 +48,9 @@ class ArtistDelegator extends ControllerDelegator{
     const user = await this.db.User.findOne({
       profileAddress: address
     }).exec();
-    if(!user){
+
+    //this.logger.debug("loadArtist:",user);
+    if (!user) {
       return {
         error: "user not found: "+address
       };

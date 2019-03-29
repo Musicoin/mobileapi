@@ -9,7 +9,10 @@ const checkReportRelease = Controller.checkParams(Controller.schema.GlobalSchema
 Router.post('/search', Controller.search, Controller.sendJson);
 Router.post('/report/release', checkReportRelease,Controller.reportRelease, Controller.sendJson);
 Router.post('/report/artist', checkReportArtist,Controller.reportArtist, Controller.sendJson);
+Router.post("/apple/iap", Controller.appleIAP, Controller.sendJson);
+Router.post("/del/receipt", Controller.delReceipt, Controller.sendJson);
 
 Router.get("/check_services", Controller.checkServices, Controller.sendJson);
+// apple iap
 
 module.exports = Router;

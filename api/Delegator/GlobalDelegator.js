@@ -13,6 +13,32 @@ class GlobalDelegator extends ControllerDelegator {
     this.findUserByAddress = this.findUserByAddress.bind(this);
     this.findRleaseByAddress = this.findRleaseByAddress.bind(this);
     this.createReport = this.createReport.bind(this);
+    this.directPay = this.directPay.bind(this);
+    //
+    this.findReceipt = this.findReceipt.bind(this);
+    this.delReceipt = this.delReceipt.bind(this);
+    this.createReceipt = this.createReceipt.bind(this);
+  }
+
+  findReceipt(receipt) {
+    return this.db.Receipt.findOne({
+        receipt: receipt
+    }).exec()
+  }
+
+  delReceipt(receipt) {
+    return this.db.Receipt.findOne({
+        receipt: receipt
+    }).remove().exec()
+  }
+
+  createReceipt(receipt, email, type) {
+    return this.db.Receipt.create({
+      receipt: receipt,
+      email: email,
+      type: type,
+      create_at: Date.now()
+    });
   }
 
   _searchArtists(reg, limit, skip) {
@@ -103,6 +129,39 @@ class GlobalDelegator extends ControllerDelegator {
 
   }
 
+  async directPay(trackAddress, musicoins) {
+
+    const logger = this.logger;
+    logger.info("[UserDelegator]directPay:"+trackAddress+"-mount:"+musicoins)
+
+    //try {
+      const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
+
+      const validateResult = this.validate({
+        trackAddress,
+        musicoins
+      }, this.schema.ReleaseSchema.tip);
+
+      if (validateResult !== true) {
+        //return validateResult;
+        logger.error("validateResult: "+validateResult);
+        return false;
+      }
+
+      // send tip amount to address
+      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
+      logger.debug("tip complete: ", tx);
+
+      const data = {
+        tx: tx
+      }
+      return data;
+
+    /*} catch (error) {
+      logger.error("Exception: "+error);
+      return false;
+    }*/
+  }
 }
 
 module.exports = GlobalDelegator;

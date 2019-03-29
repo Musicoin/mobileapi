@@ -27,7 +27,7 @@ class UserDelegator extends ControllerDelegator{
     }
   }
 
-  async loadAllPlaylist(email){
+  async loadAllPlaylist(email) {
     const playlist = await this.db.Playlist.find({
       email
     }).populate("release").exec();
@@ -56,7 +56,6 @@ class UserDelegator extends ControllerDelegator{
       return 0;
     }
   }
-
 }
 
 module.exports = UserDelegator;
