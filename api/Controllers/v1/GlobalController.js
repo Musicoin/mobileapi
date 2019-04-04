@@ -178,7 +178,7 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const prod = ! inArray(["bengyles@hotmail.com", "river7@gmail.com", "beng@musicoin.org", "isaac.mao@gmail.com"], email)
+    const prod = ! inArray(["bengyles@hotmail.com", "river7@gmail.com", "beng@musicoin.org", "isaac.mao@gmail.com", "ehsan.hajian@gmail.com"], email)
     //process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
