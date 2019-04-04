@@ -6,6 +6,7 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
 const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
+var crypto = require('crypto');
 
 const iapReceiptValidator = require('iap-receipt-validator').default;
 
@@ -24,6 +25,7 @@ class GlobalController extends BaseController {
 
     this.checkServices = this.checkServices.bind(this);
     this.appleIAP = this.appleIAP.bind(this);
+    this.googleIAP = this.googleIAP.bind(this);
     // debug
     this.delReceipt = this.delReceipt.bind(this);
   }
@@ -215,6 +217,47 @@ class GlobalController extends BaseController {
 
     this.success(Request, Response, next, result);
   }
+
+
+  /*
+    Validate google payment
+
+  */
+  async googleIAP(Request, Response, next) {
+    const logger = this.logger;
+    const email = Request.query.email;
+    const signature = Request.body.signature;
+    const signed_data = Request.body.signed_data;
+    const orderid = Request.body.orderid;
+    const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
+
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signed_data+"-:"+signature);
+
+    const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
+    if (!sender) {
+      return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
+    }
+
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.google_pub_key : '';
+    if (google_pub_key == '') {
+        return this.reject(Request, Response, "Invaid public key");
+    }
+
+    var verifier = crypto.createVerify("RSA-SHA1");
+    verifier.update(signed_data);
+    const verify_result = verifier.verify(public_key, signature, "base64");
+    var result = {};
+
+    if (verify_result) {
+      logger.debug("verify_result:"+JSON.stringify(verify_result));
+      result = { errorno: 0 };
+    } else {
+      result = { errorno: -1 };
+    }
+
+    this.success(Request, Response, next, result);
+  }
+
 
 
   async delReceipt(Request, Response, next) {
