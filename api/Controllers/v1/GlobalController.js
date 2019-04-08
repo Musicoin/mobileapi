@@ -238,7 +238,7 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.google_pub_key : '';
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
     if (google_pub_key == '') {
         return this.reject(Request, Response, "Invaid public key");
     }
