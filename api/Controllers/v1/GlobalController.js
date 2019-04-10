@@ -261,7 +261,7 @@ class GlobalController extends BaseController {
 
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
 
-    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);
+    var verify_result = googleplayVerifier.verifyReceipt(JSON.stringify(receiptData), signature);
 
     var result = {};
 
