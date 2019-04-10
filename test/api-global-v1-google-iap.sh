@@ -7,6 +7,6 @@ curl --location --request POST "https://t2.musicoin.org/api/v1/google/iap?email=
     \"productId\": \"coin_100\",
     \"purchaseTime\": \"1554389759286\",
     \"purchaseState\": \"0\",
-    \"purchaseToken\": \"abdbmelemojpofjogibfhnhb.AO-J1Oz4oed9R4d5twz2Bc1iza-xypd0c8wSBmHuZDpq95o-NQNSUcOaruJ24SsBDN4MpfC22kDeeKrjLgi738r84-pYpFxeYMEM2eZOST0junA1EYQ_Fzk\",
+    \"purchaseToken\": \"abdbmelemojpofjogibfhnhb.AO-J1Oz4oed9R4d5twz2Bc1iza-xypd0c8wSBmHuZDpq95o-NQNSUcOaruJ24SsBDN4MpfC22kDeeKrjLgi738r84-pYpFxeYMEM2eZOST0junA1EYQ_Fzk\"
 }"
 

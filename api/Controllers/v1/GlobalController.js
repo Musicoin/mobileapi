@@ -243,13 +243,13 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAooNcEwsUnK74Krn4KQC/S4tux3dwxLvxt/Tb96CfnnxrU7edwR9GWNZYT+P7X7swMUu38ka5rJOnEUaAp5kQ+rfccn6Euh4vgv0zAo0ul7KtaOUXLbD3VrzUD6Rhrxo449rmk98eSLGL/An5bWPle4kUs2xqIsY6CCPCFL87X4+RiETcZ4uy4ab6yBJ5c0yYhvWEcOnQdOGLOnf62SMboq/cJK4/CRFqLFoghPAPFfYctea7+gRK4Gh3OarqJaB4ErFgoriEmYD7R4I0bCYkHpctzLCB//TFHF7OEaJwjpz0qbxD89v7rKbqTFwEXnaAMC2YdZIpOSxq3A3fNS+KsQIDAQAB';
     if (google_pub_key == '') {
         return this.reject(Request, Response, "Invaid public key");
     }
 
     var googleplayVerifier = new IABVerifier(google_pub_key);
-    /*
+
     var receiptData = {
         orderId: orderId,
         packageName: packageName,
@@ -261,8 +261,7 @@ class GlobalController extends BaseController {
 
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
 
-    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);*/
-    var veryfy_result = {};
+    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);
 
     var result = {};
 
