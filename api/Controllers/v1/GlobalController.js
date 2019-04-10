@@ -272,7 +272,7 @@ class GlobalController extends BaseController {
     var result = {};
 
     if (verify_result) {
-      logger.debug("verify_result:"+JSON.stringify(verify_result));
+      logger.debug("verify_result:"+JSON.stringify(receiptData));
       result = { errorno: 0 };
     } else {
       result = { errorno: -1 };
