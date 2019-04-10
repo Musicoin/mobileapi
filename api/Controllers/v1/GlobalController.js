@@ -236,7 +236,6 @@ class GlobalController extends BaseController {
     const purchaseState = Request.body.purchaseState;
     const purchaseToken = Request.body.purchaseToken;
 
-    const orderId = Request.body.orderid;
     const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
 
