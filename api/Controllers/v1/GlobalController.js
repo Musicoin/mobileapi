@@ -227,7 +227,7 @@ class GlobalController extends BaseController {
   async googleIAP(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
-    const signature = Request.query.signature;
+    const signature = Request.body.signature;
 
     const orderId = Request.body.orderId;
     const packageName = Request.body.packageName;
@@ -261,7 +261,7 @@ class GlobalController extends BaseController {
 
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
 
-    var verify_result = googleplayVerifier.verifyReceipt(JSON.stringify(receiptData), signature);
+    var verify_result = await googleplayVerifier.verifyReceipt(receiptData, signature);
 
     var result = {};
 
