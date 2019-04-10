@@ -44,6 +44,7 @@
     "os": "*",
     "iap-receipt-validator": "*",
     "babel-polyfill": "*",
+    "iab_verifier": "*",
     "crypto": "*",
     "node-fetch": "*",
     "owasp-password-strength-test": "*",

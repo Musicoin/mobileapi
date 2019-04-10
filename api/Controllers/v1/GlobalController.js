@@ -7,6 +7,7 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
 var crypto = require('crypto');
+var IABVerifier = require('iab_verifier')
 
 const iapReceiptValidator = require('iap-receipt-validator').default;
 
@@ -221,17 +222,23 @@ class GlobalController extends BaseController {
 
   /*
     Validate google payment
-
   */
+
   async googleIAP(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
-    const signature = Request.body.signature;
-    const signed_data = Request.body.signed_data;
-    const orderid = Request.body.orderid;
+    const signature = Request.query.signature;
+
+    const orderId = Request.body.orderId;
+    const packageName = Request.body.packageName;
+    const productId = Request.body.productId;
+    const purchaseTime = Request.body.purchaseTime;
+    const purchaseState = Request.body.purchaseState;
+    const purchaseToken = Request.body.purchaseToken;
+
+    const orderId = Request.body.orderid;
     const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
-    logger.info("[GlobalController]googleIAP:"+email+"-:"+signed_data+"-:"+signature);
 
     const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
     if (!sender) {
@@ -243,9 +250,26 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Invaid public key");
     }
 
+    /*
     var verifier = crypto.createVerify("RSA-SHA1");
     verifier.update(signed_data);
     const verify_result = verifier.verify(public_key, signature, "base64");
+    */
+
+    var googleplayVerifier = new IABVerifier(google_pub_key);
+    var receiptData = {
+        orderId: orderId,
+        packageName: packageName,
+        productId: productId,
+        purchaseTime: purchaseTime,
+        purchaseState: purchaseState,
+        purchaseToken: purchaseToken
+    };
+
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
+
+    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);
+
     var result = {};
 
     if (verify_result) {
