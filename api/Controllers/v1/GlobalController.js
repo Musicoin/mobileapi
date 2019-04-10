@@ -238,7 +238,6 @@ class GlobalController extends BaseController {
 
     const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
-
     const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
     if (!sender) {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
@@ -249,13 +248,8 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Invaid public key");
     }
 
-    /*
-    var verifier = crypto.createVerify("RSA-SHA1");
-    verifier.update(signed_data);
-    const verify_result = verifier.verify(public_key, signature, "base64");
-    */
-
     var googleplayVerifier = new IABVerifier(google_pub_key);
+    /*
     var receiptData = {
         orderId: orderId,
         packageName: packageName,
@@ -267,12 +261,13 @@ class GlobalController extends BaseController {
 
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
 
-    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);
+    var verify_result = googleplayVerifier.verifyReceipt(receiptData, signature);*/
+    var veryfy_result = {};
 
     var result = {};
 
     if (verify_result) {
-      logger.debug("verify_result:"+JSON.stringify(receiptData));
+      //logger.debug("verify_result:"+JSON.stringify(receiptData));
       result = { errorno: 0 };
     } else {
       result = { errorno: -1 };
