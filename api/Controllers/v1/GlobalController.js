@@ -8,7 +8,7 @@ const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
 var crypto = require('crypto');
 var IABVerifier = require('iab_verifier')
-var IAPVerify = require('../../../IAPVerify')
+var IAPVerify = require('../../IAPVerify/verify')
 
 const iapReceiptValidator = require('iap-receipt-validator').default;
 
