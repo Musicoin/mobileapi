@@ -267,7 +267,7 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
         // save receipt
-        this.GlobalDelegator.createReceipt(receipt, email, "apple");
+        this.GlobalDelegator.createReceipt(receipt, email, "google");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
       }
 
