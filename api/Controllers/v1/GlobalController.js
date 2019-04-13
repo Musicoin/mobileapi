@@ -260,7 +260,7 @@ class GlobalController extends BaseController {
     if (verify_result) {
       var xx = productId.split("_");
 
-      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+      let receipt_obj = false; //await this.GlobalDelegator.findReceipt(receipt);
       if (receipt_obj) {
 
         logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
