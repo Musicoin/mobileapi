@@ -243,7 +243,7 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAooNcEwsUnK74Krn4KQC/S4tux3dwxLvxt/Tb96CfnnxrU7edwR9GWNZYT+P7X7swMUu38ka5rJOnEUaAp5kQ+rfccn6Euh4vgv0zAo0ul7KtaOUXLbD3VrzUD6Rhrxo449rmk98eSLGL/An5bWPle4kUs2xqIsY6CCPCFL87X4+RiETcZ4uy4ab6yBJ5c0yYhvWEcOnQdOGLOnf62SMboq/cJK4/CRFqLFoghPAPFfYctea7+gRK4Gh3OarqJaB4ErFgoriEmYD7R4I0bCYkHpctzLCB//TFHF7OEaJwjpz0qbxD89v7rKbqTFwEXnaAMC2YdZIpOSxq3A3fNS+KsQIDAQAB';
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
     if (google_pub_key == '') {
         return this.reject(Request, Response, "Invaid public key");
     }
@@ -255,9 +255,21 @@ class GlobalController extends BaseController {
     var result = {};
 
     if (verify_result) {
-      result = { errorno: 0 };
+      var xx = productId.split("_");
+
+      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
+      if (receipt_obj) {
+
+        logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
+        return this.reject(Request, Response, "Receipt is expired");
+      } else {
+        // save receipt
+        this.GlobalDelegator.createReceipt(receipt, email, "apple");
+        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+      }
+
     } else {
-      result = { errorno: -1 };
+      return this.reject(Request, Response, "Invalid payment receipt");
     }
 
     this.success(Request, Response, next, result);
