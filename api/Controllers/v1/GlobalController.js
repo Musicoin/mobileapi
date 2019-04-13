@@ -231,7 +231,7 @@ class GlobalController extends BaseController {
     const signature = Request.body.signature;
     const receipt = Request.body.receipt;
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAooNcEwsUnK74Krn4KQC/S4tux3dwxLvxt/Tb96CfnnxrU7edwR9GWNZYT+P7X7swMUu38ka5rJOnEUaAp5kQ+rfccn6Euh4vgv0zAo0ul7KtaOUXLbD3VrzUD6Rhrxo449rmk98eSLGL/An5bWPle4kUs2xqIsY6CCPCFL87X4+RiETcZ4uy4ab6yBJ5c0yYhvWEcOnQdOGLOnf62SMboq/cJK4/CRFqLFoghPAPFfYctea7+gRK4Gh3OarqJaB4ErFgoriEmYD7R4I0bCYkHpctzLCB//TFHF7OEaJwjpz0qbxD89v7rKbqTFwEXnaAMC2YdZIpOSxq3A3fNS+KsQIDAQAB';
 
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt+":"+google_pub_key);
 
