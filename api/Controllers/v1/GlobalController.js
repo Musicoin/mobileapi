@@ -260,9 +260,11 @@ class GlobalController extends BaseController {
         purchaseToken: purchaseToken
     };
 
+    var receipt = "{\"orderId\":\"GPA.3374-6177-5888-15708\",\"packageName\":\"org.musicoin.musicoin\",\"productId\":\"coin_100\",\"purchaseTime\":1554389759286,\"purchaseState\":0,\"purchaseToken\":\"abdbmelemojpofjogibfhnhb.AO-J1Oz4oed9R4d5twz2Bc1iza-xypd0c8wSBmHuZDpq95o-NQNSUcOaruJ24SsBDN4MpfC22kDeeKrjLgi738r84-pYpFxeYMEM2eZOST0junA1EYQ_Fzk\"}";
+
     logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
 
-    var verify_result = await googleplayVerifier.verifyReceipt(receiptData, signature);
+    var verify_result = await googleplayVerifier.verifyReceipt(receipt, signature);
 
     var result = {};
 
