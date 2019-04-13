@@ -59,6 +59,7 @@ function getDefaultKeyValueConfig() {
     forwardingAddress: env.FORWARDING_ADDRESS || '0x0',
     debug: env.DEBUG || 0,   // should be change to false by default
     itunesSharedSecret: env.ITUNES_SHARED_SECRET || ''
+    googlePubKey: env.GOOGLE_PUB_KEY || ''
   };
 }
 
