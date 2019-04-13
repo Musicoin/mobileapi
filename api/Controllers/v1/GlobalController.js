@@ -249,6 +249,8 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Invaid public key");
     }
 
+    const user = await this.AuthDelegator._loadUserByEmail(email);
+
     var googleplayVerifier = new IABVerifier(google_pub_key);
 
     var verify_result = await googleplayVerifier.verifyReceipt(receipt, signature);
