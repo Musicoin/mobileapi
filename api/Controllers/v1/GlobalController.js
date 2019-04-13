@@ -231,7 +231,9 @@ class GlobalController extends BaseController {
     const signature = Request.body.signature;
     const receipt = Request.body.receipt;
 
-    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt);
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
+
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt+":"+google_pub_key);
 
     const receiptOBJ = JSON.parse(receipt);
     const productId = receiptOBJ.productId;
@@ -243,7 +245,6 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : '';
     if (google_pub_key == '') {
         return this.reject(Request, Response, "Invaid public key");
     }
