@@ -231,6 +231,8 @@ class GlobalController extends BaseController {
     const signature = Request.body.signature;
     const receipt = Request.body.receipt;
 
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt);
+
     const receiptOBJ = JSON.parse(receipt);
     const productId = receiptOBJ.productId;
 
@@ -247,8 +249,6 @@ class GlobalController extends BaseController {
     }
 
     var googleplayVerifier = new IABVerifier(google_pub_key);
-
-    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt);
 
     var verify_result = await googleplayVerifier.verifyReceipt(receipt, signature);
 
