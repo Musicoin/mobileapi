@@ -229,13 +229,10 @@ class GlobalController extends BaseController {
     const logger = this.logger;
     const email = Request.query.email;
     const signature = Request.body.signature;
+    const receipt = Request.body.receipt;
 
-    const orderId = Request.body.orderId;
-    const packageName = Request.body.packageName;
-    const productId = Request.body.productId;
-    const purchaseTime = Request.body.purchaseTime;
-    const purchaseState = Request.body.purchaseState;
-    const purchaseToken = Request.body.purchaseToken;
+    const receiptOBJ = JSON.parse(receipt);
+    const productId = receiptOBJ.productId;
 
     const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
@@ -251,25 +248,13 @@ class GlobalController extends BaseController {
 
     var googleplayVerifier = new IABVerifier(google_pub_key);
 
-    var receiptData = {
-        orderId: orderId,
-        packageName: packageName,
-        productId: productId,
-        purchaseTime: purchaseTime,
-        purchaseState: purchaseState,
-        purchaseToken: purchaseToken
-    };
-
-    var receipt = "{\"orderId\":\"GPA.3374-6177-5888-15708\",\"packageName\":\"org.musicoin.musicoin\",\"productId\":\"coin_100\",\"purchaseTime\":1554389759286,\"purchaseState\":0,\"purchaseToken\":\"abdbmelemojpofjogibfhnhb.AO-J1Oz4oed9R4d5twz2Bc1iza-xypd0c8wSBmHuZDpq95o-NQNSUcOaruJ24SsBDN4MpfC22kDeeKrjLgi738r84-pYpFxeYMEM2eZOST0junA1EYQ_Fzk\"}";
-
-    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+JSON.stringify(receiptData));
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt);
 
     var verify_result = await googleplayVerifier.verifyReceipt(receipt, signature);
 
     var result = {};
 
     if (verify_result) {
-      //logger.debug("verify_result:"+JSON.stringify(receiptData));
       result = { errorno: 0 };
     } else {
       result = { errorno: -1 };
