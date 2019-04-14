@@ -26,6 +26,10 @@ function comparePassword(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
 
+function md5(s) {
+  return crypto.createHash('md5').update(s).digest('hex');
+}
+
 module.exports = {
   generateToken,
   hashPassword,
