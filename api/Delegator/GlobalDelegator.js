@@ -22,9 +22,9 @@ class GlobalDelegator extends ControllerDelegator {
     this.createReceipt = this.createReceipt.bind(this);
   }
 
-  findReceipt(receipt) {
+  findReceipt(receiptkey) {
     return this.db.Receipt.findOne({
-        receiptkey: cryptoUtil.md5(receipt)
+        receiptkey: receiptkey
     }).exec()
   }
 

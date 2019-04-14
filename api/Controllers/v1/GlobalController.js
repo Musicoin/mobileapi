@@ -199,7 +199,6 @@ class GlobalController extends BaseController {
       logger.debug("validationData:"+JSON.stringify(validationData));
       let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
       if (receiptRecord) {
-
         logger.warn("receiptRecord:"+JSON.stringify(receiptRecord));
         return this.reject(Request, Response, "Receipt is expired");
       } else {
