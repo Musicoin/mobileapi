@@ -201,7 +201,7 @@ class GlobalController extends BaseController {
       if (receiptRecord) {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple");
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", true);
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
         return this.success(Request, Response, next, result);
       }
@@ -220,7 +220,7 @@ class GlobalController extends BaseController {
         if (receiptRecord) {
           return this.reject(Request, Response, "Receipt is expired");
         } else {
-          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple");
+          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", false);
           result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
 
           return this.success(Request, Response, next, result);
@@ -277,7 +277,7 @@ class GlobalController extends BaseController {
       if (receiptRecord) {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google");
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google", true);
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
 
         return this.success(Request, Response, next, result);

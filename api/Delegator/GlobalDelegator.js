@@ -34,11 +34,12 @@ class GlobalDelegator extends ControllerDelegator {
     }).remove().exec()
   }
 
-  createReceipt(receipt, coins, email, type) {
+  createReceipt(receipt, coins, email, type, prod) {
     return this.db.Receipt.create({
       receiptkey: cryptoUtil.md5(receipt),
       coins: coins,
       email: email,
+      prod: prod,
       type: type,
       create_at: Date.now()
     });
