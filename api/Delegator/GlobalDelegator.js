@@ -28,9 +28,9 @@ class GlobalDelegator extends ControllerDelegator {
     }).exec()
   }
 
-  delReceipt(receipt) {
+  delReceipt(receiptkey) {
     return this.db.Receipt.findOne({
-        receipt: receipt
+        receiptkey: receiptkey
     }).remove().exec()
   }
 

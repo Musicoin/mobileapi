@@ -161,6 +161,7 @@ class GlobalController extends BaseController {
 
   /*
 
+
     Apple IAP callback
 
   */
@@ -188,31 +189,48 @@ class GlobalController extends BaseController {
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
     var result = {};
+    var productId = "";
+    var xx = {};
     try {
-      const validationData = await validateReceiptProd(receipt);
+      const validationDataProd = await validateReceiptProd(receipt);
 
-      logger.debug("validationData:"+JSON.stringify(validationData));
-
-      const product_type = validationData.receipt.in_app[0].product_id;
-      var xx = product_type.split("_");
+      productId = validationDataProd.receipt.in_app[0].product_id;
+      xx = productId.split("_");
 
       let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
       if (receiptRecord) {
-        logger.warn("receiptRecord:"+JSON.stringify(receiptRecord));
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        // save receipt
-        logger.info("receiptRecord save:"+cryptoUtil.md5(receipt)+"-"+xx[1]);
         await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+        return this.success(Request, Response, next, result);
       }
 
     } catch (error) {
-      logger.error("error:"+error);
-      return this.reject(Request, Response, "Invalid payment receipt");
-    }
+      logger.error("validationDataProd error:"+error);
 
-    this.success(Request, Response, next, result);
+      try {
+
+        const validationDataSand = await validateReceiptSand(receipt);
+
+        productId = validationDataSand.receipt.in_app[0].product_id;
+        xx = productId.split("_");
+
+        let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
+        if (receiptRecord) {
+          return this.reject(Request, Response, "Receipt is expired");
+        } else {
+          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple");
+          result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+
+          return this.success(Request, Response, next, result);
+        }
+
+      } catch (error) {
+        return this.reject(Request, Response, "Invalid payment receipt");
+      }
+
+    }
   }
 
 
@@ -257,22 +275,19 @@ class GlobalController extends BaseController {
 
       let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
       if (receiptRecord) {
-        logger.debug("receiptRecord:"+JSON.stringify(receiptRecord));
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        // save receipt
-        logger.info("receiptRecord save:"+cryptoUtil.md5(receipt)+"-"+xx[1]);
         await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+
+        return this.success(Request, Response, next, result);
       }
 
     } else {
       return this.reject(Request, Response, "Invalid payment receipt");
     }
 
-    this.success(Request, Response, next, result);
   }
-
 
 
   async delReceipt(Request, Response, next) {
@@ -288,7 +303,7 @@ class GlobalController extends BaseController {
       return this.error(Request, Response, "Receipt not found");
     } else {
 
-      await this.GlobalDelegator.delReceipt(receipt);
+      await this.GlobalDelegator.delReceipt(cryptoUtil.md5(receipt));
       this.success(Request,Response, next, {message: "OK"});
     }
   }
