@@ -7,9 +7,8 @@ const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 const cryptoUtil = require('../../../utils/crypto-util');
 const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
-var IABVerifier = require('iab_verifier')
-
-const iapReceiptValidator = require('iap-receipt-validator').default;
+const GoogleIABVerifier = require('iab_verifier')
+const AppleIAPValidator = require('iap-receipt-validator').default;
 
 class GlobalController extends BaseController {
 
@@ -179,24 +178,24 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const prod = ! inArray(["bengyles@hotmail.com", "river7@gmail.com", "beng@musicoin.org", "isaac.mao@gmail.com", "ehsan.hajian@gmail.com"], email)
-    //process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
         return this.reject(Request, Response, "Invaid secret");
     }
 
-    const validateReceipt = iapReceiptValidator(itunes_shared_secret, prod);
+    const validateReceiptProd = AppleIAPValidator(itunes_shared_secret, true);
+    const validateReceiptSand = AppleIAPValidator(itunes_shared_secret, false);
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
-    logger.info("User:"+JSON.stringify(user));
     var result = {};
     try {
-      const validationData = await validateReceipt(receipt);
+      const validationData = await validateReceiptProd(receipt);
+
+      logger.debug("validationData:"+JSON.stringify(validationData));
+
       const product_type = validationData.receipt.in_app[0].product_id;
       var xx = product_type.split("_");
 
-      logger.debug("validationData:"+JSON.stringify(validationData));
       let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
       if (receiptRecord) {
         logger.warn("receiptRecord:"+JSON.stringify(receiptRecord));
@@ -247,7 +246,7 @@ class GlobalController extends BaseController {
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
 
-    var googleplayVerifier = new IABVerifier(google_pub_key);
+    var googleplayVerifier = new GoogleIABVerifier(google_pub_key);
 
     var verifyResult = await googleplayVerifier.verifyReceipt(receipt, signature);
 
