@@ -1,8 +1,9 @@
 const mongoose = require('../connections/core');
 
 module.exports = mongoose.model('Receipt', mongoose.Schema({
-  receipt: String,
+  receiptkey: String,
   email: String,
+  coins: Number,
   type: String,
   create_at: Date
 }));

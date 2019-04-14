@@ -204,7 +204,7 @@ class GlobalController extends BaseController {
       } else {
         // save receipt
         logger.info("receiptRecord save:"+cryptoUtil.md5(receipt)+"-"+xx[1]);
-        await this.GlobalDelegator.createReceipt(receipt, xx[1], email, "apple");
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
       }
 
@@ -263,7 +263,7 @@ class GlobalController extends BaseController {
       } else {
         // save receipt
         logger.info("receiptRecord save:"+cryptoUtil.md5(receipt)+"-"+xx[1]);
-        await this.GlobalDelegator.createReceipt(receipt, xx[1], email, "google");
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
       }
 
