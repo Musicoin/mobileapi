@@ -203,7 +203,7 @@ class GlobalController extends BaseController {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
         // save receipt
-        this.GlobalDelegator.createReceipt(receipt, xx[1], email, "apple");
+        await this.GlobalDelegator.createReceipt(receipt, xx[1], email, "apple");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
       }
 
@@ -257,12 +257,11 @@ class GlobalController extends BaseController {
 
       let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
       if (receiptRecord) {
-
-        logger.warn("receiptRecord:"+JSON.stringify(receiptRecord));
+        logger.debug("receiptRecord:"+JSON.stringify(receiptRecord));
         return this.reject(Request, Response, "Receipt is expired");
       } else {
         // save receipt
-        this.GlobalDelegator.createReceipt(receipt, xx[1], email, "google");
+        await this.GlobalDelegator.createReceipt(receipt, xx[1], email, "google");
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
       }
 
