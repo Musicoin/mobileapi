@@ -31,6 +31,7 @@ function md5(s) {
 }
 
 module.exports = {
+  md5,
   generateToken,
   hashPassword,
   comparePassword
