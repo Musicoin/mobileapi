@@ -4,7 +4,7 @@ const UserDelegator = require('../../Delegator/UserDelegator');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
-const cryptoUtil = require('../../utils/crypto-util');
+const cryptoUtil = require('../../../utils/crypto-util');
 const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
 var IABVerifier = require('iab_verifier')
