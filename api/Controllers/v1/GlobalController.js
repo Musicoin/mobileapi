@@ -4,11 +4,11 @@ const UserDelegator = require('../../Delegator/UserDelegator');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const GlobalDelegator = require('../../Delegator/GlobalDelegator');
 
+const cryptoUtil = require('../../../utils/crypto-util');
 const uuidV4 = require('uuid/v4');
 const inArray = require('in-array');
-var crypto = require('crypto');
-
-const iapReceiptValidator = require('iap-receipt-validator').default;
+const GoogleIABVerifier = require('iab_verifier')
+const AppleIAPValidator = require('iap-receipt-validator').default;
 
 class GlobalController extends BaseController {
 
@@ -161,6 +161,7 @@ class GlobalController extends BaseController {
 
   /*
 
+
     Apple IAP callback
 
   */
@@ -178,86 +179,115 @@ class GlobalController extends BaseController {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const prod = ! inArray(["bengyles@hotmail.com", "river7@gmail.com", "beng@musicoin.org", "isaac.mao@gmail.com"], email)
-    //process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     const itunes_shared_secret = process.env.ITUNES_SHARED_SECRET?process.env.ITUNES_SHARED_SECRET:'';
     if (itunes_shared_secret == '') {
         return this.reject(Request, Response, "Invaid secret");
     }
 
-    const validateReceipt = iapReceiptValidator(itunes_shared_secret, prod);
+    const validateReceiptProd = AppleIAPValidator(itunes_shared_secret, true);
+    const validateReceiptSand = AppleIAPValidator(itunes_shared_secret, false);
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
-    logger.info("User:"+JSON.stringify(user));
     var result = {};
+    var productId = "";
+    var xx = {};
     try {
-      const validationData = await validateReceipt(receipt);
-      const product_type = validationData.receipt.in_app[0].product_id;
-      var xx = product_type.split("_");
+      const validationDataProd = await validateReceiptProd(receipt);
 
-      logger.debug("validationData:"+JSON.stringify(validationData));
-      logger.debug("validationData xx:"+JSON.stringify(xx));
-      let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
-      if (receipt_obj) {
+      productId = validationDataProd.receipt.in_app[0].product_id;
+      xx = productId.split("_");
 
-        logger.warn("receipt_obj:"+JSON.stringify(receipt_obj));
+      let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
+      if (receiptRecord) {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        // save receipt
-        this.GlobalDelegator.createReceipt(receipt, email, "apple");
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", true);
         result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+        return this.success(Request, Response, next, result);
       }
 
     } catch (error) {
-      logger.error("error:"+error);
-      // DEBUG
-      //result = await this.GlobalDelegator.directPay(user.profileAddress, 10);
-      return this.reject(Request, Response, "Invalid payment receipt");
-    }
+      logger.error("validationDataProd error:"+error);
 
-    this.success(Request, Response, next, result);
+      try {
+
+        const validationDataSand = await validateReceiptSand(receipt);
+
+        productId = validationDataSand.receipt.in_app[0].product_id;
+        xx = productId.split("_");
+
+        let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
+        if (receiptRecord) {
+          return this.reject(Request, Response, "Receipt is expired");
+        } else {
+          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", false);
+          result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+
+          return this.success(Request, Response, next, result);
+        }
+
+      } catch (error) {
+        return this.reject(Request, Response, "Invalid payment receipt");
+      }
+
+    }
   }
 
 
   /*
     Validate google payment
-
   */
+
   async googleIAP(Request, Response, next) {
     const logger = this.logger;
     const email = Request.query.email;
     const signature = Request.body.signature;
-    const signed_data = Request.body.signed_data;
-    const orderid = Request.body.orderid;
-    const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
+    const receipt = Request.body.receipt;
 
-    logger.info("[GlobalController]googleIAP:"+email+"-:"+signed_data+"-:"+signature);
+    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.GOOGLE_PUB_KEY : 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAooNcEwsUnK74Krn4KQC/S4tux3dwxLvxt/Tb96CfnnxrU7edwR9GWNZYT+P7X7swMUu38ka5rJOnEUaAp5kQ+rfccn6Euh4vgv0zAo0ul7KtaOUXLbD3VrzUD6Rhrxo449rmk98eSLGL/An5bWPle4kUs2xqIsY6CCPCFL87X4+RiETcZ4uy4ab6yBJ5c0yYhvWEcOnQdOGLOnf62SMboq/cJK4/CRFqLFoghPAPFfYctea7+gRK4Gh3OarqJaB4ErFgoriEmYD7R4I0bCYkHpctzLCB//TFHF7OEaJwjpz0qbxD89v7rKbqTFwEXnaAMC2YdZIpOSxq3A3fNS+KsQIDAQAB';
+
+    logger.info("[GlobalController]googleIAP:"+email+"-:"+signature+":"+receipt+":"+google_pub_key);
+
+    const receiptOBJ = JSON.parse(receipt);
+    const productId = receiptOBJ.productId;
+
+    const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
 
     const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
     if (!sender) {
       return this.reject(Request, Response, "sender not found: "+UBIMUSIC_ACCOUNT);
     }
 
-    const google_pub_key = process.env.GOOGLE_PUB_KEY ? process.env.google_pub_key : '';
     if (google_pub_key == '') {
         return this.reject(Request, Response, "Invaid public key");
     }
 
-    var verifier = crypto.createVerify("RSA-SHA1");
-    verifier.update(signed_data);
-    const verify_result = verifier.verify(public_key, signature, "base64");
+    const user = await this.AuthDelegator._loadUserByEmail(email);
+
+    var googleplayVerifier = new GoogleIABVerifier(google_pub_key);
+
+    var verifyResult = await googleplayVerifier.verifyReceipt(receipt, signature);
+
     var result = {};
 
-    if (verify_result) {
-      logger.debug("verify_result:"+JSON.stringify(verify_result));
-      result = { errorno: 0 };
+    if (verifyResult) {
+      var xx = productId.split("_");
+
+      let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
+      if (receiptRecord) {
+        return this.reject(Request, Response, "Receipt is expired");
+      } else {
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google", true);
+        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+
+        return this.success(Request, Response, next, result);
+      }
+
     } else {
-      result = { errorno: -1 };
+      return this.reject(Request, Response, "Invalid payment receipt");
     }
 
-    this.success(Request, Response, next, result);
   }
-
 
 
   async delReceipt(Request, Response, next) {
@@ -268,12 +298,12 @@ class GlobalController extends BaseController {
     const body = Request.body;
     const receipt = body.receipt;
 
-    let receipt_obj = await this.GlobalDelegator.findReceipt(receipt);
-    if (!receipt_obj) {
+    let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
+    if (!receiptRecord) {
       return this.error(Request, Response, "Receipt not found");
     } else {
 
-      await this.GlobalDelegator.delReceipt(receipt);
+      await this.GlobalDelegator.delReceipt(cryptoUtil.md5(receipt));
       this.success(Request,Response, next, {message: "OK"});
     }
   }

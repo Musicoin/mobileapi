@@ -1,5 +1,7 @@
 const ControllerDelegator = require('./ControllerDelegator');
 
+const cryptoUtil = require('../../utils/crypto-util');
+
 class GlobalDelegator extends ControllerDelegator {
   constructor(props) {
     super(props);
@@ -20,22 +22,24 @@ class GlobalDelegator extends ControllerDelegator {
     this.createReceipt = this.createReceipt.bind(this);
   }
 
-  findReceipt(receipt) {
+  findReceipt(receiptkey) {
     return this.db.Receipt.findOne({
-        receipt: receipt
+        receiptkey: receiptkey
     }).exec()
   }
 
-  delReceipt(receipt) {
+  delReceipt(receiptkey) {
     return this.db.Receipt.findOne({
-        receipt: receipt
+        receiptkey: receiptkey
     }).remove().exec()
   }
 
-  createReceipt(receipt, email, type) {
+  createReceipt(receipt, coins, email, type, prod) {
     return this.db.Receipt.create({
-      receipt: receipt,
+      receiptkey: cryptoUtil.md5(receipt),
+      coins: coins,
       email: email,
+      prod: prod,
       type: type,
       create_at: Date.now()
     });
