@@ -24,6 +24,7 @@ class GlobalController extends BaseController {
     this.reportRelease = this.reportRelease.bind(this);
 
     this.checkServices = this.checkServices.bind(this);
+    this.hello = this.hello.bind(this);
     this.appleIAP = this.appleIAP.bind(this);
     this.googleIAP = this.googleIAP.bind(this);
     // debug
@@ -112,6 +113,10 @@ class GlobalController extends BaseController {
     }
   }
 
+
+  async hello(Request, Response, next) {
+    this.success(Request, Response, next, "hello");
+  }
 
   async checkServices(Request, Response, next) {
     // load a artist info to check if serices is running

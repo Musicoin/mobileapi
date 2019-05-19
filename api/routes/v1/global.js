@@ -14,6 +14,7 @@ Router.post("/google/iap", Controller.googleIAP, Controller.sendJson);
 Router.post("/del/receipt", Controller.delReceipt, Controller.sendJson);
 
 Router.get("/check_services", Controller.checkServices, Controller.sendJson);
+Router.get("/hello", Controller.hello, Controller.sendJson);
 // apple iap
 
 module.exports = Router;
