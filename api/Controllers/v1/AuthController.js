@@ -40,6 +40,7 @@ class AuthController extends BaseController {
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
     // debug
     this.delUser = this.delUser.bind(this)
+    this.delWallet = this.delWallet.bind(this)
   }
 
   async socialLogin(Request, Response, next){
@@ -533,6 +534,36 @@ class AuthController extends BaseController {
         this.logger.info("API user not found");
       } else {
         await this.AuthDelegator._delApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
+
+  async delWallet(Request, Response, next) {
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+    try {
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        this.logger.info("user not found");
+      } else {
+        user.profileAddress = null;
+        user.save();
       }
 
       // response clientSecret and accessToken
