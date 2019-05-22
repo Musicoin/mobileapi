@@ -237,16 +237,20 @@ class AuthController extends BaseController {
       }
 
       // check if user exists
-      const user = await this.AuthDelegator._loadUserByEmail(email);
+      let user = await this.AuthDelegator._loadUserByEmail(email);
       if (user) {
         return this.reject(Request, Response, "Email has been used");
       }
 
       // create user
-      await this.AuthDelegator._createUser(email, password, username);
+      user = await this.AuthDelegator._createUser(email, password, username);
       // create api user
       const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
+      //
+      // setup wallet
+      await this.AuthDelegator.setupNewUser(user);
+
       const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken
