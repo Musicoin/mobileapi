@@ -563,6 +563,7 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "User not found");
       } else {
         user.profileAddress = null;
+        user.pendingInitialization = true;
         user.save();
       }
 
