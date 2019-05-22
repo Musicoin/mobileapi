@@ -247,6 +247,10 @@ class AuthController extends BaseController {
       // create api user
       const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
+      //
+      // setup wallet
+      await this.AuthDelegator.setupNewUser(user);
+
       const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken
