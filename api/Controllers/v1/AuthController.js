@@ -560,7 +560,7 @@ class AuthController extends BaseController {
 
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !user.local) {
-        this.logger.info("user not found");
+        return this.reject(Request, Response, "User not found");
       } else {
         user.profileAddress = null;
         user.save();
