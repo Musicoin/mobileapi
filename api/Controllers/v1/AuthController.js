@@ -97,13 +97,15 @@ class AuthController extends BaseController {
                         const profile = JSON.parse(twdata);
                         logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
                         const email = profile.email? profile.email: `${profile.id}@twmusicon`;
-                        logger.debug("socialLogin:"+email);
-                        let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
+                        //logger.debug("socialLogin:"+email);
+                        profile['id'] = profile['id_str']
+                        let user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
                         if (!user) {
                           user = await this.AuthDelegator.createSocialUser(channel, profile);
                           await this.AuthDelegator.setupNewUser(user);
                         } else {
-                          user[channel] = profile;
+                          user[channel].email = email;
+                          user[channel].displayName = profile.name;
                           await user.save();
                         }
                         let apiUser = await this.AuthDelegator._loadApiUser(email);

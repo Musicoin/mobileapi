@@ -47,6 +47,12 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne(filter).exec();
   }
 
+  findUserBySocialId(channel, id) {
+    const filter = {};
+    filter[`${channel}.id`] = id;
+    return this.db.User.findOne(filter).exec();
+  }
+
   createSocialUser(channel, profile){
     const content = {
       pendingInitialization: true,
