@@ -61,7 +61,9 @@ class AuthController extends BaseController {
 
       } else if (channel === 'facebook') {
         const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`
+        logger.debug("[socialLogin]accessToken:"+accessToken);
         const fbres = await request(fburl);
+        logger.debug("[socialLogin]fbres:"+fbres);
 
 
         if (fbres.error) {
@@ -147,7 +149,12 @@ class AuthController extends BaseController {
         if (!user) {
           user = await this.AuthDelegator.createSocialUser(channel, profile);
         } else {
-          user[channel] = profile;
+          if (channel === 'facebook') {
+            user[channel].id = profile.id;
+            user[channel].email = profile.email;
+          } else {
+            user[channel] = profile;
+          }
           await user.save();
         }
 
