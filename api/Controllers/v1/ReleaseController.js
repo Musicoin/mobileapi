@@ -64,6 +64,10 @@ class ReleaseController extends BaseController {
    * musicoins
    */
   async tipTrack(Request, Response, next) {
+    return this.error(Request, Response, "This old tip API is closed, please upgrade your app to the newest version");
+  }
+
+  async tipTrackForTest(Request, Response, next) {
     try {
       const musicoins = Request.body.musicoins || 10;
       const trackAddress = Request.body.trackAddress;
