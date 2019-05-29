@@ -30,10 +30,11 @@ class UserController extends BaseController {
       const description = user.draftProfile && user.draftProfile.description;
       const socials = user.draftProfile && user.draftProfile.social;
       const genres = user.draftProfile && user.draftProfile.genres;
+      const useremail = user.primaryEmail;
 
       const userInfo = {
         profileAddress: user.profileAddress || null,
-        email: email,
+        email: useremail,
         username: username || null,
         avatar: this.UserDelegator.getUserAvatar(avatar),
         description: description || null,
