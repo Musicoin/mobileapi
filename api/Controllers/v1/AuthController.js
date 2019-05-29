@@ -299,7 +299,8 @@ class AuthController extends BaseController {
 
       const data = {
         clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
+        accessToken: apiUser.accessToken,
+        email: email
       }
       this.success(Request,Response, next, data);
 
@@ -316,9 +317,17 @@ class AuthController extends BaseController {
 
       this.logger.info("login:"+JSON.stringify(body));
 
-      const user = await this.AuthDelegator._loadUserByEmail(email);
-      if (!user || !user.local) {
+      let _user = await this.AuthDelegator._loadUserByEmail(email);
+      let _localUser = await this.AuthDelegator._loadUserByLocalEmail(email);
+      let user = _user ? _user : _localUser;
+
+      if (!user && !user.local) {
         return this.reject(Request, Response, "user not found");
+      } else {
+        if (!_user) {
+            user.apiEmail = email;
+            await user.save();
+        }
       }
       this.logger.debug("login:"+JSON.stringify(user.local));
       // verify password
@@ -337,7 +346,8 @@ class AuthController extends BaseController {
       // response clientSecret and accessToken
       const data = {
         clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
+        accessToken: apiUser.accessToken,
+        email: email
       }
 
       this.success(Request,Response, next, data);
