@@ -68,7 +68,9 @@ class AuthController extends BaseController {
           const profile = JSON.parse(res.body);
           logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
 
-          let user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
+          let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
+          let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
+          let user = _user ? _user : _localUser;
 
           if (!user) {
               user = await this.AuthDelegator.createSocialUser(channel, profile);
@@ -127,7 +129,12 @@ class AuthController extends BaseController {
             const profile = JSON.parse(res.body);
             logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
 
-            let user = await this.AuthDelegator.findUserBySocialId(channel, fbid);
+            const socialEmail = `${fbid}@fbmusicon`;
+
+            let _user = await this.AuthDelegator.findUserBySocialId(channel, fbid);
+            let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
+            let user = _user ? _user : _localUser;
+
 
             if (!user) {
                 user = await this.AuthDelegator.createSocialUser(channel, profile);
@@ -135,7 +142,7 @@ class AuthController extends BaseController {
 
             // update apiEmail
             //if (!user.apiEmail) {
-            user.apiEmail = `${fbid}@fbmusicon`;
+            user.apiEmail = socialEmail;
             await user.save();
             //}
 
@@ -181,13 +188,17 @@ class AuthController extends BaseController {
 
                   //logger.debug("socialLogin:"+email);
                   profile.id = profile['id_str']
+                  const socialEmail = `${profile.id}@twmusicon`;
 
-                  let user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
+                  let _user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
+                  let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
+                  let user = _user ? _user : _localUser;
+
                   if (!user) {
                     user = await this.AuthDelegator.createSocialUser(channel, profile);
                   }
                   //if (!user.apiEmail) {
-                  user.apiEmail = `${profile.id}@twmusicon`;
+                  user.apiEmail = socialEmail;
                   await user.save();
                   //}
 
@@ -283,7 +294,10 @@ class AuthController extends BaseController {
       }
 
       // check if user exists
-      let user = await this.AuthDelegator._loadUserByEmail(email);
+      let _user = await this.AuthDelegator._loadUserByEmail(email);
+      let _localUser = await this.AuthDelegator._loadUserByPriEmail(email);
+      let user = _user ? _user : _localUser;
+
       if (user) {
         return this.reject(Request, Response, "Email has been used");
       }
@@ -318,7 +332,7 @@ class AuthController extends BaseController {
       this.logger.info("login:"+JSON.stringify(body));
 
       let _user = await this.AuthDelegator._loadUserByEmail(email);
-      let _localUser = await this.AuthDelegator._loadUserByLocalEmail(email);
+      let _localUser = await this.AuthDelegator._loadUserByPriEmail(email);
       let user = _user ? _user : _localUser;
 
       if (!user && !user.local) {
