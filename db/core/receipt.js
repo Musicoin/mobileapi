@@ -5,6 +5,7 @@ module.exports = mongoose.model('Receipt', mongoose.Schema({
   email: String,
   coins: Number,
   type: String,
+  stat: Number,
   prod: Boolean,
   create_at: Date
 }));

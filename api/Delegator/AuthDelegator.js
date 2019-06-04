@@ -11,6 +11,7 @@ class AuthDelegator extends ControllerDelegator {
     super(props);
 
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
+    this._loadUserByPriEmail = this._loadUserByPriEmail.bind(this);
     this._delUserByEmail = this._delUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
@@ -23,27 +24,22 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _loadUserByEmail(email) {
-    return this.db.User.findOne({
-        $or:[
-          {
-            "local.email": email
-          },
-          {
-            "google.email": email
-          },
-          {
-            "facebook.email": email
-          },
-          {
-            "twitter.email": email
-          }
-        ]
-      }).exec();
+    return this.db.User.findOne({ "apiEmail": email }).exec();
   }
+  _loadUserByPriEmail(email) {
+    return this.db.User.findOne({ "primaryEmail": email }).exec();
+  }
+
 
   findUserBySocialEmail(channel, email){
     const filter = {};
     filter[channel+".email"] = email;
+    return this.db.User.findOne(filter).exec();
+  }
+
+  findUserBySocialId(channel, id) {
+    const filter = {};
+    filter[`${channel}.id`] = id;
     return this.db.User.findOne(filter).exec();
   }
 
@@ -155,22 +151,7 @@ class AuthDelegator extends ControllerDelegator {
 
   //
   _delUserByEmail(email) {
-    return this.db.User.findOne({
-        $or:[
-          {
-            "local.email": email
-          },
-          {
-            "google.email": email
-          },
-          {
-            "facebook.email": email
-          },
-          {
-            "twitter.email": email
-          }
-        ]
-      }).remove().exec();
+    return this.db.User.findOne({ "apiEmail": email }).remove().exec();
   }
 
 

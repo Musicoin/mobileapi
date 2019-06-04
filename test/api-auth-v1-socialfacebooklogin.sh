@@ -1,7 +1,14 @@
-curl --location --request POST "https://t2.musicoin.org/api/v1/auth/sociallogin" \
+if [ $1 == "dev" ];
+then
+    target="http://mc.wegox.cn"
+else
+    target="https://t2.musicoin.org"
+fi
+
+curl --location --request POST "$target/api/v1/auth/sociallogin" \
   --header "Content-Type: application/json" \
   --data "{
     \"channel\": \"facebook\",
-    \"accessToken\": \"$1\"
+    \"accessToken\": \"$2\"
 }"
 

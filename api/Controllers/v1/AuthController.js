@@ -40,6 +40,7 @@ class AuthController extends BaseController {
     this.getFacebookAppID = this.getFacebookAppID.bind(this)
     // debug
     this.delUser = this.delUser.bind(this)
+    this.delWallet = this.delWallet.bind(this)
   }
 
   async socialLogin(Request, Response, next){
@@ -53,119 +54,175 @@ class AuthController extends BaseController {
         return this.reject(Request, Response, "channel is invalid.")
       }
 
-      let uri;
-      let fbid;
-      if (channel === 'google') {
-        uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
+      if (channel === 'google') {   // google login
+        const uri = `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`;
+        const res = await request(uri);
 
+        if (res.error) {
+          return this.error(Request, Response, res.error);
+
+        } else if (res.body.error) {
+          return this.error(Request, Response, body.error.message);
+
+        } else {
+          const profile = JSON.parse(res.body);
+          logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
+
+          let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
+          let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
+          let user = _user ? _user : _localUser;
+
+          if (!user) {
+              user = await this.AuthDelegator.createSocialUser(channel, profile);
+          }
+
+          // update apiEmail
+          //if (!user.apiEmail) {
+          user.apiEmail = "gl:"+profile.email;
+          await user.save();
+          //}
+
+          // create wallet
+          await this.AuthDelegator.setupNewUser(user);
+          let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+
+          // carete a new api user if not found
+          if (!apiUser) {
+            apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+          }
+          // response clientSecret and accessToken
+          const data = {
+            clientSecret: apiUser.clientSecret,
+            accessToken: apiUser.accessToken,
+            email: user.apiEmail
+          };
+          return this.success(Request, Response, next, data);
+        }
       } else if (channel === 'facebook') {
         const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`
         const fbres = await request(fburl);
-
+        //logger.debug("[socialLogin]accessToken:"+accessToken);
+        //logger.debug("[socialLogin]fbres:"+fbres);
 
         if (fbres.error) {
           return this.error(Request, Response, fbres.error);
+
         } else if (fbres.body.error) {
           return this.error(Request, Response, fbres.body.error);
+
         } else {
-
           const fbody = JSON.parse(fbres.body);
-          logger.debug("[socialLogin]facebook:"+JSON.stringify(fbody));
+          logger.info("[socialLogin]facebook fbody:"+JSON.stringify(fbody));
 
-          fbid = fbody.id;
-          uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
+          const fbid = fbody.id;
+          const uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
+
+          const res = await request(uri);
+
+          if (res.error) {
+            return this.error(Request, Response, res.error);
+
+          } else if (res.body.error) {
+            return this.error(Request, Response, body.error.message);
+
+          } else {
+            const profile = JSON.parse(res.body);
+            logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
+
+            const socialEmail = `${fbid}@fbmusicon`;
+
+            let _user = await this.AuthDelegator.findUserBySocialId(channel, fbid);
+            let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
+            let user = _user ? _user : _localUser;
+
+
+            if (!user) {
+                user = await this.AuthDelegator.createSocialUser(channel, profile);
+            }
+
+            // update apiEmail
+            //if (!user.apiEmail) {
+            user.apiEmail = socialEmail;
+            await user.save();
+            //}
+
+            // create wallet
+            await this.AuthDelegator.setupNewUser(user);
+            let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+
+            // carete a new api user if not found
+            if (!apiUser) {
+              apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+            }
+            logger.info("user.apiEmail:"+user.apiEmail)
+            // response clientSecret and accessToken
+            const data = {
+              clientSecret: apiUser.clientSecret,
+              accessToken: apiUser.accessToken,
+              email: user.apiEmail
+            };
+            return this.success(Request, Response, next, data);
+          }
         }
-      } else if (channel === 'twitter') {
+      } else if (channel === 'twitter') {   // twitter login
         const oauthToken = Request.body.oauthToken;
         const oauthTokenSecret = Request.body.oauthTokenSecret ? Request.body.oauthTokenSecret : twitterConsumerSecret;
         const oauthVerifier = Request.body.oauthVerifier;
 
         oauth.getOAuthAccessToken(oauthToken,oauthTokenSecret,oauthVerifier,
-            (e, oauthAccessToken, oauthAccessTokenSecret, results)=>{
-              if (e){
-                this.error(Request, Response, e);
-              }else {
-                oauth.get(
-                    'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
-                    oauthAccessToken,
-                    oauthAccessTokenSecret,
-                    async (e, twdata, res)=>{
-                      if(e){
-                        this.error(Request, Response, e);
-                      }else {
-                        const profile = JSON.parse(twdata);
-                        logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
-                        const email = profile.email? profile.email: `${profile.id}@twmusicon`;
-                        logger.debug("socialLogin:"+email);
-                        let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-                        if (!user) {
-                          user = await this.AuthDelegator.createSocialUser(channel, profile);
-                          await this.AuthDelegator.setupNewUser(user);
-                        } else {
-                          user[channel] = profile;
-                          await user.save();
-                        }
-                        let apiUser = await this.AuthDelegator._loadApiUser(email);
+        (e, oauthAccessToken, oauthAccessTokenSecret, results) => {
+          if (e) {
+            this.error(Request, Response, e);
+          } else {
+            oauth.get(
+              'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+              oauthAccessToken,
+              oauthAccessTokenSecret,
+              async (e, twdata, res) => {
+                if (e) {
+                  this.error(Request, Response, e);
+                } else {
+                  const profile = JSON.parse(twdata);
+                  logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
 
-                        // carete a new api user if not found
-                        if (!apiUser) {
-                          apiUser = await this.AuthDelegator._createApiUser(email);
-                        }
-                        // response clientSecret and accessToken
-                        const data = {
-                          clientSecret: apiUser.clientSecret,
-                          accessToken: apiUser.accessToken,
-                          email: email
-                        };
-                        this.success(Request, Response, next, data);
-                      }
-                    });
+
+                  //logger.debug("socialLogin:"+email);
+                  profile.id = profile['id_str']
+                  const socialEmail = `${profile.id}@twmusicon`;
+
+                  let _user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
+                  let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
+                  let user = _user ? _user : _localUser;
+
+                  if (!user) {
+                    user = await this.AuthDelegator.createSocialUser(channel, profile);
+                  }
+                  //if (!user.apiEmail) {
+                  user.apiEmail = socialEmail;
+                  await user.save();
+                  //}
+
+                  await this.AuthDelegator.setupNewUser(user);
+                  let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+
+                  // carete a new api user if not found
+                  if (!apiUser) {
+                    apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+                  }
+                  // response clientSecret and accessToken
+                  const data = {
+                    clientSecret: apiUser.clientSecret,
+                    accessToken: apiUser.accessToken,
+                    email: user.apiEmail
+                  };
+                  this.success(Request, Response, next, data);
+                }
               }
-            });
-
-        return
+            );
+          }
+        });
+        //return this.success(Request, Response, next, { msg: "ok" });
       }
-
-      const res = await request(uri);
-
-      if (res.error) {
-        return this.error(Request, Response, res.error);
-      } else if (res.body.error) {
-        return this.error(Request, Response, body.error.message);
-      }else {
-        const profile = JSON.parse(res.body);
-        // TODO
-        logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
-        const email = profile.email ? profile.email : `${fbid}@fbmusicon`;
-        logger.debug("socialLogin:"+email);
-        let user = await this.AuthDelegator.findUserBySocialEmail(channel, email);
-        profile.email = email;
-
-        if (!user) {
-          user = await this.AuthDelegator.createSocialUser(channel, profile);
-        } else {
-          user[channel] = profile;
-          await user.save();
-        }
-
-        // setupNewUser
-        await this.AuthDelegator.setupNewUser(user);
-
-        let apiUser = await this.AuthDelegator._loadApiUser(email);
-
-        // carete a new api user if not found
-        if (!apiUser) {
-          apiUser = await this.AuthDelegator._createApiUser(email);
-        }
-        // response clientSecret and accessToken
-        const data = {
-          clientSecret: apiUser.clientSecret,
-          accessToken: apiUser.accessToken,
-          email: email
-        };
-        this.success(Request, Response, next, data);
-      }
-
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -237,19 +294,27 @@ class AuthController extends BaseController {
       }
 
       // check if user exists
-      const user = await this.AuthDelegator._loadUserByEmail(email);
+      let _user = await this.AuthDelegator._loadUserByEmail(email);
+      let _localUser = await this.AuthDelegator._loadUserByPriEmail(email);
+      let user = _user ? _user : _localUser;
+
       if (user) {
         return this.reject(Request, Response, "Email has been used");
       }
 
       // create user
-      await this.AuthDelegator._createUser(email, password, username);
+      user = await this.AuthDelegator._createUser(email, password, username);
       // create api user
       const apiUser = await this.AuthDelegator._createApiUser(email);
       // response success
+      //
+      // setup wallet
+      await this.AuthDelegator.setupNewUser(user);
+
       const data = {
         clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
+        accessToken: apiUser.accessToken,
+        email: email
       }
       this.success(Request,Response, next, data);
 
@@ -266,9 +331,17 @@ class AuthController extends BaseController {
 
       this.logger.info("login:"+JSON.stringify(body));
 
-      const user = await this.AuthDelegator._loadUserByEmail(email);
-      if (!user || !user.local) {
+      let _user = await this.AuthDelegator._loadUserByEmail(email);
+      let _localUser = await this.AuthDelegator._loadUserByPriEmail(email);
+      let user = _user ? _user : _localUser;
+
+      if (!user && !user.local) {
         return this.reject(Request, Response, "user not found");
+      } else {
+        if (!_user) {
+            user.apiEmail = email;
+            await user.save();
+        }
       }
       this.logger.debug("login:"+JSON.stringify(user.local));
       // verify password
@@ -287,7 +360,8 @@ class AuthController extends BaseController {
       // response clientSecret and accessToken
       const data = {
         clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
+        accessToken: apiUser.accessToken,
+        email: email
       }
 
       this.success(Request,Response, next, data);
@@ -494,7 +568,7 @@ class AuthController extends BaseController {
           if (e){
             this.error(Request, Response, e);
           }else {
-            const data = {oauthToken, oauthTokenSecret}
+            const data = { oauthToken }
             this.success(Request,Response, next, data);
           }
         })
@@ -529,6 +603,37 @@ class AuthController extends BaseController {
         this.logger.info("API user not found");
       } else {
         await this.AuthDelegator._delApiUser(email);
+      }
+
+      // response clientSecret and accessToken
+      const data = {
+        message: "OK"
+      }
+
+      this.success(Request,Response, next, data);
+
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+  }
+
+  async delWallet(Request, Response, next) {
+    const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
+    if (!debug) {
+        return this.reject(Request, Response, "debug not allowed");
+    }
+
+    try {
+      const body = Request.body;
+      const email = body.email;
+
+      const user = await this.AuthDelegator._loadUserByEmail(email);
+      if (!user || !user.local) {
+        return this.reject(Request, Response, "User not found");
+      } else {
+        user.profileAddress = null;
+        user.pendingInitialization = true;
+        user.save();
       }
 
       // response clientSecret and accessToken

@@ -1,3 +1,4 @@
+// GLOBAL
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const UserDelegator = require('../../Delegator/UserDelegator');
@@ -24,6 +25,7 @@ class GlobalController extends BaseController {
     this.reportRelease = this.reportRelease.bind(this);
 
     this.checkServices = this.checkServices.bind(this);
+    this.hello = this.hello.bind(this);
     this.appleIAP = this.appleIAP.bind(this);
     this.googleIAP = this.googleIAP.bind(this);
     // debug
@@ -113,6 +115,10 @@ class GlobalController extends BaseController {
   }
 
 
+  async hello(Request, Response, next) {
+    this.success(Request, Response, next, "hello");
+  }
+
   async checkServices(Request, Response, next) {
     // load a artist info to check if serices is running
     const artistAddress = "0x411eedd91f172766061d705ed7e71131b84a7654";
@@ -188,6 +194,12 @@ class GlobalController extends BaseController {
     const validateReceiptSand = AppleIAPValidator(itunes_shared_secret, false);
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
+    let stat = 0;
+    if (!user.profileAddress) {
+        stat = 1001;
+        //return this.reject(Request, Response, "Your wallet is not ready, please contact us(support@musicoin.org) for support .");
+    }
+
     var result = {};
     var productId = "";
     var xx = {};
@@ -201,9 +213,13 @@ class GlobalController extends BaseController {
       if (receiptRecord) {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", true);
-        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
-        return this.success(Request, Response, next, result);
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", true, stat);
+        if (stat == 0) {
+            result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+            return this.success(Request, Response, next, result);
+        } else {
+            return this.reject(Request, Response, "Your wallet is not ready, please contact us(support@musicoin.org) for support .");
+        }
       }
 
     } catch (error) {
@@ -218,12 +234,17 @@ class GlobalController extends BaseController {
 
         let receiptRecord = await this.GlobalDelegator.findReceipt(cryptoUtil.md5(receipt));
         if (receiptRecord) {
+
           return this.reject(Request, Response, "Receipt is expired");
         } else {
-          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", false);
-          result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
 
-          return this.success(Request, Response, next, result);
+          await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "apple", false, stat);
+          if (stat == 0) {
+              result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+              return this.success(Request, Response, next, result);
+          } else {
+              return this.reject(Request, Response, "Your wallet is not ready, please contact us(support@musicoin.org) for support .");
+          }
         }
 
       } catch (error) {
@@ -264,6 +285,12 @@ class GlobalController extends BaseController {
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
 
+    let stat = 0;
+    if (!user.profileAddress) {
+        stat = 1;
+    }
+
+
     var googleplayVerifier = new GoogleIABVerifier(google_pub_key);
 
     var verifyResult = await googleplayVerifier.verifyReceipt(receipt, signature);
@@ -277,10 +304,14 @@ class GlobalController extends BaseController {
       if (receiptRecord) {
         return this.reject(Request, Response, "Receipt is expired");
       } else {
-        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google", true);
-        result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+        await this.GlobalDelegator.createReceipt(receipt, parseInt(xx[1]), email, "google", true, stat);
 
-        return this.success(Request, Response, next, result);
+        if (stat == 0) {
+            result = await this.GlobalDelegator.directPay(user.profileAddress, parseInt(xx[1]));
+            return this.success(Request, Response, next, result);
+        } else {
+            return this.reject(Request, Response, "Your wallet is not ready, please contact us(support@musicoin.org) for support .");
+        }
       }
 
     } else {

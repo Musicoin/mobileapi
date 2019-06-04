@@ -2,6 +2,7 @@ const mongoose = require('./../connections/core');
 
 module.exports = mongoose.model('User', mongoose.Schema({
   profileAddress: String,
+  apiEmail: String,
   updatePending: {
     type: Boolean,
     index: true,
