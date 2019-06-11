@@ -47,7 +47,6 @@ class AuthController extends BaseController {
     try {
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
-      const logger = this.logger;
 
       // check channel is valid
       if (this.constant.SOCIAL_CHANNELS.indexOf(channel) === -1) {
@@ -66,7 +65,7 @@ class AuthController extends BaseController {
 
         } else {
           const profile = JSON.parse(res.body);
-          logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
+          this.logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
 
           let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
           let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
@@ -112,7 +111,7 @@ class AuthController extends BaseController {
 
         } else {
           const fbody = JSON.parse(fbres.body);
-          logger.info("[socialLogin]facebook fbody:"+JSON.stringify(fbody));
+          this.logger.info("[socialLogin]facebook fbody:"+JSON.stringify(fbody));
 
           const fbid = fbody.id;
           const uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
@@ -127,7 +126,7 @@ class AuthController extends BaseController {
 
           } else {
             const profile = JSON.parse(res.body);
-            logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
+            this.logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
 
             const socialEmail = `${fbid}@fbmusicon`;
 
@@ -154,7 +153,7 @@ class AuthController extends BaseController {
             if (!apiUser) {
               apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
             }
-            logger.info("user.apiEmail:"+user.apiEmail)
+            this.logger.info("user.apiEmail:"+user.apiEmail)
             // response clientSecret and accessToken
             const data = {
               clientSecret: apiUser.clientSecret,
@@ -183,7 +182,7 @@ class AuthController extends BaseController {
                   this.error(Request, Response, e);
                 } else {
                   const profile = JSON.parse(twdata);
-                  logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
+                  this.logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
 
 
                   //logger.debug("socialLogin:"+email);
