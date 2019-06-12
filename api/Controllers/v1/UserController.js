@@ -201,23 +201,24 @@ class UserController extends BaseController {
     const email = Request.query.email;
     const follower = Request.body.follower;
 
+    this.logger.info("follow", JSON.stringify(email, follower));
+
     const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-    const followUser = await this.AuthDelegator._findUserByUserId(follower);
-    this.logger.debug("currentUser", JSON.stringify(currentUser));
-    this.logger.debug("followUser", JSON.stringify(followUser));
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
+    //this.logger.debug("currentUser", JSON.stringify(currentUser));
+    //this.logger.debug("followUser", JSON.stringify(followUser));
 
     if (!currentUser || !followUser) {
       return this.reject(Request, Response, "Following User not found, please check");
     }
 
     const currentUserId = currentUser.id;
-    const followUserId = followUser.id;
-    const ret = await this.UserDelegator.isUserFollowing(currentUserId, followUserId);
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
     if (ret) {
       return this.reject(Request, Response, "Following User has been followed");
 
     } else {
-      const followed = await this.UserDelegator.startFollowing(currentUserId, followUserId);
+      const followed = await this.UserDelegator.startFollowing(currentUserId, follower);
       if (followed) {
         const data = {
           success: true
@@ -233,24 +234,23 @@ class UserController extends BaseController {
     const email = Request.query.email;
     const follower = Request.body.follower;
 
-    this.logger.info("unfollow:"+email+"-"+follower);
+    this.logger.info("unfollow", JSON.stringify(email, follower));
 
     const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-    const followUser = await this.AuthDelegator._findUserByUserId(follower);
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
 
     if (!currentUser || !followUser) {
       return this.reject(Request, Response, "Following User not found, please check");
     }
 
     const currentUserId = currentUser.id;
-    const followUserId = followUser.id;
-    const ret = await this.UserDelegator.isUserFollowing(currentUserId, followUserId);
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
     if (!ret) {
       return this.reject(Request, Response, "Following User has not been followed");
 
     } else {
       this.logger.info("HERE")
-      const followed = await this.UserDelegator.stopFollowing(currentUserId, followUserId);
+      const followed = await this.UserDelegator.stopFollowing(currentUserId, follower);
       if (followed) {
         const data = {
           success: true

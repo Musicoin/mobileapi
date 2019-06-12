@@ -1,5 +1,6 @@
 const BaseController = require('../base/BaseController');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 const uuidV4 = require('uuid/v4');
 
@@ -8,12 +9,16 @@ class ReleaseController extends BaseController {
     super(props);
 
     this.ReleaseDelegator = new ReleaseDelegator(props);
+    this.AuthDelegator = new AuthDelegator(props);
 
     this.getRecentTracks = this.getRecentTracks.bind(this);
     this.getTrackDetail = this.getTrackDetail.bind(this);
     this.getTracksByArtist = this.getTracksByArtist.bind(this);
     this.getTracksByGenre = this.getTracksByGenre.bind(this);
     this.tipTrack = this.tipTrack.bind(this);
+
+    // private functions
+    this._filterFollow = this._filterFollow.bind(this);
   }
 
   /**
@@ -41,9 +46,12 @@ class ReleaseController extends BaseController {
    */
   async getRecentTracks(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
-      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+
+      this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
+      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(email, skip, limit);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -157,7 +165,9 @@ class ReleaseController extends BaseController {
         return this.reject(Request, Response, validateResult);
       }
 
-      const tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre,skip,limit);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -180,6 +190,7 @@ class ReleaseController extends BaseController {
    */
   async getTracksByArtist(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const artistAddress = Request.query.artistAddress;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
@@ -193,7 +204,9 @@ class ReleaseController extends BaseController {
         return this.reject(Request, Response, validateResult);
       }
 
-      const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress,skip,limit);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -207,6 +220,15 @@ class ReleaseController extends BaseController {
     } catch (error) {
       this.error(Request, Response, error);
     }
+  }
+
+  async _filterFollow(userId, _tracksLoad) {
+    let tracksLoad = [];
+    for (var i=0; i<_tracksLoad.length; i++) {
+      _tracksLoad[i].followed = await this.UserDelegator.isUserFollowing(userId, _tracksLoad[i].artistAddress);
+      tracksLoad.push(_tracksLoad[i]);
+    }
+    return tracksLoad;
   }
 }
 

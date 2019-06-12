@@ -15,7 +15,6 @@ Router.get('/top', releaseModule.getTopTracks.bind(releaseModule));
 Router.get('/topbygenre', releaseModule.getTopTracksByGenre.bind(releaseModule));
 Router.get('/recent', releaseModule.getRecentTracks.bind(releaseModule));
 
-Router.get('/detail/v1/:publicKey', releaseModule.getTrackDetailV1.bind(releaseModule));
 Router.get('/random/v1', releaseModule.getRandomTrackV1.bind(releaseModule));
 Router.get('/randoms/v1', releaseModule.getRandomTracksV1.bind(releaseModule));
 Router.get('/bygenre/v1', releaseModule.getTracksByGenreV1.bind(releaseModule));

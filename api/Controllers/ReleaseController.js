@@ -149,29 +149,6 @@ class ReleaseController {
     })
   }
 
-  async getTrackDetailV1(Request, Response) {
-    try {
-      const release = await Release.findOne({
-        contractAddress: Request.params.publicKey
-      }).exec();
-      if (release) {
-        Response.status(200).json({
-          success: true,
-          data: ReleaseModel.responseData(release)
-        })
-      } else {
-        Response.status(200).json({
-          success: false,
-          message: 'Track does not found'
-        })
-      }
-    } catch (error) {
-      Response.status(500).json({
-        error: error.message
-      })
-    }
-  }
-
   getRandomTrack(Request, Response) {
 
     let where = {

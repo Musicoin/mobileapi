@@ -158,6 +158,11 @@ class AuthDelegator extends ControllerDelegator {
   _findUserByUserId(userId) {
     return this.db.User.findById(userId).exec();
   }
+
+  _findUserByProfileAddress(address) {
+    return this.db.User.findOne({ "profileAddress": address}).exec();
+  }
+
 }
 
 module.exports = AuthDelegator;
