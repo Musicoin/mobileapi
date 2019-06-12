@@ -52,7 +52,7 @@ class ReleaseController extends BaseController {
 
       this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      const _tracksLoad = await this.ReleaseDelegator.loadRecentTracks(email, skip, limit);
+      const _tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
       const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
@@ -154,6 +154,7 @@ class ReleaseController extends BaseController {
    */
   async getTracksByGenre(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const genre = Request.query.genre;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
