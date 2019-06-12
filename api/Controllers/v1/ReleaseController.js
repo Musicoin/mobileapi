@@ -51,7 +51,9 @@ class ReleaseController extends BaseController {
       const skip = this.skip(Request.query.skip);
 
       this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
-      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(email, skip, limit);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadRecentTracks(email, skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -223,10 +225,11 @@ class ReleaseController extends BaseController {
   }
 
   async _filterFollow(userId, _tracksLoad) {
-    let tracksLoad = [];
-    for (var i=0; i<_tracksLoad.length; i++) {
-      _tracksLoad[i].followed = await this.UserDelegator.isUserFollowing(userId, _tracksLoad[i].artistAddress);
-      tracksLoad.push(_tracksLoad[i]);
+    let tracksLoad = _tracksLoad;
+    if (tracksLoad.data) {
+      for (var i=0; i<tracksLoad.data.length; i++) {
+        tracksLoad.data[i].followed = await this.UserDelegator.isUserFollowing(userId, tracksLoad.data[i].artistAddress);
+      }
     }
     return tracksLoad;
   }

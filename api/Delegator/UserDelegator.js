@@ -68,7 +68,7 @@ class UserDelegator extends ControllerDelegator{
       } else {
         return false;
       }
-      } else {
+    } else {
       return false;
     }
 
