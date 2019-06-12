@@ -24,7 +24,6 @@ Router.get('/topbygenre/v1', releaseModule.getTopTracksByGenreV1.bind(releaseMod
 Router.get('/recent/v1', releaseModule.getRecentTracksV1.bind(releaseModule));
 Router.get('/byartist/v1/:address', releaseModule.getTracksByAritstV1.bind(releaseModule));
 
-Router.post('/tiptrack/v1', releaseModule.tipTrackV1.bind(releaseModule));
 Router.post('/tip/:publicKey', releaseModule.tipTrack.bind(releaseModule));
 
 module.exports = Router;

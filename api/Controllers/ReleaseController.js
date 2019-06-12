@@ -93,7 +93,6 @@ class ReleaseController {
     this.PublishCredentials = PublishCredentials;
     this.PaymentCredentials = PaymentCredentials;
 
-    this.tipTrackV1 = this.tipTrackV1.bind(this);
     this.getUserEmail = this.getUserEmail.bind(this);
     this.updateReleaseStats = this.updateReleaseStats.bind(this);
     this._updateReleaseStats = this._updateReleaseStats.bind(this);
@@ -634,110 +633,6 @@ class ReleaseController {
       Response.status(500).json({
         error: error.message
       });
-    }
-  }
-
-  async tipTrackV1(Request, Response) {
-    const trackAddress = Request.body.trackAddress;
-    console.log("tip params: ", Request.body);
-    if (!trackAddress) {
-      return Response.status(400).json({
-        error: "track address is required."
-      })
-    }
-
-    const amount = Request.body.musicoins || 10;
-
-    try {
-      // find track
-      const release = await Release.findOne({
-        contractAddress: trackAddress
-      }).exec();
-      if (!release) {
-        return Response.status(400).json({
-          error: "Track not found: " + trackAddress
-        })
-      }
-
-      // find abimusic
-      const sender = await User.findOne({
-        profileAddress: UBIMUSIC_ACCOUNT
-      }).exec();
-      if (!sender) {
-        return Response.status(400).json({
-          error: "UBIMUSIC not found: " + UBIMUSIC_ACCOUNT
-        })
-      }
-
-      // send tip amount to track address
-      const tx = await this.ArtistModule.sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, amount);
-      // increase tip count
-      const tipCount = release.directTipCount || 0;
-      release.directTipCount = tipCount + amount;
-      await release.save();
-
-      // update release stats
-      await this.updateReleaseStats(release._id, amount);
-      const senderName = sender.draftProfile.artistName;
-      const amountUnit = amount === 1 ? "coin" : "coins";
-      const message = `${senderName} tipped ${amount} ${amountUnit} on "${release.title}"`;
-      const threadId = uuidV4();
-      // find track srtist
-      const artist = await User.findOne({
-        profileAddress: release.artistAddress
-      }).exec();
-      const email = this.getUserEmail(artist);
-      // send email to artist
-      if (email) {
-        const notification = {
-          trackName: release.title || "",
-          actionUrl: `https://musicoin.org/nav/thread-page?thread=${threadId}`,
-          message: message,
-          senderName: senderName
-        };
-
-        renderMessage(notification, (err, html) => {
-          console.log("email error: ", err);
-          if (html) {
-            const emailContent = {
-              from: "musicoin@musicoin.org",
-              to: email,
-              subject: `${senderName} commented on ${release.title}`,
-              html: html
-            }
-
-            emailUtil.send(emailContent).then(result => {
-              console.log("email send complete: ", result);
-            });
-          }
-        })
-      }
-
-      // insert a track message to db
-      const trackMsg = await TrackMessage.create({
-        artistAddress: release.artistAddress,
-        contractAddress: trackAddress,
-        senderAddress: UBIMUSIC_ACCOUNT,
-        release: release._id,
-        artist: artist ? artist._id : null,
-        sender: sender._id,
-        message: message,
-        replyToMessage: null,
-        replyToSender: null,
-        threadId: threadId,
-        messageType: "tip"
-      });
-
-      console.log("track msg: ", trackMsg);
-
-      Response.status(200).json({
-        tx: tx
-      });
-
-    } catch (error) {
-      Response.status(500).json({
-        error: error.message
-      })
     }
   }
 
