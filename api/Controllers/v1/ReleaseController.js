@@ -1,5 +1,6 @@
 const BaseController = require('../base/BaseController');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 const uuidV4 = require('uuid/v4');
 
@@ -8,6 +9,7 @@ class ReleaseController extends BaseController {
     super(props);
 
     this.ReleaseDelegator = new ReleaseDelegator(props);
+    this.AuthDelegator = new AuthDelegator(props);
 
     this.getRecentTracks = this.getRecentTracks.bind(this);
     this.getTrackDetail = this.getTrackDetail.bind(this);
@@ -15,6 +17,8 @@ class ReleaseController extends BaseController {
     this.getTracksByGenre = this.getTracksByGenre.bind(this);
     this.tipTrack = this.tipTrack.bind(this);
 
+    // private functions
+    this._filterFollow = this._filterFollow.bind(this);
   }
 
   /**
@@ -42,9 +46,14 @@ class ReleaseController extends BaseController {
    */
   async getRecentTracks(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
-      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+
+      this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -72,7 +81,6 @@ class ReleaseController extends BaseController {
       const musicoins = Request.body.musicoins || 10;
       const trackAddress = Request.body.trackAddress;
       const UBIMUSIC_ACCOUNT = this.constant.UBIMUSIC_ACCOUNT;
-      const logger = this.logger;
 
       const validateResult = this.validate({
         trackAddress,
@@ -98,16 +106,16 @@ class ReleaseController extends BaseController {
 
       // send tip amount to track address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
-      logger.debug("tip complete: ", tx);
+      this.logger.debug("tip complete: ", tx);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + musicoins;
       await release.save();
-      logger.debug("update tipCount: ", release.directTipCount);
+      this.logger.debug("update tipCount: ", release.directTipCount);
 
       // update release stats
       await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
-      logger.debug("update ReleaseStats: ", trackAddress);
+      this.logger.debug("update ReleaseStats: ", trackAddress);
 
       const senderName = sender.draftProfile.artistName;
       const amountUnit = musicoins === 1 ? "coin" : "coins";
@@ -118,7 +126,7 @@ class ReleaseController extends BaseController {
       const email = this.ReleaseDelegator.getUserEmail(artist);
       // send email to artist
       if (email) {
-        logger.debug("tip notification to email: ", email);
+        this.logger.debug("tip notification to email: ", email);
         this.ReleaseDelegator.notifyTip(email, message, senderName, release.title, threadId);
       }
 
@@ -126,7 +134,7 @@ class ReleaseController extends BaseController {
       await this.ReleaseDelegator.createTrackMessage(trackAddress, release.artistAddress, release._id,
         artist._id, sender._id, message, threadId);
 
-      logger.debug("record track message complete");
+      this.logger.debug("record track message complete");
 
       const data = {
         tx: tx
@@ -146,6 +154,7 @@ class ReleaseController extends BaseController {
    */
   async getTracksByGenre(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const genre = Request.query.genre;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
@@ -159,7 +168,9 @@ class ReleaseController extends BaseController {
         return this.reject(Request, Response, validateResult);
       }
 
-      const tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre,skip,limit);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -182,6 +193,7 @@ class ReleaseController extends BaseController {
    */
   async getTracksByArtist(Request, Response, next) {
     try {
+      const email = Request.query.email;
       const artistAddress = Request.query.artistAddress;
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
@@ -195,7 +207,9 @@ class ReleaseController extends BaseController {
         return this.reject(Request, Response, validateResult);
       }
 
-      const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress,skip,limit);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      const _tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
+      const tracksLoad = await this._filterFollow(currentUser.id, _tracksLoad);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -209,6 +223,16 @@ class ReleaseController extends BaseController {
     } catch (error) {
       this.error(Request, Response, error);
     }
+  }
+
+  async _filterFollow(userId, _tracksLoad) {
+    let tracksLoad = _tracksLoad;
+    if (tracksLoad.data) {
+      for (var i=0; i<tracksLoad.data.length; i++) {
+        tracksLoad.data[i].followed = await this.UserDelegator.isUserFollowing(userId, tracksLoad.data[i].artistAddress);
+      }
+    }
+    return tracksLoad;
   }
 }
 

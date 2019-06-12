@@ -99,10 +99,9 @@ class ReleaseDelegator extends ControllerDelegator {
       message: message,
       senderName: senderName
     };
-    const logger = this.logger;
     this.renderMessage(notification, (err, html) => {
       if(err){
-        logger.debug("tip notify error: ",err.message);
+        this.logger.debug("tip notify error: ",err.message);
       }else{
         const emailContent = {
           from: "musicoin@musicoin.org",
@@ -111,9 +110,9 @@ class ReleaseDelegator extends ControllerDelegator {
           html: html
         }
         emailUtil.send(emailContent).then(result => {
-          logger.debug("email send complete: ", result);
+          this.logger.debug("email send complete: ", result);
         }).catch(err=>{
-          logger.debug("tip notify error: ",err.message);
+          this.logger.debug("tip notify error: ",err.message);
         });
       }
     })

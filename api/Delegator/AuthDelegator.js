@@ -10,13 +10,14 @@ class AuthDelegator extends ControllerDelegator {
   constructor(props) {
     super(props);
 
+    this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
+    this.setupNewUser = this.setupNewUser.bind(this);
+
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
     this._loadUserByPriEmail = this._loadUserByPriEmail.bind(this);
     this._delUserByEmail = this._delUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
-    this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
-    this.setupNewUser = this.setupNewUser.bind(this);
     this._setupNewUserDraftProfile = this._setupNewUserDraftProfile.bind(this);
     this._uploadNewUserProfile = this._uploadNewUserProfile.bind(this);
     this._publishNewUserProfile = this._publishNewUserProfile.bind(this);
@@ -26,10 +27,10 @@ class AuthDelegator extends ControllerDelegator {
   _loadUserByEmail(email) {
     return this.db.User.findOne({ "apiEmail": email }).exec();
   }
+
   _loadUserByPriEmail(email) {
     return this.db.User.findOne({ "primaryEmail": email }).exec();
   }
-
 
   findUserBySocialEmail(channel, email){
     const filter = {};
@@ -154,6 +155,13 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne({ "apiEmail": email }).remove().exec();
   }
 
+  _findUserByUserId(userId) {
+    return this.db.User.findById(userId).exec();
+  }
+
+  _findUserByProfileAddress(address) {
+    return this.db.User.findOne({ "profileAddress": address}).exec();
+  }
 
 }
 

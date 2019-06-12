@@ -15,14 +15,16 @@ class UserController extends BaseController {
     this.getAllPlayList = this.getAllPlayList.bind(this);
     this.deletePlayList = this.deletePlayList.bind(this);
     this.getUserInfo = this.getUserInfo.bind(this);
+
+    this.follow = this.follow.bind(this);
+    this.unfollow = this.unfollow.bind(this);
   }
 
   async getUserInfo(Request, Response, next){
-    const logger = this.logger;
     const email = Request.query.email;
     try {
       const user = await this.AuthDelegator._loadUserByEmail(email);
-      logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+      this.logger.debug("[getUserInfo]user:"+JSON.stringify(user))
 
       const username = this.UserDelegator.getUserName(user);
       const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
@@ -195,6 +197,71 @@ class UserController extends BaseController {
     }
   }
 
+  async follow(Request, Response, next) {
+    const email = Request.query.email;
+    const follower = Request.body.follower;
+
+    this.logger.info("follow", JSON.stringify(email, follower));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
+    //this.logger.debug("currentUser", JSON.stringify(currentUser));
+    //this.logger.debug("followUser", JSON.stringify(followUser));
+
+    if (!currentUser || !followUser) {
+      return this.reject(Request, Response, "Following User not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
+    if (ret) {
+      return this.reject(Request, Response, "Following User has been followed");
+
+    } else {
+      const followed = await this.UserDelegator.startFollowing(currentUserId, follower);
+      if (followed) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+      } else {
+      return this.error(Request, Response, "Failed to follow");
+      }
+    }
+  }
+
+  async unfollow(Request, Response, next) {
+    const email = Request.query.email;
+    const follower = Request.body.follower;
+
+    this.logger.info("unfollow", JSON.stringify(email, follower));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
+
+    if (!currentUser || !followUser) {
+      return this.reject(Request, Response, "Following User not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
+    if (!ret) {
+      return this.reject(Request, Response, "Following User has not been followed");
+
+    } else {
+      this.logger.info("HERE")
+      const followed = await this.UserDelegator.stopFollowing(currentUserId, follower);
+      if (followed) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+
+      } else {
+        return this.error(Request, Response, "Failed to unfollow");
+      }
+    }
+  }
 }
 
 module.exports = UserController;
