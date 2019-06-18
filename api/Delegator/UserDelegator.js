@@ -76,8 +76,8 @@ class UserDelegator extends ControllerDelegator{
   }
 
   async startFollowing(userId, toFollow) {
-    this.logger.debug("startFollowing", JSON.stringify([userId, toFollow]));
     const follower = this.db.User.findOne({ "profileAddress": toFollow}).exec();
+    this.logger.debug("startFollowing", JSON.stringify([userId, toFollow, follower]));
     if (follower) {
       const options = { upsert: true, new: true, setDefaultsOnInsert: true };
       const inserted = await this.db.Follow.findOneAndUpdate({follower: userId, following: follower.id}, {}, options).exec();
