@@ -58,7 +58,7 @@ class UserDelegator extends ControllerDelegator{
   }
 
   async isUserFollowing(userId, toFollow) {
-    const follower = this.db.User.findOne({ "profileAddress": toFollow}).exec();
+    const follower = await this.db.User.findOne({ "profileAddress": toFollow}).exec();
     this.logger.debug("isUserFollowing", JSON.stringify([toFollow, follower]));
 
     if (follower && follower.id) {
@@ -76,7 +76,7 @@ class UserDelegator extends ControllerDelegator{
   }
 
   async startFollowing(userId, toFollow) {
-    const follower = this.db.User.findOne({ "profileAddress": toFollow}).exec();
+    const follower = await this.db.User.findOne({ "profileAddress": toFollow}).exec();
     this.logger.debug("startFollowing", JSON.stringify([userId, toFollow, follower]));
     if (follower) {
       const options = { upsert: true, new: true, setDefaultsOnInsert: true };
@@ -93,7 +93,7 @@ class UserDelegator extends ControllerDelegator{
 
   async stopFollowing(userId, toFollow) {
     this.logger.info("stopFollowing", JSON.stringify([userId, toFollow]));
-    const follower = this.db.User.findOne({ "profileAddress": toFollow}).exec();
+    const follower = await this.db.User.findOne({ "profileAddress": toFollow}).exec();
     if (follower) {
       const removed = await this.db.Follow.findOneAndRemove({ follower: userId, following: follower.id }).exec();
       return true;
