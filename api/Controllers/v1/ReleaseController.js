@@ -1,6 +1,7 @@
 const BaseController = require('../base/BaseController');
 const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
+const UserDelegator = require('../../Delegator/UserDelegator');
 
 const uuidV4 = require('uuid/v4');
 
@@ -10,6 +11,7 @@ class ReleaseController extends BaseController {
 
     this.ReleaseDelegator = new ReleaseDelegator(props);
     this.AuthDelegator = new AuthDelegator(props);
+    this.UserDelegator = new UserDelegator(props);
 
     this.getRecentTracks = this.getRecentTracks.bind(this);
     this.getTrackDetail = this.getTrackDetail.bind(this);
