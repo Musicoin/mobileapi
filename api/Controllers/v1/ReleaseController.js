@@ -229,12 +229,16 @@ class ReleaseController extends BaseController {
 
   async _filterFollow(userId, _tracksLoad) {
     let tracksLoad = _tracksLoad;
+    let data = [];
     if (tracksLoad.data) {
       for (var i=0; i<tracksLoad.data.length; i++) {
-        this.logger.debug("_filterFollow", JSON.stringify(tracksLoad.data[i]));
-        tracksLoad.data[i].followed = await this.UserDelegator.isUserFollowing(userId, tracksLoad.data[i].artistAddress);
+        let item = tracksLoad.data[i];
+        item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
+        this.logger.debug("_filterFollow", JSON.stringify(item));
+        data.push(item);
       }
     }
+    tracksLoad.data = data;
     return tracksLoad;
   }
 }
