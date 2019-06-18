@@ -59,6 +59,7 @@ class UserDelegator extends ControllerDelegator{
 
   async isUserFollowing(userId, toFollow) {
     const follower = this.db.User.findOne({ "profileAddress": toFollow}).exec();
+    this.logger.debug("isUserFollowing", JSON.stringify([toFollow, followed]));
 
     if (follower) {
       const followed = await this.db.Follow.findOne({ follower: userId, following: follower.id }).exec();
