@@ -167,6 +167,25 @@ class GlobalDelegator extends ControllerDelegator {
       return false;
     }*/
   }
+
+  async getAnalytics() {
+    const releaseTips = await this.db.ReleaseStats.aggregate([
+      { $match: { duration: "all" } },
+      { $group: { _id: "all", tips: { $sum: "$tipCount" } } }
+    ]); 
+    const userTips = await this.db.UserStats.aggregate([
+      { $match: { duration: "all" } },
+      { $group: { _id: "all", tips: { $sum: "$tipCount" } } }
+    ]); 
+
+    const playCount = await this.db.ReleaseStats.aggregate([
+      { $match: { duration: "all" } },
+      { $group: { _id: "all", plays: { $sum: "$playCount" } } } 
+    ])  
+
+    this.logger.info("getAnalytics", JSON.stringify([releaseTips, userTips]));
+    return { releaseTips:releaseTips[0].tips, userTips:userTips[0].tips, playCount:playCount[0].plays };
+  }
 }
 
 module.exports = GlobalDelegator;

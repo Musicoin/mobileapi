@@ -26,6 +26,7 @@ class GlobalController extends BaseController {
 
     this.checkServices = this.checkServices.bind(this);
     this.hello = this.hello.bind(this);
+    this.analytics = this.analytics.bind(this);
     this.appleIAP = this.appleIAP.bind(this);
     this.googleIAP = this.googleIAP.bind(this);
     // debug
@@ -118,6 +119,19 @@ class GlobalController extends BaseController {
   async hello(Request, Response, next) {
     this.success(Request, Response, next, "hello");
   }
+
+  async analytics(Request, Response, next) {
+    const password = Request.query.password;
+
+    if (process.env.ADMIN_PWD !== password) {
+      return this.reject(Request, Response, "Invalid admin password");
+    }
+
+    const analytics = await this.GlobalDelegator.getAnalytics();
+
+    this.success(Request, Response, next, analytics);
+  }
+
 
   async checkServices(Request, Response, next) {
     // load a artist info to check if serices is running
