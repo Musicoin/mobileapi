@@ -71,6 +71,7 @@ class AuthController extends BaseController {
           let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
           let user = _user ? _user : _localUser;
 
+          this.logger.debug("socialLogin - 74", JSON.stringify([_user, _localUser]));
           if (!user) {
               user = await this.AuthDelegator.createSocialUser(channel, profile);
           }
@@ -134,6 +135,7 @@ class AuthController extends BaseController {
             let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
             let user = _user ? _user : _localUser;
 
+            this.logger.debug("socialLogin - 138", JSON.stringify([_user, _localUser]));
 
             if (!user) {
                 user = await this.AuthDelegator.createSocialUser(channel, profile);
@@ -298,6 +300,7 @@ class AuthController extends BaseController {
       let user = _user ? _user : _localUser;
 
       if (user) {
+        this.logger.debug("registerNewUser - 301", JSON.stringify([_user, _localUser]));
         return this.reject(Request, Response, "Email has been used");
       }
 
