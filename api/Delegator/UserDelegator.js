@@ -1,8 +1,11 @@
 const ControllerDelegator = require('./ControllerDelegator');
+const AuthDelegator = require('./AuthDelegator');
 
 class UserDelegator extends ControllerDelegator{
   constructor(props){
     super(props);
+
+    this.AuthDelegator = new AuthDelegator();
 
     this.loadPlaylist = this.loadPlaylist.bind(this);
     this.loadAllPlaylist = this.loadAllPlaylist.bind(this);
@@ -103,6 +106,19 @@ class UserDelegator extends ControllerDelegator{
 
     //const options = { upsert: true, new: true, setDefaultsOnInsert: true };
     //const updated = await this.db.UserStats.findOneAndUpdate({user: userId, date: Date.now()}, {$inc: {followCount: -1}}, options).exec();
+  }
+  async findFollowingByUid(userId, skip, limit) {
+      const _followers = await this.db.Follow.find({ follower: userId }).skip(skip).limit(limit).exec();
+      let item;
+      let currentUser;
+      let followers = [];
+      for (var i=0;i<_followers.length;i++) {
+        item = _followers[i];
+        this.logger.info("findFollowingByUid",item.following);
+        currentUser = await this.AuthDelegator._loadUserByUserId(item.following);
+        followers.push(currentUser);
+      }
+      return followers;
   }
 }
 

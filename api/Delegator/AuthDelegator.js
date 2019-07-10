@@ -28,6 +28,11 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne({ "apiEmail": email }).exec();
   }
 
+  _loadUserByUserId(userId) {
+    return this.db.User.findOne({ "_id": userId }).exec();
+  }
+
+
   _loadUserByPriEmail(email) {
     return this.db.User.findOne({ "primaryEmail": email }).exec();
   }

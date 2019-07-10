@@ -18,6 +18,7 @@ class UserController extends BaseController {
 
     this.follow = this.follow.bind(this);
     this.unfollow = this.unfollow.bind(this);
+    this.following = this.following.bind(this);
   }
 
   async getUserInfo(Request, Response, next){
@@ -262,6 +263,25 @@ class UserController extends BaseController {
       }
     }
   }
+
+  async following(Request, Response, next) {
+    const email = Request.query.email;
+    const limit = this.limit(Request.query.limit);
+    const skip = this.skip(Request.query.skip);
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+
+    const currentUserId = currentUser.id;
+    this.logger.info("following", JSON.stringify(email));
+    const followers = await this.UserDelegator.findFollowingByUid(currentUserId);
+
+    const data = {
+      success: true,
+      data: followers
+    };
+    return this.success(Request, Response, next, data);
+  }
+
 }
 
 module.exports = UserController;

@@ -11,6 +11,7 @@ Router.get('/detail', Controller.getUserInfo, Controller.sendJson);
 
 Router.post('/follow', Controller.follow, Controller.sendJson);
 Router.post('/unfollow', Controller.unfollow, Controller.sendJson);
+Router.post('/following', Controller.following, Controller.sendJson);
 
 
 module.exports = Router;
