@@ -121,11 +121,11 @@ class GlobalController extends BaseController {
   }
 
   async analytics(Request, Response, next) {
-    const password = Request.query.password;
+    //const password = Request.query.password;
 
-    if (process.env.ADMIN_PWD !== password) {
+    /*if (process.env.ADMIN_PWD !== password) {
       return this.reject(Request, Response, "Invalid admin password");
-    }
+    }*/
 
     const analytics = await this.GlobalDelegator.getAnalytics();
 
