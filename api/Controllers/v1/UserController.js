@@ -26,6 +26,9 @@ class UserController extends BaseController {
     try {
       const user = await this.AuthDelegator._loadUserByEmail(email);
       this.logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+      if (!user) {
+        return this.error(Request,Response, "Please re-login");
+      }
 
       const username = this.UserDelegator.getUserName(user);
       const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
