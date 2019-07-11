@@ -91,14 +91,18 @@ class AuthDelegator extends ControllerDelegator {
     if (db_user.pendingInitialization) {
       this.logger.debug("start setup new user:"+JSON.stringify(db_user));
 
-      const user = await this._setupNewUserDraftProfile(db_user);
-      this.logger.debug("user:"+JSON.stringify(user));
+      try {
+        const user = await this._setupNewUserDraftProfile(db_user);
+        this.logger.debug("user:"+JSON.stringify(user));
 
-      const uploadResult = await this._uploadNewUserProfile(user);
-      this.logger.debug("user:"+JSON.stringify(user));
+        const uploadResult = await this._uploadNewUserProfile(user);
+        this.logger.debug("user:"+JSON.stringify(user));
 
-      const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
-      await this._updateNewUserState(user, tx);
+        const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
+        await this._updateNewUserState(user, tx);
+      } catch (error) {
+        this.error(Request,Response, "Error when setupNewUser");
+      }
     }
   }
 

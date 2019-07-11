@@ -60,6 +60,29 @@ class UserDelegator extends ControllerDelegator{
     }
   }
 
+  async getUserInfoByUser(user) {
+    const username = this.getUserName(user);
+    //const balance = await this.getUserBalance(user.profileAddress);
+    const avatar = user.draftProfile && user.draftProfile.ipfsImageUrl;
+    const description = user.draftProfile && user.draftProfile.description;
+    const socials = user.draftProfile && user.draftProfile.social;
+    const genres = user.draftProfile && user.draftProfile.genres;
+    const useremail = user.primaryEmail;
+
+    const userInfo = {
+      profileAddress: user.profileAddress || null,
+      email: useremail,
+      username: username || null,
+      avatar: this.getUserAvatar(avatar),
+      description: description || null,
+      //balance: balance || 0,
+      socials: socials || {},
+      genres: genres || []
+    }
+    return userInfo;
+
+  }
+
   async isUserFollowing(userId, toFollow) {
     const follower = await this.db.User.findOne({ "profileAddress": toFollow}).exec();
     this.logger.debug("isUserFollowing", JSON.stringify([toFollow, follower]));
@@ -116,6 +139,7 @@ class UserDelegator extends ControllerDelegator{
         item = _followers[i];
         this.logger.info("findFollowingByUid",item.following);
         currentUser = await this.AuthDelegator._loadUserByUserId(item.following);
+        currentUser = await this.getUserInfoByUser(currentUser);
         followers.push(currentUser);
       }
       return followers;
