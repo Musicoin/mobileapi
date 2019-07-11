@@ -101,7 +101,7 @@ class AuthDelegator extends ControllerDelegator {
         const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
         await this._updateNewUserState(user, tx);
       } catch (error) {
-        this.error(Request,Response, "Error when setupNewUser");
+        this.logger.error("Error when setupNewUser");
       }
     }
   }
