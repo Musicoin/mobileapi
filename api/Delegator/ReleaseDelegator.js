@@ -10,6 +10,7 @@ class ReleaseDelegator extends ControllerDelegator {
     this.updateTrackStats = this.updateTrackStats.bind(this);
     this.loadTrack = this.loadTrack.bind(this);
     this._loadTracks = this._loadTracks.bind(this);
+    this._loadReleaseById= this._loadReleaseById.bind(this);
     this.loadRecentTracks = this.loadRecentTracks.bind(this);
     this.notifyTip = this.notifyTip.bind(this);
     this.createTrackMessage = this.createTrackMessage.bind(this);
@@ -165,6 +166,17 @@ class ReleaseDelegator extends ControllerDelegator {
         error: "tracks not found"
       }
     }
+  }
+
+  async _loadReleaseById(id) {
+    const release = await this.db.Release.findOne({ "_id": id}).exec();
+
+    if (release) {
+      const data = this.response.ReleaseResponse.responseData(release);
+      return {
+        data
+      }
+    } 
   }
 
 }

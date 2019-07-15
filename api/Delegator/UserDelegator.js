@@ -1,11 +1,13 @@
 const ControllerDelegator = require('./ControllerDelegator');
 const AuthDelegator = require('./AuthDelegator');
+const ReleaseDelegator = require('./ReleaseDelegator');
 
 class UserDelegator extends ControllerDelegator{
   constructor(props){
     super(props);
 
     this.AuthDelegator = new AuthDelegator();
+    this.ReleaseDelegator = new ReleaseDelegator();
 
     this.loadPlaylist = this.loadPlaylist.bind(this);
     this.loadAllPlaylist = this.loadAllPlaylist.bind(this);
@@ -84,12 +86,12 @@ class UserDelegator extends ControllerDelegator{
   }
 
   // Like
-  async isLiking(userId, toLike) {
-    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
-    this.logger.debug("isLiking", JSON.stringify([toLike, liking]));
+  async isLiking(userId, trackAddress) {
+    const release = await this.db.Release.findOne({ "contractAddress": trackAddress}).exec();
+    this.logger.debug("isLiking", JSON.stringify([trackAddress, release]));
 
-    if (liking && liking.id) {
-      const liked = await this.db.Like.findOne({ liker: userId, liking: liking.id }).exec();
+    if (release && release.id) {
+      const liked = await this.db.Like.findOne({ liker: userId, liking: release.id }).exec();
       this.logger.debug("isLiking", JSON.stringify(liked));
       if (liked) {
         return true;
@@ -101,12 +103,12 @@ class UserDelegator extends ControllerDelegator{
     }
   }
 
-  async startLiking(userId, toLike) {
-    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
-    this.logger.debug("startLiking", JSON.stringify([userId, toLike, liking]));
-    if (liking) {
+  async startLiking(userId, trackAddress) {
+    const release = await this.db.Release.findOne({ "contractAddress": trackAddress}).exec();
+    this.logger.debug("startLiking", JSON.stringify([userId, trackAddress, release]));
+    if (release) {
       const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-      const inserted = await this.db.Like.findOneAndUpdate({liker: userId, liking: liking.id}, {}, options).exec();
+      const inserted = await this.db.Like.findOneAndUpdate({liker: userId, liking: release.id}, {}, options).exec();
 
       // update user stat
       //const updated = await this.db.UserStats.findOneAndUpdate({user: userId, date: Date.now()}, {$inc: {followCount: 1}}, options).exec();
@@ -119,9 +121,9 @@ class UserDelegator extends ControllerDelegator{
 
   async stopLiking(userId, toLike) {
     this.logger.info("stopLiking", JSON.stringify([userId, toLike]));
-    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
-    if (liking) {
-      const removed = await this.db.Like.findOneAndRemove({ liker: userId, following: liking.id }).exec();
+    const release = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
+    if (release) {
+      const removed = await this.db.Like.findOneAndRemove({ liker: userId, liking: release.id }).exec();
       return true;
     } else {
       return false;
@@ -133,16 +135,14 @@ class UserDelegator extends ControllerDelegator{
       let item;
       let currentUser;
       let likings = [];
+      let release;
       for (var i=0;i<_likings.length;i++) {
         item = _likings[i];
-        this.logger.info("findLikingByUid",item.liking);
-        likings.push(item);
+        release = await this.ReleaseDelegator._loadReleaseById(item.liking);
+        likings.push(release.data);
       }
       return likings;
   }
-}
-
-
 
   // follow
   async isUserFollowing(userId, toFollow) {
