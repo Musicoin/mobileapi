@@ -83,6 +83,68 @@ class UserDelegator extends ControllerDelegator{
 
   }
 
+  // Like
+  async isLiking(userId, toLike) {
+    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
+    this.logger.debug("isLiking", JSON.stringify([toLike, liking]));
+
+    if (liking && liking.id) {
+      const liked = await this.db.Like.findOne({ liker: userId, liking: liking.id }).exec();
+      this.logger.debug("isLiking", JSON.stringify(liked));
+      if (liked) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  async startLiking(userId, toLike) {
+    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
+    this.logger.debug("startLiking", JSON.stringify([userId, toLike, liking]));
+    if (liking) {
+      const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+      const inserted = await this.db.Like.findOneAndUpdate({liker: userId, liking: liking.id}, {}, options).exec();
+
+      // update user stat
+      //const updated = await this.db.UserStats.findOneAndUpdate({user: userId, date: Date.now()}, {$inc: {followCount: 1}}, options).exec();
+
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async stopLiking(userId, toLike) {
+    this.logger.info("stopLiking", JSON.stringify([userId, toLike]));
+    const liking = await this.db.Release.findOne({ "contractAddress": toLike}).exec();
+    if (liking) {
+      const removed = await this.db.Like.findOneAndRemove({ liker: userId, following: liking.id }).exec();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async findLikingByUid(userId, skip, limit) {
+      const _likings = await this.db.Like.find({ liker: userId }).skip(skip).limit(limit).exec();
+      let item;
+      let currentUser;
+      let likings = [];
+      for (var i=0;i<_likings.length;i++) {
+        item = _likings[i];
+        this.logger.info("findLikingByUid",item.liking);
+        likings.push(item);
+      }
+      return likings;
+  }
+}
+
+
+
+  // follow
   async isUserFollowing(userId, toFollow) {
     const follower = await this.db.User.findOne({ "profileAddress": toFollow}).exec();
     this.logger.debug("isUserFollowing", JSON.stringify([toFollow, follower]));

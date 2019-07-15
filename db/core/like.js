@@ -1,14 +1,14 @@
 const mongoose = require('../connections/core');
 
-module.exports = mongoose.model('Follow', mongoose.Schema({
-  follower: {
+module.exports = mongoose.model('Like', mongoose.Schema({
+  liker: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     index: true
   },
-  following: {
+  liking: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Release',
     index: true
   },
   startDate: {
