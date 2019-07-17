@@ -55,6 +55,8 @@ app.use('/test/release', require('./api/routes/release'));
 app.use('/test/track', require('./api/routes/v1/track'));
 app.use("/test", require("./api/routes/v1/global"));
 
+app.use("/manage", require("./api/routes/v1/global"));
+
 
 app.use('/', AuthMiddleware.authenticate);
 

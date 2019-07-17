@@ -1,6 +1,7 @@
 const BaseController = require('../base/BaseController');
 const UserDelegator = require('../../Delegator/UserDelegator');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
+const ReleaseDelegator = require('../../Delegator/ReleaseDelegator');
 
 class UserController extends BaseController {
 
@@ -9,20 +10,32 @@ class UserController extends BaseController {
 
     this.UserDelegator = new UserDelegator();
     this.AuthDelegator = new AuthDelegator();
+    this.ReleaseDelegator = new ReleaseDelegator();
 
     this.getPlayList = this.getPlayList.bind(this);
     this.addPlayList = this.addPlayList.bind(this);
     this.getAllPlayList = this.getAllPlayList.bind(this);
     this.deletePlayList = this.deletePlayList.bind(this);
     this.getUserInfo = this.getUserInfo.bind(this);
+
+    this.follow = this.follow.bind(this);
+    this.unfollow = this.unfollow.bind(this);
+    this.following = this.following.bind(this);
+
+    //
+    this.like = this.like.bind(this);
+    this.unlike = this.unlike.bind(this);
+    this.liking = this.liking.bind(this);
   }
 
   async getUserInfo(Request, Response, next){
-    const logger = this.logger;
     const email = Request.query.email;
     try {
       const user = await this.AuthDelegator._loadUserByEmail(email);
-      logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+      this.logger.debug("[getUserInfo]user:"+JSON.stringify(user))
+      if (!user) {
+        return this.error(Request,Response, "Please re-login");
+      }
 
       const username = this.UserDelegator.getUserName(user);
       const balance = await this.UserDelegator.getUserBalance(user.profileAddress);
@@ -193,6 +206,176 @@ class UserController extends BaseController {
     } catch (error) {
       this.error(Request, Response, error);
     }
+  }
+
+  async follow(Request, Response, next) {
+    const email = Request.query.email;
+    const follower = Request.body.follower;
+
+    this.logger.info("follow", JSON.stringify(email, follower));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
+    //this.logger.debug("currentUser", JSON.stringify(currentUser));
+    //this.logger.debug("followUser", JSON.stringify(followUser));
+
+    if (!currentUser || !followUser) {
+      return this.reject(Request, Response, "Following User not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
+    if (ret) {
+      return this.reject(Request, Response, "Following User has been followed");
+
+    } else {
+      const followed = await this.UserDelegator.startFollowing(currentUserId, follower);
+      if (followed) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+      } else {
+      return this.error(Request, Response, "Failed to follow");
+      }
+    }
+  }
+
+  async unfollow(Request, Response, next) {
+    const email = Request.query.email;
+    const follower = Request.body.follower;
+
+    this.logger.info("unfollow", JSON.stringify(email, follower));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const followUser = await this.AuthDelegator._findUserByProfileAddress(follower);
+
+    if (!currentUser || !followUser) {
+      return this.reject(Request, Response, "Following User not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isUserFollowing(currentUserId, follower);
+    if (!ret) {
+      return this.reject(Request, Response, "Following User has not been followed");
+
+    } else {
+      this.logger.info("HERE")
+      const followed = await this.UserDelegator.stopFollowing(currentUserId, follower);
+      if (followed) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+
+      } else {
+        return this.error(Request, Response, "Failed to unfollow");
+      }
+    }
+  }
+
+  async following(Request, Response, next) {
+    const email = Request.query.email;
+    const limit = this.limit(Request.query.limit);
+    const skip = this.skip(Request.query.skip);
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+
+    const currentUserId = currentUser.id;
+    this.logger.info("following", JSON.stringify(email));
+    const followers = await this.UserDelegator.findFollowingByUid(currentUserId, skip, limit);
+
+    const data = {
+      success: true,
+      data: followers
+    };
+    return this.success(Request, Response, next, data);
+  }
+
+  //
+
+  async like(Request, Response, next) {
+    const email = Request.query.email;
+    const trackAddress = Request.body.trackAddress;
+
+    this.logger.info("like", JSON.stringify(email, trackAddress));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const likedRelease = await this.ReleaseDelegator.loadTrack(trackAddress);
+
+    if (trackAddress && !likedRelease) {
+      return this.reject(Request, Response, "Release not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isLiking(currentUserId, trackAddress);
+    if (ret) {
+      return this.reject(Request, Response, "Release has been liked");
+
+    } else {
+      const liked = await this.UserDelegator.startLiking(currentUserId, trackAddress);
+      if (liked) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+      } else {
+        return this.error(Request, Response, "Failed to like");
+      }
+    }
+
+    const data = { success: true };
+    return this.success(Request, Response, next, data);
+  }
+
+  async unlike(Request, Response, next) {
+    const email = Request.query.email;
+    const trackAddress = Request.body.trackAddress;
+
+    this.logger.info("unlike", JSON.stringify(email, trackAddress));
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+    const likedRelease = await this.ReleaseDelegator.loadTrack(trackAddress);
+
+    if (trackAddress && !likedRelease) {
+      return this.reject(Request, Response, "Release not found, please check");
+    }
+
+    const currentUserId = currentUser.id;
+    const ret = await this.UserDelegator.isLiking(currentUserId, trackAddress);
+    if (!ret) {
+      return this.reject(Request, Response, "Release has not been liked");
+
+    } else {
+      const liked = await this.UserDelegator.stopLiking(currentUserId, trackAddress);
+      if (liked) {
+        const data = {
+          success: true
+        }
+        this.success(Request, Response, next, data);
+
+      } else {
+        return this.error(Request, Response, "Failed to unlike");
+      }
+    }
+  }
+
+  async liking(Request, Response, next) {
+    const email = Request.query.email;
+    const limit = this.limit(Request.query.limit);
+    const skip = this.skip(Request.query.skip);
+
+    const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+
+    const currentUserId = currentUser.id;
+    this.logger.info("liking", JSON.stringify(email));
+    const likings = await this.UserDelegator.findLikingByUid(currentUserId, skip, limit);
+
+    const data = {
+      success: true,
+      data: likings
+    };
+    return this.success(Request, Response, next, data);
   }
 
 }

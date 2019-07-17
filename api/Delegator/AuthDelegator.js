@@ -10,13 +10,14 @@ class AuthDelegator extends ControllerDelegator {
   constructor(props) {
     super(props);
 
+    this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
+    this.setupNewUser = this.setupNewUser.bind(this);
+
     this._loadUserByEmail = this._loadUserByEmail.bind(this);
     this._loadUserByPriEmail = this._loadUserByPriEmail.bind(this);
     this._delUserByEmail = this._delUserByEmail.bind(this);
     this._createApiUser = this._createApiUser.bind(this);
     this._createUser = this._createUser.bind(this);
-    this.findUserBySocialEmail = this.findUserBySocialEmail.bind(this);
-    this.setupNewUser = this.setupNewUser.bind(this);
     this._setupNewUserDraftProfile = this._setupNewUserDraftProfile.bind(this);
     this._uploadNewUserProfile = this._uploadNewUserProfile.bind(this);
     this._publishNewUserProfile = this._publishNewUserProfile.bind(this);
@@ -26,10 +27,15 @@ class AuthDelegator extends ControllerDelegator {
   _loadUserByEmail(email) {
     return this.db.User.findOne({ "apiEmail": email }).exec();
   }
+
+  _loadUserByUserId(userId) {
+    return this.db.User.findOne({ "_id": userId }).exec();
+  }
+
+
   _loadUserByPriEmail(email) {
     return this.db.User.findOne({ "primaryEmail": email }).exec();
   }
-
 
   findUserBySocialEmail(channel, email){
     const filter = {};
@@ -85,14 +91,18 @@ class AuthDelegator extends ControllerDelegator {
     if (db_user.pendingInitialization) {
       this.logger.debug("start setup new user:"+JSON.stringify(db_user));
 
-      const user = await this._setupNewUserDraftProfile(db_user);
-      this.logger.debug("user:"+JSON.stringify(user));
+      try {
+        const user = await this._setupNewUserDraftProfile(db_user);
+        this.logger.debug("user:"+JSON.stringify(user));
 
-      const uploadResult = await this._uploadNewUserProfile(user);
-      this.logger.debug("user:"+JSON.stringify(user));
+        const uploadResult = await this._uploadNewUserProfile(user);
+        this.logger.debug("user:"+JSON.stringify(user));
 
-      const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
-      await this._updateNewUserState(user, tx);
+        const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
+        await this._updateNewUserState(user, tx);
+      } catch (error) {
+        this.logger.error("Error when setupNewUser");
+      }
     }
   }
 
@@ -118,7 +128,7 @@ class AuthDelegator extends ControllerDelegator {
     const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
 
     const result = await Promise.all([descPromise, socialPromise]);
-    this.logger.debug("_uploadNewUserProfile:"+JSON.stringify(result));
+    this.logger.debug("_uploadNewUserProfile:"+JSON.stringify([result]));
     return {
       descUrl: result[0],
       socialUrl: result[1]
@@ -154,6 +164,13 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne({ "apiEmail": email }).remove().exec();
   }
 
+  _findUserByUserId(userId) {
+    return this.db.User.findById(userId).exec();
+  }
+
+  _findUserByProfileAddress(address) {
+    return this.db.User.findOne({ "profileAddress": address}).exec();
+  }
 
 }
 

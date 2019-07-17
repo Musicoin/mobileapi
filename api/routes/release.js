@@ -15,7 +15,6 @@ Router.get('/top', releaseModule.getTopTracks.bind(releaseModule));
 Router.get('/topbygenre', releaseModule.getTopTracksByGenre.bind(releaseModule));
 Router.get('/recent', releaseModule.getRecentTracks.bind(releaseModule));
 
-Router.get('/detail/v1/:publicKey', releaseModule.getTrackDetailV1.bind(releaseModule));
 Router.get('/random/v1', releaseModule.getRandomTrackV1.bind(releaseModule));
 Router.get('/randoms/v1', releaseModule.getRandomTracksV1.bind(releaseModule));
 Router.get('/bygenre/v1', releaseModule.getTracksByGenreV1.bind(releaseModule));
@@ -24,7 +23,6 @@ Router.get('/topbygenre/v1', releaseModule.getTopTracksByGenreV1.bind(releaseMod
 Router.get('/recent/v1', releaseModule.getRecentTracksV1.bind(releaseModule));
 Router.get('/byartist/v1/:address', releaseModule.getTracksByAritstV1.bind(releaseModule));
 
-Router.post('/tiptrack/v1', releaseModule.tipTrackV1.bind(releaseModule));
 Router.post('/tip/:publicKey', releaseModule.tipTrack.bind(releaseModule));
 
 module.exports = Router;
