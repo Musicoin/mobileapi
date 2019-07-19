@@ -234,6 +234,7 @@ class ReleaseController extends BaseController {
       for (var i=0; i<tracksLoad.data.length; i++) {
         let item = tracksLoad.data[i];
         item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
+        item.liked = await this.UserDelegator.isLiking(userId, item.trackAddress);
         this.logger.debug("_filterFollow", JSON.stringify(item));
         data.push(item);
       }

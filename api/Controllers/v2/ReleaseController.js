@@ -21,11 +21,10 @@ class ReleaseController extends BaseController {
    * musicoins
    */
   async tipTrack(Request, Response, next) {
-    const logger = this.logger;
     const email = Request.query.email;
 
     const user = await this.AuthDelegator._loadUserByEmail(email);
-    logger.debug("[tipTrack]user:"+JSON.stringify(user))
+    this.logger.debug("[tipTrack]user:"+JSON.stringify(user))
 
     try {
       const musicoins = Request.body.musicoins || 10;
@@ -56,16 +55,16 @@ class ReleaseController extends BaseController {
 
       // send tip amount to track address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
-      logger.debug("tip complete: ", tx);
+      this.logger.debug("tip complete: ", tx);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + musicoins;
       await release.save();
-      logger.debug("update tipCount: ", release.directTipCount);
+      this.logger.debug("update tipCount: ", release.directTipCount);
 
       // update release stats
       await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
-      logger.debug("update ReleaseStats: ", trackAddress);
+      this.logger.debug("update ReleaseStats: ", trackAddress);
 
       const senderName = sender.draftProfile.artistName;
       const amountUnit = musicoins === 1 ? "coin" : "coins";
@@ -76,7 +75,7 @@ class ReleaseController extends BaseController {
       const email = this.ReleaseDelegator.getUserEmail(artist);
       // send email to artist
       if (email) {
-        logger.debug("tip notification to email: ", email);
+        this.logger.debug("tip notification to email: ", email);
         this.ReleaseDelegator.notifyTip(email, message, senderName, release.title, threadId);
       }
 
@@ -84,7 +83,7 @@ class ReleaseController extends BaseController {
       await this.ReleaseDelegator.createTrackMessage(trackAddress, release.artistAddress, release._id,
         artist._id, sender._id, message, threadId);
 
-      logger.debug("record track message complete");
+      this.logger.debug("record track message complete");
 
       const data = {
         tx: tx
