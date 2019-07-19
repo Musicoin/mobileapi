@@ -338,7 +338,11 @@ class UserController extends BaseController {
         return this.reject(Request, Response, "sender not found: " + USER_ACCOUNT);
       }
 
-      const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
+      try {
+        const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
+      } catch (error) {
+        return this.error(Request, Response, error);
+      }
 
       // update release stats
       await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
