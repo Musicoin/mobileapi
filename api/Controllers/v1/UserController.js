@@ -340,7 +340,8 @@ class UserController extends BaseController {
 
       let tx;
       try {
-        tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
+        //tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
+        tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, this.constant.UBIMUSIC_ACCOUNT, musicoins);
       } catch (error) {
         return this.error(Request, Response, error);
       }
