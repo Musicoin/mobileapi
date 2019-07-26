@@ -20,8 +20,9 @@ class ReleaseController extends BaseController {
     this.tipTrack = this.tipTrack.bind(this);
 
     // private functions
-    this._filterFollow = this._filterFollow.bind(this);
-    this._filterLike = this._filterLike.bind(this);
+    this.isLiked = this.isLiked.bind(this);
+    //this._filterFollow = this._filterFollow.bind(this);
+    //this._filterLike = this._filterLike.bind(this);
   }
 
   /**
@@ -53,10 +54,9 @@ class ReleaseController extends BaseController {
       const limit = this.limit(Request.query.limit);
       const skip = this.skip(Request.query.skip);
 
-      this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      let tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
-      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+      const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -172,8 +172,8 @@ class ReleaseController extends BaseController {
       }
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      let tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
-      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+      const tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
+      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -212,8 +212,8 @@ class ReleaseController extends BaseController {
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
       const followed = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddress);
-      let tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
-      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+      const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
+      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -230,18 +230,29 @@ class ReleaseController extends BaseController {
     }
   }
 
-  // list like
-  async _filterLike(userId, _tracksLoad) {
-    let data = [];
-    for (var i=0; i<_tracksLoad.length; i++) {
-      let item = _tracksLoad[i];
-      item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
-      this.logger.debug("_filterLike", JSON.stringify(item));
-      data.push(item);
+
+  async isLiked(Request, Response, next) {
+    let ret = {}
+    try {
+      const email = Request.query.email;
+      const trackAddresses = Request.body.trackAddresses;
+
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      for (var i=0;i<trackAddresses.length;i++) {
+        ret[trackAddresses[i]] = await this.UserDelegator.isLiking(currentUser.id, trackAddresses[i]);
+      }
+    } catch (error) {
+      this.error(Request, Response, error);
     }
-    return data;
+
+    const data  = {
+      success: true,
+      data: ret
+    };
+    this.success(Request, Response, next, data);
   }
 
+  /*
   // list follower
   async _filterFollow(userId, _artistsLoad) {
     let data = [];
@@ -254,6 +265,7 @@ class ReleaseController extends BaseController {
     }
     return data;
   }
+  */
 }
 
 module.exports = ReleaseController;
