@@ -287,8 +287,7 @@ class UserController extends BaseController {
     const followers = this.response.ArtistResponse.responseList(_followers);
 
     const data = {
-      success: true,
-      data: followers
+      artists: followers
     };
     return this.success(Request, Response, next, data);
   }
@@ -413,8 +412,7 @@ class UserController extends BaseController {
     const likings = this.response.ReleaseResponse.responseList(_likings);
 
     const data = {
-      success: true,
-      data: likings
+      tracks: likings
     };
     return this.success(Request, Response, next, data);
   }
