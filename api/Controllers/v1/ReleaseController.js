@@ -55,8 +55,8 @@ class ReleaseController extends BaseController {
 
       this.logger.debug("getRecentTracks", JSON.stringify([email, skip, limit]));
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      const _tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
-      const tracksLoad = await this._filterLike(currentUser.id, _tracksLoad);
+      let tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
+      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -172,8 +172,8 @@ class ReleaseController extends BaseController {
       }
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      const _tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
-      const tracksLoad = await this._filterLike(currentUser.id, _tracksLoad);
+      let tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
+      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -212,8 +212,8 @@ class ReleaseController extends BaseController {
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
       const followed = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddress);
-      const _tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
-      const tracksLoad = await this._filterLike(currentUser.id, _tracksLoad);
+      let tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
+      tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
@@ -232,35 +232,27 @@ class ReleaseController extends BaseController {
 
   // list like
   async _filterLike(userId, _tracksLoad) {
-    let tracksLoad = _tracksLoad;
     let data = [];
-    if (tracksLoad.data) {
-      for (var i=0; i<tracksLoad.data.length; i++) {
-        let item = tracksLoad.data[i];
-        item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
-        this.logger.debug("_filterLike", JSON.stringify(item));
-        data.push(item);
-      }
+    for (var i=0; i<_tracksLoad.length; i++) {
+      let item = _tracksLoad[i];
+      item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
+      this.logger.debug("_filterLike", JSON.stringify(item));
+      data.push(item);
     }
-    tracksLoad.data = data;
-    return tracksLoad;
+    return data;
   }
 
   // list follower
   async _filterFollow(userId, _artistsLoad) {
-    let artistsLoad = _artistsLoad;
     let data = [];
-    if (artistsLoad.data) {
-      for (var i=0; i<artistsLoad.data.length; i++) {
-        let item = artistsLoad.data[i];
-        //item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
-        item.liked = await this.UserDelegator.isLiking(userId, item.trackAddress);
-        this.logger.debug("_filterFollow", JSON.stringify(item));
-        data.push(item);
-      }
+    for (var i=0; i<_artistsLoad.length; i++) {
+      let item = _artistsLoad.data[i];
+      //item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
+      item.liked = await this.UserDelegator.isLiking(userId, item.trackAddress);
+      this.logger.debug("_filterFollow", JSON.stringify(item));
+      data.push(item);
     }
-    artistsLoad.data = data;
-    return artistsLoad;
+    return data;
   }
 }
 
