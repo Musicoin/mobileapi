@@ -230,6 +230,7 @@ class ReleaseController extends BaseController {
     }
   }
 
+  // list like
   async _filterLike(userId, _tracksLoad) {
     let tracksLoad = _tracksLoad;
     let data = [];
@@ -245,6 +246,7 @@ class ReleaseController extends BaseController {
     return tracksLoad;
   }
 
+  // list follower
   async _filterFollow(userId, _artistsLoad) {
     let artistsLoad = _artistsLoad;
     let data = [];
