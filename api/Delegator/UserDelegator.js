@@ -201,7 +201,7 @@ class UserDelegator extends ControllerDelegator{
         item = _followers[i];
         this.logger.info("findFollowingByUid",item.following);
         currentUser = await this.AuthDelegator._loadUserByUserId(item.following);
-        currentUser = await this.getUserInfoByUser(currentUser);
+        //currentUser = await this.getUserInfoByUser(currentUser);
         followers.push(currentUser);
       }
       return followers;

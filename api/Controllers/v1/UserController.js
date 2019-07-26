@@ -283,7 +283,8 @@ class UserController extends BaseController {
 
     const currentUserId = currentUser.id;
     this.logger.info("following", JSON.stringify(email));
-    const followers = await this.UserDelegator.findFollowingByUid(currentUserId, skip, limit);
+    const _followers = await this.UserDelegator.findFollowingByUid(currentUserId, skip, limit);
+    const followers = this.response.ArtistResponse.responseList(_followers);
 
     const data = {
       success: true,
@@ -408,7 +409,8 @@ class UserController extends BaseController {
 
     const currentUserId = currentUser.id;
     this.logger.info("liking", JSON.stringify(email));
-    const likings = await this.UserDelegator.findLikingByUid(currentUserId, skip, limit);
+    const _likings = await this.UserDelegator.findLikingByUid(currentUserId, skip, limit);
+    const likings = this.response.ReleaseResponse.responseList(_likings);
 
     const data = {
       success: true,
