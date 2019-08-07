@@ -1,5 +1,7 @@
 const BaseController = require('../base/BaseController');
 const ArtistDelegator = require('../../Delegator/ArtistDelegator');
+const UserDelegator = require('../../Delegator/UserDelegator');
+const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 const uuidV4 = require('uuid/v4');
 
@@ -7,11 +9,14 @@ class ArtistController extends BaseController{
   constructor(props){
     super(props);
 
+    this.AuthDelegator = new AuthDelegator();
     this.ArtistDelegator = new ArtistDelegator(props);
+    this.UserDelegator = new UserDelegator();
 
     this.getProfileByAddress = this.getProfileByAddress.bind(this);
     this.getArtistOfWeek = this.getArtistOfWeek.bind(this);
     this.tipArtist = this.tipArtist.bind(this);
+    this.isFollowing = this.isFollowing.bind(this);
   }
 
   /**
@@ -136,6 +141,28 @@ class ArtistController extends BaseController{
     } catch (error) {
       this.error(Request, Response, error);
     }
+  }
+
+
+  async isFollowing(Request, Response, next) {
+    let ret = {}
+    try {
+      const email = Request.query.email;
+      const artistAddresses = Request.body.artistAddresses;
+
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      for (var i=0;i<artistAddresses.length;i++) {
+        ret[artistAddresses[i]] = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddresses[i]);
+      }
+    } catch (error) {
+      this.error(Request, Response, error);
+    }
+
+    const data  = {
+      success: true,
+      data: ret
+    };
+    this.success(Request, Response, next, data);
   }
 }
 

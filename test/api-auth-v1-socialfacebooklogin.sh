@@ -1,6 +1,9 @@
 if [ $1 == "dev" ];
 then
     target="http://mc.wegox.cn"
+elif [ $1 == "kickass" ];
+then
+    target="https://kickass.musicoin.org"
 else
     target="https://t2.musicoin.org"
 fi

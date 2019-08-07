@@ -283,11 +283,12 @@ class UserController extends BaseController {
 
     const currentUserId = currentUser.id;
     this.logger.info("following", JSON.stringify(email));
-    const followers = await this.UserDelegator.findFollowingByUid(currentUserId, skip, limit);
+    const _followers = await this.UserDelegator.findFollowingByUid(currentUserId, skip, limit);
+    const followers = this.response.ArtistResponse.responseList(_followers);
 
     const data = {
       success: true,
-      data: followers
+      artists: followers
     };
     return this.success(Request, Response, next, data);
   }
@@ -301,6 +302,7 @@ class UserController extends BaseController {
     this.logger.info("like", JSON.stringify(email, trackAddress));
 
     const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+
     const likedRelease = await this.ReleaseDelegator.loadTrack(trackAddress);
 
     if (trackAddress && !likedRelease) {
@@ -313,12 +315,50 @@ class UserController extends BaseController {
       return this.reject(Request, Response, "Release has been liked");
 
     } else {
+
+      // start to transfer coin
+      const musicoins = 1; // like coin
+      const USER_ACCOUNT = currentUser.profileAddress; //"0xc973b1c475f160c361d017fa762e6a3aa991f11c";
+
+      const validateResult = this.validate({
+        trackAddress,
+        musicoins
+      }, this.schema.ReleaseSchema.tip);
+
+      if (validateResult !== true) {
+        return this.reject(Request, Response, validateResult);
+      }
+      const release = await this.ReleaseDelegator._loadTrack(trackAddress);
+      if (!release) {
+        return this.reject(Request, Response, "Track not found: " + trackAddress);
+      }
+
+      // find user
+      const sender = await this.ReleaseDelegator._loadUser(USER_ACCOUNT);
+      if (!sender) {
+        return this.reject(Request, Response, "sender not found: " + USER_ACCOUNT);
+      }
+
+      let tx;
+      try {
+        //tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, trackAddress, musicoins);
+        tx = await this.MusicoinCore.getArtistModule().sendFromProfile(USER_ACCOUNT, this.constant.UBIMUSIC_ACCOUNT, musicoins);
+      } catch (error) {
+        return this.error(Request, Response, error);
+      }
+
+      // update release stats
+      await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
+      this.logger.debug("update ReleaseStats: ", trackAddress);
+
+      // start to like
       const liked = await this.UserDelegator.startLiking(currentUserId, trackAddress);
       if (liked) {
         const data = {
+          tx: tx,
           success: true
         }
-        this.success(Request, Response, next, data);
+        return this.success(Request, Response, next, data);
       } else {
         return this.error(Request, Response, "Failed to like");
       }
@@ -368,12 +408,13 @@ class UserController extends BaseController {
     const currentUser = await this.AuthDelegator._loadUserByEmail(email);
 
     const currentUserId = currentUser.id;
-    this.logger.info("liking", JSON.stringify(email));
     const likings = await this.UserDelegator.findLikingByUid(currentUserId, skip, limit);
+    //this.logger.info("liking", JSON.stringify(_likings));
+    //const likings = this.response.ReleaseResponse.responseList(_likings);
 
     const data = {
       success: true,
-      data: likings
+      tracks: likings
     };
     return this.success(Request, Response, next, data);
   }
