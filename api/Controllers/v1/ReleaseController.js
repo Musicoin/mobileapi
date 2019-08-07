@@ -211,7 +211,10 @@ class ReleaseController extends BaseController {
       }
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      const followed = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddress);
+      let followed = false;
+      if (currentUser) {
+        followed = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddress);
+      }
       const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
       //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
       if (tracksLoad.error) {
