@@ -65,26 +65,42 @@ class AuthController extends BaseController {
 
         } else {
           const profile = JSON.parse(res.body);
+          profile.username= profile.name;
+
           this.logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
+          let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
+      	  if (_localUser){
+      		let user= _localUser;
+      		user.google = profile;
+      		await user.save();
+      	  }
 
           let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
-          let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
+          //let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
           let user = _user ? _user : _localUser;
+
 
           this.logger.debug("socialLogin - 74", JSON.stringify([_user, _localUser]));
           if (!user) {
               user = await this.AuthDelegator.createSocialUser(channel, profile);
-          }
+          //}
 
           // update apiEmail
           //if (!user.apiEmail) {
-          user.apiEmail = "gl:"+profile.email;
+          //user.apiEmail = "gl:"+profile.email;
           await user.save();
           //}
 
           // create wallet
           await this.AuthDelegator.setupNewUser(user);
-          let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+          }
+
+	  if (!user.apiEmail) {
+              user.apiEmail = 'gl:' + profile.email;
+              await user.save();
+            }
+
+	  let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
 
           // carete a new api user if not found
           if (!apiUser) {
@@ -115,7 +131,7 @@ class AuthController extends BaseController {
           this.logger.info("[socialLogin]facebook fbody:"+JSON.stringify(fbody));
 
           const fbid = fbody.id;
-          const uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
+          const uri = `https://graph.facebook.com/${fbid}?fields=email,name&access_token=${accessToken}`;
 
           const res = await request(uri);
 
@@ -127,9 +143,10 @@ class AuthController extends BaseController {
 
           } else {
             const profile = JSON.parse(res.body);
+	          profile.username= profile.name;
             this.logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
 
-            const socialEmail = `${fbid}@fbmusicon`;
+            const socialEmail = `${fbid}@fbmusicoin`;
 
             let _user = await this.AuthDelegator.findUserBySocialId(channel, fbid);
             let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
@@ -139,7 +156,7 @@ class AuthController extends BaseController {
 
             if (!user) {
                 user = await this.AuthDelegator.createSocialUser(channel, profile);
-            }
+            //}
 
             // update apiEmail
             //if (!user.apiEmail) {
@@ -149,7 +166,8 @@ class AuthController extends BaseController {
 
             // create wallet
             await this.AuthDelegator.setupNewUser(user);
-            let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+            }
+		        let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
 
             // carete a new api user if not found
             if (!apiUser) {
@@ -184,12 +202,14 @@ class AuthController extends BaseController {
                   this.error(Request, Response, e);
                 } else {
                   const profile = JSON.parse(twdata);
+                  profile.username= profile.name;
+
                   this.logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
 
 
                   //logger.debug("socialLogin:"+email);
                   profile.id = profile['id_str']
-                  const socialEmail = `${profile.id}@twmusicon`;
+                  const socialEmail = `${profile.id}@twmusicoin`;
 
                   let _user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
                   let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
@@ -197,14 +217,15 @@ class AuthController extends BaseController {
 
                   if (!user) {
                     user = await this.AuthDelegator.createSocialUser(channel, profile);
-                  }
+                  //}
                   //if (!user.apiEmail) {
                   user.apiEmail = socialEmail;
                   await user.save();
                   //}
 
                   await this.AuthDelegator.setupNewUser(user);
-                  let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+                  }
+		              let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
 
                   // carete a new api user if not found
                   if (!apiUser) {
@@ -230,9 +251,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
-   * password 
+   * password
    */
   async quickLogin(Request, Response, next) {
     const body = Request.body;
@@ -374,7 +395,7 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
    * password
    */
@@ -405,7 +426,7 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
    * password
    */
@@ -515,7 +536,7 @@ class AuthController extends BaseController {
   /**
    * body params:
    * email
-   * accessToken 
+   * accessToken
    */
   async getTokenValidity(Request, Response, next) {
     const body = Request.body;
