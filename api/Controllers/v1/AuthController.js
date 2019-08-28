@@ -3,8 +3,8 @@ const request = require('async-request');
 const BaseController = require('../base/BaseController');
 const AuthDelegator = require('../../Delegator/AuthDelegator');
 const OAuth = require('oauth');
-const twitterConsumerKey = process.env.TWITTER_KEY? process.env.TWITTER_KEY: '';
-const twitterConsumerSecret = process.env.TWITTER_SECRET?process.env.TWITTER_SECRET: '';
+const twitterConsumerKey = process.env.TWITTER_KEY ? process.env.TWITTER_KEY : '';
+const twitterConsumerSecret = process.env.TWITTER_SECRET ? process.env.TWITTER_SECRET : '';
 const oauth = new OAuth.OAuth(
     'https://api.twitter.com/oauth/request_token',
     'https://api.twitter.com/oauth/access_token',
@@ -12,9 +12,8 @@ const oauth = new OAuth.OAuth(
     twitterConsumerSecret,
     '1.0A',
     null,
-    'HMAC-SHA1'
+    'HMAC-SHA1',
 );
-
 
 // util
 const cryptoUtil = require('../../../utils/crypto-util');
@@ -22,7 +21,7 @@ const cryptoUtil = require('../../../utils/crypto-util');
 class AuthController extends BaseController {
   constructor(props) {
     super(props);
-    this.TAG = "AuthController";
+    this.TAG = 'AuthController';
 
     this.AuthDelegator = new AuthDelegator();
 
@@ -34,23 +33,23 @@ class AuthController extends BaseController {
     this.getTokenValidity = this.getTokenValidity.bind(this);
     this.quickLogin = this.quickLogin.bind(this);
     this.login = this.login.bind(this);
-    this.socialLogin= this.socialLogin.bind(this);
-    this.getGoogleClientID = this.getGoogleClientID.bind(this)
-    this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this)
-    this.getFacebookAppID = this.getFacebookAppID.bind(this)
+    this.socialLogin = this.socialLogin.bind(this);
+    this.getGoogleClientID = this.getGoogleClientID.bind(this);
+    this.getTwitterOAuthToken = this.getTwitterOAuthToken.bind(this);
+    this.getFacebookAppID = this.getFacebookAppID.bind(this);
     // debug
-    this.delUser = this.delUser.bind(this)
-    this.delWallet = this.delWallet.bind(this)
+    this.delUser = this.delUser.bind(this);
+    this.delWallet = this.delWallet.bind(this);
   }
 
-  async socialLogin(Request, Response, next){
+  async socialLogin(Request, Response, next) {
     try {
       const channel = Request.body.channel;
       const accessToken = Request.body.accessToken;
 
       // check channel is valid
       if (this.constant.SOCIAL_CHANNELS.indexOf(channel) === -1) {
-        return this.reject(Request, Response, "channel is invalid.")
+        return this.reject(Request, Response, 'channel is invalid.');
       }
 
       if (channel === 'google') {   // google login
@@ -65,28 +64,35 @@ class AuthController extends BaseController {
 
         } else {
           const profile = JSON.parse(res.body);
-          this.logger.info("[socialLogin] google profile:"+JSON.stringify(profile));
+          profile.username = profile.name;
 
-          let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
+          this.logger.info('[socialLogin] google profile:' + JSON.stringify(profile));
           let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
-          let user = _user ? _user : _localUser;
-
-          this.logger.debug("socialLogin - 74", JSON.stringify([_user, _localUser]));
-          if (!user) {
-              user = await this.AuthDelegator.createSocialUser(channel, profile);
+          if (_localUser) {
+            let user = _localUser;
+            user.google = profile;
+            await user.save();
           }
 
-          // update apiEmail
-          //if (!user.apiEmail) {
-          user.apiEmail = "gl:"+profile.email;
-          await user.save();
-          //}
+          let _user = await this.AuthDelegator.findUserBySocialEmail(channel, profile.email);
+          let user = _user ? _user : _localUser;
 
-          // create wallet
-          await this.AuthDelegator.setupNewUser(user);
+          this.logger.debug('socialLogin - 74', JSON.stringify([_user, _localUser]));
+          if (!user) {
+            user = await this.AuthDelegator.createSocialUser(channel, profile);
+
+            // create wallet
+            await this.AuthDelegator.setupNewUser(user);
+          }
+
+          if (!user.apiEmail) {
+            user.apiEmail = profile.email;
+            await user.save();
+          }
+
           let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
 
-          // carete a new api user if not found
+          // create a new api user if not found
           if (!apiUser) {
             apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
           }
@@ -94,15 +100,13 @@ class AuthController extends BaseController {
           const data = {
             clientSecret: apiUser.clientSecret,
             accessToken: apiUser.accessToken,
-            email: user.apiEmail
+            email: user.apiEmail,
           };
           return this.success(Request, Response, next, data);
         }
       } else if (channel === 'facebook') {
-        const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`
+        const fburl = `https://graph.facebook.com/me?access_token=${accessToken}`;
         const fbres = await request(fburl);
-        //logger.debug("[socialLogin]accessToken:"+accessToken);
-        //logger.debug("[socialLogin]fbres:"+fbres);
 
         if (fbres.error) {
           return this.error(Request, Response, fbres.error);
@@ -112,10 +116,10 @@ class AuthController extends BaseController {
 
         } else {
           const fbody = JSON.parse(fbres.body);
-          this.logger.info("[socialLogin]facebook fbody:"+JSON.stringify(fbody));
+          this.logger.info('[socialLogin]facebook fbody:' + JSON.stringify(fbody));
 
           const fbid = fbody.id;
-          const uri = `https://graph.facebook.com/${fbid}?fields=email,first_name,last_name&access_token=${accessToken}`;
+          const uri = `https://graph.facebook.com/${fbid}?fields=email,name&access_token=${accessToken}`;
 
           const res = await request(uri);
 
@@ -127,40 +131,58 @@ class AuthController extends BaseController {
 
           } else {
             const profile = JSON.parse(res.body);
-            this.logger.debug("[socialLogin] facebook profile:"+JSON.stringify(profile));
-
-            const socialEmail = `${fbid}@fbmusicon`;
+            profile.username = profile.name;
+            this.logger.debug('[socialLogin] facebook profile:' + JSON.stringify(profile));
 
             let _user = await this.AuthDelegator.findUserBySocialId(channel, fbid);
-            let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
+            let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
+
+            if (_localUser) {
+              let user = _localUser;
+              user.facebook = profile;
+              await user.save();
+            }
             let user = _user ? _user : _localUser;
 
-            this.logger.debug("socialLogin - 138", JSON.stringify([_user, _localUser]));
+            this.logger.debug('socialLogin - 138', JSON.stringify([_user, _localUser]));
 
             if (!user) {
-                user = await this.AuthDelegator.createSocialUser(channel, profile);
+              user = await this.AuthDelegator.createSocialUser(channel, profile);
+
+              // create wallet
+              await this.AuthDelegator.setupNewUser(user);
             }
 
             // update apiEmail
-            //if (!user.apiEmail) {
-            user.apiEmail = socialEmail;
-            await user.save();
-            //}
+            if (!user.apiEmail) {
+              user.apiEmail = profile.email;
+              await user.save();
+            }
 
-            // create wallet
-            await this.AuthDelegator.setupNewUser(user);
             let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
 
             // carete a new api user if not found
             if (!apiUser) {
               apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+            } else if (user.apiEmail !== profile.email) {
+
+              //remove old apiUser
+              await this.AuthDelegator._delApiUser(user.apiEmail);
+
+              // change apiEmail
+              user.apiEmail = profile.email;
+              await user.save();
+
+              // create new api user
+              apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
             }
-            this.logger.info("user.apiEmail:"+user.apiEmail)
+            this.logger.info('user.apiEmail:' + user.apiEmail);
+
             // response clientSecret and accessToken
             const data = {
               clientSecret: apiUser.clientSecret,
               accessToken: apiUser.accessToken,
-              email: user.apiEmail
+              email: user.apiEmail,
             };
             return this.success(Request, Response, next, data);
           }
@@ -170,58 +192,79 @@ class AuthController extends BaseController {
         const oauthTokenSecret = Request.body.oauthTokenSecret ? Request.body.oauthTokenSecret : twitterConsumerSecret;
         const oauthVerifier = Request.body.oauthVerifier;
 
-        oauth.getOAuthAccessToken(oauthToken,oauthTokenSecret,oauthVerifier,
-        (e, oauthAccessToken, oauthAccessTokenSecret, results) => {
-          if (e) {
-            this.error(Request, Response, e);
-          } else {
-            oauth.get(
-              'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
-              oauthAccessToken,
-              oauthAccessTokenSecret,
-              async (e, twdata, res) => {
-                if (e) {
-                  this.error(Request, Response, e);
-                } else {
-                  const profile = JSON.parse(twdata);
-                  this.logger.debug("[socialLogin]profile:"+JSON.stringify(profile));
+        oauth.getOAuthAccessToken(oauthToken, oauthTokenSecret, oauthVerifier,
+            (e, oauthAccessToken, oauthAccessTokenSecret, results) => {
+              if (e) {
+                this.error(Request, Response, e);
+              } else {
+                oauth.get(
+                    'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+                    oauthAccessToken,
+                    oauthAccessTokenSecret,
+                    async (e, twdata, res) => {
+                      if (e) {
+                        this.error(Request, Response, e);
+                      } else {
+                        const profile = JSON.parse(twdata);
+                        profile.username = profile.name;
 
+                        this.logger.debug('[socialLogin]profile:' + JSON.stringify(profile));
 
-                  //logger.debug("socialLogin:"+email);
-                  profile.id = profile['id_str']
-                  const socialEmail = `${profile.id}@twmusicon`;
+                        //logger.debug("socialLogin:"+email);
+                        profile.id = profile['id_str'];
 
-                  let _user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
-                  let _localUser = await this.AuthDelegator._loadUserByPriEmail(socialEmail);
-                  let user = _user ? _user : _localUser;
+                        let _localUser = await this.AuthDelegator._loadUserByPriEmail(profile.email);
 
-                  if (!user) {
-                    user = await this.AuthDelegator.createSocialUser(channel, profile);
-                  }
-                  //if (!user.apiEmail) {
-                  user.apiEmail = socialEmail;
-                  await user.save();
-                  //}
+                        if (_localUser) {
+                          let user = _localUser;
+                          user.twitter = profile;
+                          await user.save();
+                        }
 
-                  await this.AuthDelegator.setupNewUser(user);
-                  let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+                        let _user = await this.AuthDelegator.findUserBySocialId(channel, profile.id);
 
-                  // carete a new api user if not found
-                  if (!apiUser) {
-                    apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
-                  }
-                  // response clientSecret and accessToken
-                  const data = {
-                    clientSecret: apiUser.clientSecret,
-                    accessToken: apiUser.accessToken,
-                    email: user.apiEmail
-                  };
-                  this.success(Request, Response, next, data);
-                }
+                        let user = _user ? _user : _localUser;
+
+                        if (!user) {
+                          user = await this.AuthDelegator.createSocialUser(channel, profile);
+
+                          await this.AuthDelegator.setupNewUser(user);
+                        }
+
+                        if (!user.apiEmail) {
+                          user.apiEmail = profile.email;
+                          await user.save();
+                        }
+                        let apiUser = await this.AuthDelegator._loadApiUser(user.apiEmail);
+
+                        // create a new api user if not found
+                        if (!apiUser) {
+                          apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+                        } else if (user.apiEmail !== profile.email) {
+
+                          //remove old apiUser
+                          await this.AuthDelegator._delApiUser(user.apiEmail);
+
+                          // change apiEmail
+                          user.apiEmail = profile.email;
+                          await user.save();
+
+                          // create new api user
+                          apiUser = await this.AuthDelegator._createApiUser(user.apiEmail);
+                        }
+
+                        // response clientSecret and accessToken
+                        const data = {
+                          clientSecret: apiUser.clientSecret,
+                          accessToken: apiUser.accessToken,
+                          email: user.apiEmail,
+                        };
+                        this.success(Request, Response, next, data);
+                      }
+                    },
+                );
               }
-            );
-          }
-        });
+            });
         //return this.success(Request, Response, next, { msg: "ok" });
       }
     } catch (error) {
@@ -230,9 +273,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
-   * password 
+   * password
    */
   async quickLogin(Request, Response, next) {
     const body = Request.body;
@@ -252,11 +295,11 @@ class AuthController extends BaseController {
       if (user) {
         // verify password
         if (!cryptoUtil.comparePassword(password, user.local.password)) {
-          return this.reject(Request, Response, "email and password dont match");
+          return this.reject(Request, Response, 'email and password dont match');
         }
       } else {
         // create new user
-        await this.AuthDelegator._createUser(email,password);
+        await this.AuthDelegator._createUser(email, password);
       }
 
       // carete a new api user if not found
@@ -266,10 +309,10 @@ class AuthController extends BaseController {
       // response clientSecret and accessToken
       const data = {
         clientSecret: apiUser.clientSecret,
-        accessToken: apiUser.accessToken
-      }
+        accessToken: apiUser.accessToken,
+      };
 
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -300,8 +343,8 @@ class AuthController extends BaseController {
       let user = _user ? _user : _localUser;
 
       if (user) {
-        this.logger.debug("registerNewUser - 301", JSON.stringify([_user, _localUser]));
-        return this.reject(Request, Response, "Email has been used");
+        this.logger.debug('registerNewUser - 301', JSON.stringify([_user, _localUser]));
+        return this.reject(Request, Response, 'Email has been used');
       }
 
       // create user
@@ -316,9 +359,9 @@ class AuthController extends BaseController {
       const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken,
-        email: email
-      }
-      this.success(Request,Response, next, data);
+        email: email,
+      };
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -331,29 +374,29 @@ class AuthController extends BaseController {
       const email = body.email;
       const password = body.password;
 
-      this.logger.info("login:"+JSON.stringify(body));
+      this.logger.info('login:' + JSON.stringify(body));
 
       let _user = await this.AuthDelegator._loadUserByEmail(email);
       let _localUser = await this.AuthDelegator._loadUserByPriEmail(email);
       let user = _user ? _user : _localUser;
 
       if (!user && !user.local) {
-        return this.reject(Request, Response, "user not found");
+        return this.reject(Request, Response, 'user not found');
       } else {
         if (!_user) {
-            user.apiEmail = email;
-            await user.save();
+          user.apiEmail = email;
+          await user.save();
         }
       }
-      this.logger.debug("login:"+JSON.stringify(user.local));
+      this.logger.debug('login:' + JSON.stringify(user.local));
       // verify password
       if (!cryptoUtil.comparePassword(password, user.local.password)) {
-        return this.reject(Request, Response, "email and password dont match");
+        return this.reject(Request, Response, 'email and password dont match');
       }
 
       await this.AuthDelegator.setupNewUser(user);
 
-      this.logger.debug("login setupNewUser");
+      this.logger.debug('login setupNewUser');
       let apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {
         apiUser = await this.AuthDelegator._createApiUser(email);
@@ -363,18 +406,18 @@ class AuthController extends BaseController {
       const data = {
         clientSecret: apiUser.clientSecret,
         accessToken: apiUser.accessToken,
-        email: email
-      }
+        email: email,
+      };
 
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
 
     } catch (error) {
-      this.error(Request,Response, error);
+      this.error(Request, Response, error);
     }
   }
 
   /**
-   * body params: 
+   * body params:
    * email
    * password
    */
@@ -393,11 +436,11 @@ class AuthController extends BaseController {
 
       if (user && cryptoUtil.comparePassword(password, user.local.password)) {
         const data = {
-          success: true
-        }
-        this.success(Request,Response, next, data);
+          success: true,
+        };
+        this.success(Request, Response, next, data);
       } else {
-        this.reject(Request, Response, "email and password dont match");
+        this.reject(Request, Response, 'email and password dont match');
       }
     } catch (error) {
       this.error(Request, Response, error);
@@ -405,7 +448,7 @@ class AuthController extends BaseController {
   }
 
   /**
-   * body params: 
+   * body params:
    * email
    * password
    */
@@ -422,19 +465,19 @@ class AuthController extends BaseController {
       // find user
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !cryptoUtil.comparePassword(password, user.local.password)) {
-        return this.reject(Request, Response, "email and password dont match");
+        return this.reject(Request, Response, 'email and password dont match');
       }
       // find api user
       const apiUser = await this.AuthDelegator._loadApiUser(email);
 
       if (!apiUser) {
-        return this.reject(Request, Response, "API user not found");
+        return this.reject(Request, Response, 'API user not found');
       }
 
       const data = {
-        clientSecret: apiUser.clientSecret
-      }
-      this.success(Request,Response, next, data);
+        clientSecret: apiUser.clientSecret,
+      };
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -460,12 +503,12 @@ class AuthController extends BaseController {
       // find user
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !cryptoUtil.comparePassword(password, user.local.password)) {
-        return this.reject(Request, Response, "account not found: " + email);
+        return this.reject(Request, Response, 'account not found: ' + email);
       }
       // find api user
       const apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser || apiUser.clientSecret !== clientSecret) {
-        return this.reject(Request, Response, "Client Secrets dont match");
+        return this.reject(Request, Response, 'Client Secrets dont match');
       }
       // generate access token
       const accessToken = cryptoUtil.generateToken(this.constant.TOKEN_LENGTH);
@@ -474,9 +517,9 @@ class AuthController extends BaseController {
       // update api user
       await apiUser.save();
       const data = {
-        accessToken: accessToken
-      }
-      this.success(Request,Response, next, data);
+        accessToken: accessToken,
+      };
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -500,13 +543,13 @@ class AuthController extends BaseController {
       // find api user
       const apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser || apiUser.clientSecret !== clientSecret) {
-        return this.reject(Request, Response, "Client Secrets dont match");
+        return this.reject(Request, Response, 'Client Secrets dont match');
       }
 
       const data = {
-        accessToken: apiUser.accessToken
-      }
-      this.success(Request,Response, next, data);
+        accessToken: apiUser.accessToken,
+      };
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -515,7 +558,7 @@ class AuthController extends BaseController {
   /**
    * body params:
    * email
-   * accessToken 
+   * accessToken
    */
   async getTokenValidity(Request, Response, next) {
     const body = Request.body;
@@ -530,63 +573,62 @@ class AuthController extends BaseController {
       // find api user
       const user = await this.AuthDelegator._loadApiUser(email);
       if (!user) {
-        return this.reject(Request, Response, "user not found");
+        return this.reject(Request, Response, 'user not found');
       }
 
       if (user.accessToken !== accessToken) {
-        return this.reject(Request, Response, "Invalid Access Token");
+        return this.reject(Request, Response, 'Invalid Access Token');
       }
       const now = Date.now();
       const timeElapsed = this.constant.TOKEN_TIMEOUT + user.timeout - now;
       if (timeElapsed < 0) {
-        return this.reject(Request, Response, "Access Token time out");
+        return this.reject(Request, Response, 'Access Token time out');
       }
 
       const data = {
-        expired: timeElapsed
-      }
-      this.success(Request,Response, next, data);
+        expired: timeElapsed,
+      };
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-
-  async getGoogleClientID(Request, Response, next){
+  async getGoogleClientID(Request, Response, next) {
     let clientID = '';
-    if(Request.query.platform === 'ios'){
-       clientID = process.env.GOOGLE_CLIENT_ID_IOS? process.env.GOOGLE_CLIENT_ID_IOS: '';
-    }else {
-       clientID = process.env.GOOGLE_CLIENT_ID? process.env.GOOGLE_CLIENT_ID: '';
+    if (Request.query.platform === 'ios') {
+      clientID = process.env.GOOGLE_CLIENT_ID_IOS ? process.env.GOOGLE_CLIENT_ID_IOS : '';
+    } else {
+      clientID = process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID : '';
     }
-    const data = {clientID}
-    this.success(Request,Response, next, data);
+    const data = {clientID};
+    this.success(Request, Response, next, data);
   }
 
-  async getTwitterOAuthToken(Request, Response, next){
+  async getTwitterOAuthToken(Request, Response, next) {
     oauth.getOAuthRequestToken(
-        (e, oauthToken, oauthTokenSecret, results)=>{
-          if (e){
+        (e, oauthToken, oauthTokenSecret, results) => {
+          if (e) {
             this.error(Request, Response, e);
-          }else {
-            const data = { oauthToken }
-            this.success(Request,Response, next, data);
+          } else {
+            const data = {oauthToken};
+            this.success(Request, Response, next, data);
           }
-        })
+        });
 
   }
 
   async getFacebookAppID(Request, Response, next) {
-    const appID = process.env.FACEBOOK_APP_ID? process.env.FACEBOOK_APP_ID: '';
-    const data = {appID}
-    this.success(Request,Response, next, data);
+    const appID = process.env.FACEBOOK_APP_ID ? process.env.FACEBOOK_APP_ID : '';
+    const data = {appID};
+    this.success(Request, Response, next, data);
   }
 
   async delUser(Request, Response, next) {
     const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     if (!debug) {
-        return this.reject(Request, Response, "debug not allowed");
+      return this.reject(Request, Response, 'debug not allowed');
     }
 
     try {
@@ -595,24 +637,24 @@ class AuthController extends BaseController {
 
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !user.local) {
-        this.logger.info("user not found");
+        this.logger.info('user not found');
       } else {
         await this.AuthDelegator._delUserByEmail(email);
       }
 
       const apiUser = await this.AuthDelegator._loadApiUser(email);
       if (!apiUser) {
-        this.logger.info("API user not found");
+        this.logger.info('API user not found');
       } else {
         await this.AuthDelegator._delApiUser(email);
       }
 
       // response clientSecret and accessToken
       const data = {
-        message: "OK"
-      }
+        message: 'OK',
+      };
 
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -622,7 +664,7 @@ class AuthController extends BaseController {
   async delWallet(Request, Response, next) {
     const debug = process.env.DEBUG ? process.env.DEBUG : 0; // should be change to false by default
     if (!debug) {
-        return this.reject(Request, Response, "debug not allowed");
+      return this.reject(Request, Response, 'debug not allowed');
     }
 
     try {
@@ -631,7 +673,7 @@ class AuthController extends BaseController {
 
       const user = await this.AuthDelegator._loadUserByEmail(email);
       if (!user || !user.local) {
-        return this.reject(Request, Response, "User not found");
+        return this.reject(Request, Response, 'User not found');
       } else {
         user.profileAddress = null;
         user.pendingInitialization = true;
@@ -640,16 +682,15 @@ class AuthController extends BaseController {
 
       // response clientSecret and accessToken
       const data = {
-        message: "OK"
-      }
+        message: 'OK',
+      };
 
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 }
-
 
 module.exports = AuthController;
