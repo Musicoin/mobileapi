@@ -5,8 +5,8 @@ const AuthDelegator = require('../../Delegator/AuthDelegator');
 
 const uuidV4 = require('uuid/v4');
 
-class ArtistController extends BaseController{
-  constructor(props){
+class ArtistController extends BaseController {
+  constructor(props) {
     super(props);
 
     this.AuthDelegator = new AuthDelegator();
@@ -33,10 +33,10 @@ class ArtistController extends BaseController{
       }
 
       const data = {
-        artist: result.data
-      }
+        artist: result.data,
+      };
 
-      this.success(Request,Response,next,data);
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
@@ -53,55 +53,55 @@ class ArtistController extends BaseController{
     const logger = this.logger;
 
     if (!artistAddress) {
-      return this.reject(Request, Response, "artist address is required");
+      return this.reject(Request, Response, 'artist address is required');
     }
 
     try {
       // find artist
       const artist = await this.ArtistDelegator._loadUser(artistAddress);
       if (!artist) {
-        return this.reject(Request, Response, "artist not found: "+artistAddress);
+        return this.reject(Request, Response, 'artist not found: ' + artistAddress);
       }
 
       // find ubimusic
       const sender = await await this.ArtistDelegator._loadUser(this.constant.UBIMUSIC_ACCOUNT);
       if (!sender) {
-        return this.reject(Request, Response, "sender not found: "+this.constant.UBIMUSIC_ACCOUNT);
+        return this.reject(Request, Response, 'sender not found: ' + this.constant.UBIMUSIC_ACCOUNT);
       }
 
       // send tip amount to track address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(this.constant.UBIMUSIC_ACCOUNT, artistAddress, amount);
-      logger.debug("tip complete: ", tx);
+      logger.debug('tip complete: ', tx);
       // increase tip count
       const tipCount = artist.directTipCount || 0;
       artist.directTipCount = tipCount + amount;
       await artist.save();
-      logger.debug("update tipCount: ", artist.directTipCount);
+      logger.debug('update tipCount: ', artist.directTipCount);
 
       // update release stats
       await this.ArtistDelegator.updateArtistStats(artist._id, amount);
-      logger.debug("update UserStats: ", artistAddress);
+      logger.debug('update UserStats: ', artistAddress);
 
       const senderName = sender.draftProfile.artistName;
-      const amountUnit = amount === 1 ? "coin" : "coins";
+      const amountUnit = amount === 1 ? 'coin' : 'coins';
       const message = `${senderName} tipped ${amount} ${amountUnit} on "${artist.draftProfile.artistName}"`;
       const threadId = uuidV4();
 
       const email = this.ArtistDelegator.getUserEmail(artist);
       // send email to artist
       if (email) {
-        logger.debug("tip notification to email: ", email);
-        this.ArtistDelegator.notifyTip(email,message, senderName, threadId);
+        logger.debug('tip notification to email: ', email);
+        this.ArtistDelegator.notifyTip(email, message, senderName, threadId);
       }
-      
+
       // insert a track message to db
       await this.ArtistDelegator.createTrackMessage(artistAddress, artist._id, sender._id, message, threadId);
-      logger.debug("record track message complete");
+      logger.debug('record track message complete');
 
       const data = {
-        tx: tx
-      }
-      this.success(Request,Response, next, data);
+        tx: tx,
+      };
+      this.success(Request, Response, next, data);
 
     } catch (error) {
       this.error(Request, Response, error);
@@ -111,6 +111,7 @@ class ArtistController extends BaseController{
   async getArtistOfWeek(Request, Response, next) {
     try {
       // find the record of week
+      const email = Request.query.email;
       const heroLoad = await this.ArtistDelegator.loadLatestHero();
       if (heroLoad.error) {
         return this.reject(Request, Response, heroLoad.error);
@@ -119,14 +120,20 @@ class ArtistController extends BaseController{
 
       // load release of the record
       const trackLoad = await this.ArtistDelegator.loadTrack(hero.licenseAddress);
-      if(trackLoad.error){
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      if (currentUser) {
+        trackLoad.data.liked = await this.UserDelegator.isLiking(currentUser.id, trackLoad.data.trackAddress);
+      } else {
+        trackLoad.data.liked = false;
+      }
+      if (trackLoad.error) {
         return this.reject(Request, Response, trackLoad.error);
       }
 
       const track = trackLoad.data;
       // load artist by address
       const artistLoad = await this.ArtistDelegator.loadArtist(track.artistAddress);
-      if(artistLoad.error){
+      if (artistLoad.error) {
         return this.reject(Request, Response, artistLoad.error);
       }
       const artist = artistLoad.data;
@@ -134,38 +141,35 @@ class ArtistController extends BaseController{
       const data = {
         label: hero.label,
         track,
-        artist
-      }
+        artist,
+      };
 
-      this.success(Request,Response, next, data);
+      this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
     }
   }
 
-
   async isFollowing(Request, Response, next) {
-    let ret = {}
+    let ret = {};
     try {
       const email = Request.query.email;
       const artistAddresses = Request.body.artistAddresses;
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      for (var i=0;i<artistAddresses.length;i++) {
+      for (var i = 0; i < artistAddresses.length; i++) {
         ret[artistAddresses[i]] = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddresses[i]);
       }
     } catch (error) {
       this.error(Request, Response, error);
     }
 
-    const data  = {
+    const data = {
       success: true,
-      data: ret
+      data: ret,
     };
     this.success(Request, Response, next, data);
   }
 }
-
-
 
 module.exports = ArtistController;
