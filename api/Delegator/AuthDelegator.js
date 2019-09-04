@@ -3,8 +3,8 @@ const ControllerDelegator = require('./ControllerDelegator');
 
 // util
 const cryptoUtil = require('../../utils/crypto-util');
-const defaultProfileIPFSImage = "ipfs://QmR8mmsMn9TUdJiA6Ja3SYcQ4ckBdky1v5KGRimC7LkhGF";
-const publishCredentialsProvider = require("../Kernel").publishCredentialsProvider;
+const defaultProfileIPFSImage = 'ipfs://QmR8mmsMn9TUdJiA6Ja3SYcQ4ckBdky1v5KGRimC7LkhGF';
+const publishCredentialsProvider = require('../Kernel').publishCredentialsProvider;
 
 class AuthDelegator extends ControllerDelegator {
   constructor(props) {
@@ -25,21 +25,20 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _loadUserByEmail(email) {
-    return this.db.User.findOne({ "apiEmail": email }).exec();
+    return this.db.User.findOne({'apiEmail': email}).exec();
   }
 
   _loadUserByUserId(userId) {
-    return this.db.User.findOne({ "_id": userId }).exec();
+    return this.db.User.findOne({'_id': userId}).exec();
   }
-
 
   _loadUserByPriEmail(email) {
-    return this.db.User.findOne({ "primaryEmail": email }).exec();
+    return this.db.User.findOne({'primaryEmail': email}).exec();
   }
 
-  findUserBySocialEmail(channel, email){
+  findUserBySocialEmail(channel, email) {
     const filter = {};
-    filter[channel+".email"] = email;
+    filter[channel + '.email'] = email;
     return this.db.User.findOne(filter).exec();
   }
 
@@ -49,28 +48,36 @@ class AuthDelegator extends ControllerDelegator {
     return this.db.User.findOne(filter).exec();
   }
 
-  createSocialUser(channel, profile){
+  createSocialUser(channel, profile) {
     const content = {
       pendingInitialization: true,
       primaryEmail: profile.email,
-      emailVerified: true
+      emailVerified: true,
     };
     content[channel] = profile;
     return this.db.User.create(content);
   }
 
-  _createApiUser(email) {
+  async _createApiUser(email) {
     // generate client secret
     const clientSecret = cryptoUtil.generateToken(this.constant.SECRET_LENGTH);
     // generate access token
     const accessToken = cryptoUtil.generateToken(this.constant.TOKEN_LENGTH);
-    // create api user
-    return this.db.ApiUser.create({
-      email: email,
-      clientSecret: clientSecret,
-      timeout: Date.now(),
-      accessToken: accessToken
-    });
+    // create api user if it doesn't exist already
+
+    let user = await this.db.ApiUser.findOne({'email': email}).exec();
+
+    if (user) {
+      return user;
+    } else {
+
+      return this.db.ApiUser.create({
+        email: email,
+        clientSecret: clientSecret,
+        timeout: Date.now(),
+        accessToken: accessToken,
+      });
+    }
   }
 
   _createUser(email, password, username) {
@@ -79,64 +86,65 @@ class AuthDelegator extends ControllerDelegator {
       local: {
         email,
         password: cryptoUtil.hashPassword(password),
-        username
+        username,
       },
       pendingInitialization: true,
       primaryEmail: email,
-      emailVerified: true
+      emailVerified: true,
+      apiEmail: email,
     });
   }
 
-  async setupNewUser(db_user){
+  async setupNewUser(db_user) {
     if (db_user.pendingInitialization) {
-      this.logger.debug("start setup new user:"+JSON.stringify(db_user));
+      this.logger.debug('start setup new user:' + JSON.stringify(db_user));
 
       try {
         const user = await this._setupNewUserDraftProfile(db_user);
-        this.logger.debug("user:"+JSON.stringify(user));
+        this.logger.debug('user:' + JSON.stringify(user));
 
         const uploadResult = await this._uploadNewUserProfile(user);
-        this.logger.debug("user:"+JSON.stringify(user));
+        this.logger.debug('user:' + JSON.stringify(user));
 
         const tx = await this._publishNewUserProfile(user.draftProfile.artistName, uploadResult.descUrl, uploadResult.socialUrl);
         await this._updateNewUserState(user, tx);
       } catch (error) {
-        this.logger.error("Error when setupNewUser");
+        this.logger.error('Error when setupNewUser');
       }
     }
   }
 
-  _setupNewUserDraftProfile(db_user){
-    this.logger.debug("start setup new user draft profile");
+  _setupNewUserDraftProfile(db_user) {
+    this.logger.debug('start setup new user draft profile');
     const name = this.getUserName(db_user);
     db_user.draftProfile = {
       artistName: name,
-      description: "",
+      description: '',
       social: {},
       ipfsImageUrl: defaultProfileIPFSImage,
       heroImageUrl: null,
       genres: [],
-      version: 1
+      version: 1,
     };
     return db_user.save();
   }
 
-  async _uploadNewUserProfile(db_user){
-    this.logger.debug("start upload new user profile to ipfs:"+JSON.stringify(db_user.draftProfile));
+  async _uploadNewUserProfile(db_user) {
+    this.logger.debug('start upload new user profile to ipfs:' + JSON.stringify(db_user.draftProfile));
 
     const descPromise = this.MediaProvider.uploadText(db_user.draftProfile.description);
     const socialPromise = this.MediaProvider.uploadText(JSON.stringify(db_user.draftProfile.social));
 
     const result = await Promise.all([descPromise, socialPromise]);
-    this.logger.debug("_uploadNewUserProfile:"+JSON.stringify([result]));
+    this.logger.debug('_uploadNewUserProfile:' + JSON.stringify([result]));
     return {
       descUrl: result[0],
-      socialUrl: result[1]
-    }
+      socialUrl: result[1],
+    };
   }
 
   async _publishNewUserProfile(name, descUrl, socialUrl) {
-    this.logger.debug("start publish new user to blockchain");
+    this.logger.debug('start publish new user to blockchain');
     const credentials = await publishCredentialsProvider.getCredentials();
     const releaseRequest = {
       profileAddress: null,
@@ -144,24 +152,24 @@ class AuthDelegator extends ControllerDelegator {
       artistName: name,
       imageUrl: defaultProfileIPFSImage,
       socialUrl: socialUrl,
-      descriptionUrl: descUrl
+      descriptionUrl: descUrl,
     };
-    return this.MusicoinCore.getArtistModule().releaseProfile(releaseRequest,publishCredentialsProvider);
+    return this.MusicoinCore.getArtistModule().releaseProfile(releaseRequest, publishCredentialsProvider);
   }
 
-  _updateNewUserState(db_user, tx){
+  _updateNewUserState(db_user, tx) {
     db_user.pendingTx = tx;
     db_user.updatePending = true;
     db_user.hideProfile = false;
     db_user.pendingInitialization = false;
 
-    this.logger.debug("start update new user state:"+JSON.stringify(db_user)+"-tx:"+tx);
+    this.logger.debug('start update new user state:' + JSON.stringify(db_user) + '-tx:' + tx);
     return db_user.save();
   }
 
   //
   _delUserByEmail(email) {
-    return this.db.User.findOne({ "apiEmail": email }).remove().exec();
+    return this.db.User.findOne({'apiEmail': email}).remove().exec();
   }
 
   _findUserByUserId(userId) {
@@ -169,7 +177,7 @@ class AuthDelegator extends ControllerDelegator {
   }
 
   _findUserByProfileAddress(address) {
-    return this.db.User.findOne({ "profileAddress": address}).exec();
+    return this.db.User.findOne({'profileAddress': address}).exec();
   }
 
 }
