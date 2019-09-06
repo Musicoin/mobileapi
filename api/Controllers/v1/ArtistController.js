@@ -26,8 +26,12 @@ class ArtistController extends BaseController {
   async getProfileByAddress(Request, Response, next) {
     try {
       const address = Request.params.address;
+      const email = Request.query.email;
+
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
 
       const result = await this.ArtistDelegator.loadArtist(address);
+      result.data = await this._filterFollowing(currentUser, result.data);
       if (result.error) {
         return this.reject(Request, Response, result.error);
       }
@@ -132,7 +136,8 @@ class ArtistController extends BaseController {
 
       const track = trackLoad.data;
       // load artist by address
-      const artistLoad = await this.ArtistDelegator.loadArtist(track.artistAddress);
+      let artistLoad = await this.ArtistDelegator.loadArtist(track.artistAddress);
+      artistLoad.data = await this._filterFollowing(currentUser, artistLoad.data);
       if (artistLoad.error) {
         return this.reject(Request, Response, artistLoad.error);
       }
@@ -169,6 +174,15 @@ class ArtistController extends BaseController {
       data: ret,
     };
     this.success(Request, Response, next, data);
+  }
+
+  async _filterFollowing(user, artist) {
+    if (user) {
+      artist.followed = await this.UserDelegator.isUserFollowing(user.id, artist.artistAddress);
+    } else {
+      artist.followed = false;
+    }
+    return artist;
   }
 }
 
