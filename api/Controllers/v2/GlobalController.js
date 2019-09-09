@@ -32,6 +32,7 @@ class GlobalController extends GlobalControllerV1 {
         ReleasesArray = this.response.ReleaseResponse.responseList(searchResult[0]);
         ReleasesArray = await this._filterLikeArray(currentUser, ReleasesArray);
         UsersArray = this.response.ArtistResponse.responseList(searchResult[1]);
+        UsersArray = await this._filterFollowingArray(currentUser, UsersArray);
       } catch (error) {
         this.logger.error(Request.originalUrl, error);
       }
@@ -57,6 +58,21 @@ class GlobalController extends GlobalControllerV1 {
       }
 
       data.push(item);
+    }
+    return data;
+  }
+
+  async _filterFollowingArray(user, artists) {
+    let data = [];
+    for (let i = 0; i < artists.length; i++) {
+      let artist = artists[i];
+      if (user) {
+        artist.followed = await this.UserDelegator.isUserFollowing(user.id, artist.artistAddress);
+      } else {
+        artist.followed = false;
+      }
+
+      data.push(artist);
     }
     return data;
   }
