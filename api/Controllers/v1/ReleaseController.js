@@ -21,8 +21,8 @@ class ReleaseController extends BaseController {
 
     // private functions
     this.isLiked = this.isLiked.bind(this);
-    //this._filterFollow = this._filterFollow.bind(this);
-    //this._filterLike = this._filterLike.bind(this);
+    this._filterLikeArray = this._filterLikeArray.bind(this);
+    this._filterLike = this._filterLike.bind(this);
   }
 
   /**
@@ -31,13 +31,19 @@ class ReleaseController extends BaseController {
    */
   async getTrackDetail(Request, Response, next) {
     try {
-      const trackLoad = await this.ReleaseDelegator.loadTrack(Request.params.address);
+      const email = Request.query.email;
+      const address = Request.query.address;
+
+      let trackLoad = await this.ReleaseDelegator.loadTrack(address);
+      const currentUser = await this.AuthDelegator._loadUserByEmail(email);
+      trackLoad.data = await this._filterLike(currentUser, trackLoad.data);
+
       if (trackLoad.error) {
         return this.reject(Request, Response, trackLoad.error);
       }
-      const data = {
-        track: trackLoad.data
-      }
+      let data = {
+        track: trackLoad.data,
+      };
       this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
@@ -56,14 +62,16 @@ class ReleaseController extends BaseController {
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
       const tracksLoad = await this.ReleaseDelegator.loadRecentTracks(skip, limit);
-      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+
+      tracksLoad.data = await this._filterLikeArray(currentUser, tracksLoad.data);
+
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
 
       const data = {
-        tracks: tracksLoad.data
-      }
+        tracks: tracksLoad.data,
+      };
       this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
@@ -76,7 +84,7 @@ class ReleaseController extends BaseController {
    * musicoins
    */
   async tipTrack(Request, Response, next) {
-    return this.error(Request, Response, "This old tip API is closed, please upgrade your app to the newest version");
+    return this.error(Request, Response, 'This old tip API is closed, please upgrade your app to the newest version');
   }
 
   async tipTrackForTest(Request, Response, next) {
@@ -87,41 +95,40 @@ class ReleaseController extends BaseController {
 
       const validateResult = this.validate({
         trackAddress,
-        musicoins
+        musicoins,
       }, this.schema.ReleaseSchema.tip);
 
       if (validateResult !== true) {
         return this.reject(Request, Response, validateResult);
       }
 
-
       // find track
       const release = await this.ReleaseDelegator._loadTrack(trackAddress);
       if (!release) {
-        return this.reject(Request, Response, "Track not found: " + trackAddress);
+        return this.reject(Request, Response, 'Track not found: ' + trackAddress);
       }
 
       // find ubimusic
       const sender = await this.ReleaseDelegator._loadUser(UBIMUSIC_ACCOUNT);
       if (!sender) {
-        return this.reject(Request, Response, "sender not found: " + UBIMUSIC_ACCOUNT);
+        return this.reject(Request, Response, 'sender not found: ' + UBIMUSIC_ACCOUNT);
       }
 
       // send tip amount to track address
       const tx = await this.MusicoinCore.getArtistModule().sendFromProfile(UBIMUSIC_ACCOUNT, trackAddress, musicoins);
-      this.logger.debug("tip complete: ", tx);
+      this.logger.debug('tip complete: ', tx);
       // increase tip count
       const tipCount = release.directTipCount || 0;
       release.directTipCount = tipCount + musicoins;
       await release.save();
-      this.logger.debug("update tipCount: ", release.directTipCount);
+      this.logger.debug('update tipCount: ', release.directTipCount);
 
       // update release stats
       await this.ReleaseDelegator.updateTrackStats(release._id, musicoins);
-      this.logger.debug("update ReleaseStats: ", trackAddress);
+      this.logger.debug('update ReleaseStats: ', trackAddress);
 
       const senderName = sender.draftProfile.artistName;
-      const amountUnit = musicoins === 1 ? "coin" : "coins";
+      const amountUnit = musicoins === 1 ? 'coin' : 'coins';
       const message = `${senderName} tipped ${musicoins} ${amountUnit} on "${release.title}"`;
       const threadId = uuidV4();
       // find track srtist
@@ -129,19 +136,19 @@ class ReleaseController extends BaseController {
       const email = this.ReleaseDelegator.getUserEmail(artist);
       // send email to artist
       if (email) {
-        this.logger.debug("tip notification to email: ", email);
+        this.logger.debug('tip notification to email: ', email);
         this.ReleaseDelegator.notifyTip(email, message, senderName, release.title, threadId);
       }
 
       // insert a track message to db
       await this.ReleaseDelegator.createTrackMessage(trackAddress, release.artistAddress, release._id,
-        artist._id, sender._id, message, threadId);
+          artist._id, sender._id, message, threadId);
 
-      this.logger.debug("record track message complete");
+      this.logger.debug('record track message complete');
 
       const data = {
-        tx: tx
-      }
+        tx: tx,
+      };
       this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
@@ -149,7 +156,7 @@ class ReleaseController extends BaseController {
   }
 
   /**
-   * 
+   *
    * query:
    * genre
    * limit
@@ -164,7 +171,7 @@ class ReleaseController extends BaseController {
 
       const validateResult = this.validate({
         genre,
-        limit
+        limit,
       }, this.schema.ReleaseSchema.byGenre);
 
       if (validateResult !== true) {
@@ -173,14 +180,15 @@ class ReleaseController extends BaseController {
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
       const tracksLoad = await this.ReleaseDelegator.loadTracksByGenre(genre, skip, limit);
-      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+      tracksLoad.data = await this._filterLikeArray(currentUser, tracksLoad.data);
+
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
 
       const data = {
-        tracks: tracksLoad.data
-      }
+        tracks: tracksLoad.data,
+      };
       this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
@@ -188,7 +196,7 @@ class ReleaseController extends BaseController {
   }
 
   /**
-   * 
+   *
    * query:
    * artistAddress
    * limit
@@ -203,7 +211,7 @@ class ReleaseController extends BaseController {
 
       const validateResult = this.validate({
         artistAddress,
-        limit
+        limit,
       }, this.schema.ReleaseSchema.byArtist);
 
       if (validateResult !== true) {
@@ -211,20 +219,16 @@ class ReleaseController extends BaseController {
       }
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      let followed = false;
-      if (currentUser) {
-        followed = await this.UserDelegator.isUserFollowing(currentUser.id, artistAddress);
-      }
       const tracksLoad = await this.ReleaseDelegator.loadTracksByArtist(artistAddress, skip, limit);
-      //tracksLoad.data = await this._filterLike(currentUser.id, tracksLoad.data);
+      tracksLoad.data = await this._filterLikeArray(currentUser, tracksLoad.data);
+
       if (tracksLoad.error) {
         return this.reject(Request, Response, tracksLoad.error);
       }
 
       const data = {
-        followed: followed,
-        tracks: tracksLoad.data
-      }
+        tracks: tracksLoad.data,
+      };
 
       this.success(Request, Response, next, data);
 
@@ -233,42 +237,51 @@ class ReleaseController extends BaseController {
     }
   }
 
-
   async isLiked(Request, Response, next) {
-    let ret = {}
+    let ret = {};
     try {
       const email = Request.query.email;
       const trackAddresses = Request.body.trackAddresses;
 
       const currentUser = await this.AuthDelegator._loadUserByEmail(email);
-      for (var i=0;i<trackAddresses.length;i++) {
+      for (var i = 0; i < trackAddresses.length; i++) {
         ret[trackAddresses[i]] = await this.UserDelegator.isLiking(currentUser.id, trackAddresses[i]);
       }
     } catch (error) {
       this.error(Request, Response, error);
     }
 
-    const data  = {
+    const data = {
       success: true,
-      data: ret
+      data: ret,
     };
     this.success(Request, Response, next, data);
   }
 
-  /*
-  // list follower
-  async _filterFollow(userId, _artistsLoad) {
+  async _filterLikeArray(user, _tracksLoad) {
     let data = [];
-    for (var i=0; i<_artistsLoad.length; i++) {
-      let item = _artistsLoad.data[i];
-      //item.followed = await this.UserDelegator.isUserFollowing(userId, item.artistAddress);
-      item.liked = await this.UserDelegator.isLiking(userId, item.trackAddress);
-      this.logger.debug("_filterFollow", JSON.stringify(item));
+    for (let i = 0; i < _tracksLoad.length; i++) {
+      let item = _tracksLoad[i];
+      if (user) {
+        item.liked = await this.UserDelegator.isLiking(user.id, item.trackAddress);
+      } else {
+        item.liked = false;
+      }
+
       data.push(item);
     }
     return data;
   }
-  */
+
+  async _filterLike(user, track) {
+    if (user) {
+      track.liked = await this.UserDelegator.isLiking(user.id, track.trackAddress);
+    } else {
+      track.liked = false;
+    }
+    return track;
+  }
+
 }
 
 module.exports = ReleaseController;
