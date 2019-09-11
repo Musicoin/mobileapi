@@ -140,10 +140,12 @@ class GlobalController extends BaseController {
     let user;
     let artist;
     let description;
+    let testHash;
+
     const response = {
       mongodb: "running",
       ipfs: "running",
-      gmc: "running"
+      gmc: "reading n writing"
     }
 
     try {
@@ -169,7 +171,10 @@ class GlobalController extends BaseController {
     try {
       description = await this.MediaProvider.fetchTextFromIpfs(ipfsHash);
       this.logger.debug("find artist description from ipfs: ", description);
-      this.logger.info("ipfs is running");
+      this.logger.info("ipfs reading ok");
+      testHash = await this.MediaProvider.uploadText("MUSIC");
+      this.logger.info("ipfs writing ok:"+testHash);
+
     } catch (error) {
       response.ipfs = "error: " + error.message;
       this.logger.info("ipfs running error: " + error.message);
