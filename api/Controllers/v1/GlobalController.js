@@ -144,8 +144,8 @@ class GlobalController extends BaseController {
 
     const response = {
       mongodb: "running",
-      ipfs: "running",
-      gmc: "reading n writing"
+      ipfs: "reading n writing",
+      gmc: "running"
     }
 
     try {
