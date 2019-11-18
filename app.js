@@ -58,7 +58,17 @@ app.use("/test", require("./api/routes/v1/global"));
 app.use("/manage", require("./api/routes/v1/global"));
 
 
-app.use('/', AuthMiddleware.authenticate);
+const unless = function(path, middleware) {
+  return function(req, res, next) {
+    if (path === req.path) {
+      return next();
+    } else {
+      return middleware(req, res, next);
+    }
+  };
+};
+
+app.use(unless('/graphql', AuthMiddleware.authenticate));
 
 app.use("/v1", require("./api/routes/v1/global"));
 app.use("/v1/artist", require("./api/routes/v1/artist"));

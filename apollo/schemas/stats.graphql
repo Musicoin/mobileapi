@@ -1,0 +1,11 @@
+type Stats {
+  plays: String!
+  tips: String!
+}
+
+type Query {
+  stats: Stats
+}
+type Mutation{
+  increasePlays: Stats
+}
