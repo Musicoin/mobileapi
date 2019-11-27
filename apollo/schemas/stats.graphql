@@ -6,6 +6,11 @@ type Stats {
 type Query {
   stats: Stats
 }
+
 type Mutation{
   increasePlays: Stats
+}
+
+type Subscription{
+  playsIncreased: Stats
 }

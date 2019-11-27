@@ -1,5 +1,5 @@
 const {
-  ApolloServer
+  ApolloServer,
 } = require('apollo-server-express');
 const typeDefs = require('./schemas');
 const resolvers = require('./resolver');
@@ -10,9 +10,13 @@ function config(app) {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    uploads: false,
     context: ({ req }) => ({
       release: Release
-    })
+    }),
+    playground: {
+      subscriptionEndpoint: `/subscriptions`,
+    }
   });
   server.applyMiddleware({
     app

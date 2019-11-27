@@ -1,19 +1,28 @@
+const {PubSub} = require('graphql-subscriptions');
+
+let pubsub = new PubSub();
+
 let statscount = {plays: 6781650, tips: 4380785};
 
-async function stats(parent, args, context, info) {
-  return statscount;
-}
-
-async function increasePlays(_parent, _args, _context, _info) {
-  statscount.plays = statscount.plays + 1;
-  return statscount;
-}
-
-module.exports = {
+const resolvers = {
   Query: {
-    stats
+    async stats(parent, args, context, info) {
+      return statscount;
+    },
   },
   Mutation: {
-    increasePlays
+    async increasePlays(_parent, _args, _context, _info) {
+      statscount.plays = statscount.plays + 1;
+      await pubsub.publish('playsIncreased', statscount);
+      return statscount;
+    },
+  },
+  Subscription: {
+    playsIncreased: {
+      resolve: (obj) => obj,
+      subscribe: () => pubsub.asyncIterator('playsIncreased'),
+    },
   },
 };
+
+module.exports = resolvers;

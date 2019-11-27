@@ -8,10 +8,18 @@ const ConfigUtils = require('./config/config');
 const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const config = ConfigUtils.loadConfig(process.argv);
+const {execute, subscribe} = require('graphql');
+const {makeExecutableSchema} = require('graphql-tools');
+const {createServer} = require('http');
+const {SubscriptionServer} = require('subscriptions-transport-ws');
+const typeDefs = require('./apollo/schemas');
+const resolvers = require('./apollo/resolver')
 const apollo = require('./apollo/server');
 const Logger = require('./utils/Logger');
+const {gql} = require('apollo-server-express');
 
-global.fetch = require("node-fetch");
+
+global.fetch = require('node-fetch');
 
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,7 +30,7 @@ app.use(function(req, res, next) {
 });
 
 app.use(bodyParser.urlencoded({
-  extended: false
+  extended: false,
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
@@ -30,37 +38,35 @@ app.use(bodyParser.raw());
 const RateLimiter = new RateLimit({
   windowMs: 1000,
   max: 100,
-  delayMs: 0
+  delayMs: 0,
 });
 
 app.use(session({
-  name: "musicoin-api",
+  name: 'musicoin-api',
   secret: 'mcapi',
   cookie: {
-      maxAge: 60000
-  }
+    maxAge: 60000,
+  },
 }));
 
 app.use(RateLimiter);
 
 Logger.initRequestLogger(app);
 
-app.use("/",require('./api/routes/auth'));
-app.use("/v1",require('./api/routes/v1/auth'));
-app.use("/v1/auth",require('./api/routes/v1/auth'));
-
+app.use('/', require('./api/routes/auth'));
+app.use('/v1', require('./api/routes/v1/auth'));
+app.use('/v1/auth', require('./api/routes/v1/auth'));
 
 // test
 app.use('/test/release', require('./api/routes/release'));
 app.use('/test/track', require('./api/routes/v1/track'));
-app.use("/test", require("./api/routes/v1/global"));
+app.use('/test', require('./api/routes/v1/global'));
 
-app.use("/manage", require("./api/routes/v1/global"));
+app.use('/manage', require('./api/routes/v1/global'));
 
-
-const unless = function(path, middleware) {
+const unless = function(paths, middleware) {
   return function(req, res, next) {
-    if (path === req.path) {
+    if (paths.includes(req.path)) {
       return next();
     } else {
       return middleware(req, res, next);
@@ -68,15 +74,15 @@ const unless = function(path, middleware) {
   };
 };
 
-app.use(unless('/graphql', AuthMiddleware.authenticate));
+app.use(unless(['/graphql', '/subscriptions'], AuthMiddleware.authenticate));
 
-app.use("/v1", require("./api/routes/v1/global"));
-app.use("/v1/artist", require("./api/routes/v1/artist"));
-app.use("/v1/user", require("./api/routes/v1/user"));
-app.use("/v1/release", require("./api/routes/v1/release"));
+app.use('/v1', require('./api/routes/v1/global'));
+app.use('/v1/artist', require('./api/routes/v1/artist'));
+app.use('/v1/user', require('./api/routes/v1/user'));
+app.use('/v1/release', require('./api/routes/v1/release'));
 
-app.use("/v2", require("./api/routes/v2/global"));
-app.use("/v2/release", require("./api/routes/v2/release"));
+app.use('/v2', require('./api/routes/v2/global'));
+app.use('/v2/release', require('./api/routes/v2/release'));
 
 apollo.config(app);
 
@@ -88,6 +94,22 @@ app.use('/license', require('./api/routes/license'));
 app.use('/artist', require('./api/routes/artist'));
 app.use('/tx', require('./api/routes/tx'));
 
-app.listen(config.port, function() {
-  Logger.info(`server listening on port ${config.port}`);
+// app.listen(config.port,()=>{
+//   Logger.info(`server listening on port ${config.port}`);
+// });
+
+
+const ws = createServer(app);
+const schema = makeExecutableSchema({typeDefs, resolvers});
+ws.listen(config.port, () => {
+  console.log(`Apollo Server is now running on http://localhost:${config.port}`);
+  // Set up the WebSocket for handling GraphQL subscriptions
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema,
+  }, {
+    server: ws,
+    path: '/subscriptions',
+  });
 });
