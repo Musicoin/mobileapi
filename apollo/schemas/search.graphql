@@ -7,16 +7,17 @@ type Artist {
   releaseCount: Int!
 },
 type Release {
+  tx: String,
   title: String,
   link: String,
   pppLink: String,
   genres: [String],
-  author: String,
-  authorLink: String,
+  artistName: String,
+  artistLink: String,
   trackImg: String,
-  trackDescription: String,
-  directTipCount: Int!,
-  directPlayCount: Int!
+  description: String,
+  directTipCount: Int,
+  directPlayCount: Int
 },
 type Search {
   artists: [Artist],
