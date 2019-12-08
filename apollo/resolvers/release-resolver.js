@@ -1,4 +1,5 @@
 const UserPlayback = require('../../db/core/user-playback');
+const MediaProvider = require('../../utils/media-provider-instance');
 
 const resolvers = {
   Query: {
@@ -8,6 +9,7 @@ const resolvers = {
       let releasesArray = [];
       releases.forEach((item, index) => {
         let release = item.release;
+        release.trackImg = MediaProvider.resolveIpfsUrl(release.imageUrl);
         releasesArray.push(release);
       });
       return releasesArray;
