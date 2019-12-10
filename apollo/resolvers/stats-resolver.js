@@ -1,4 +1,5 @@
 const {PubSub} = require('graphql-subscriptions');
+const Release = require('../../db/core/release');
 
 let pubsub = new PubSub();
 
@@ -11,9 +12,12 @@ const resolvers = {
     },
   },
   Mutation: {
-    async increasePlays(_parent, _args, _context, _info) {
+    async increasePlays(parent, args, context, info) {
       statscount.plays = statscount.plays + 1;
       await pubsub.publish('playsIncreased', statscount);
+      if(args.releaseId) {
+        await pubsub.publish('recentPlaysUpdated', args.releaseId);
+      }
       return statscount;
     },
   },
@@ -21,6 +25,15 @@ const resolvers = {
     playsIncreased: {
       resolve: (obj) => obj,
       subscribe: () => pubsub.asyncIterator('playsIncreased'),
+    },
+    recentPlaysUpdated: {
+      //ToDo: try to move this subscription to the release resolver
+      resolve: async (releaseId) => {
+        let release = await Release.findOne({tx: releaseId}).exec();
+        console.log(release);
+        return release;
+      },
+      subscribe: () => pubsub.asyncIterator('recentPlaysUpdated'),
     },
   },
 };

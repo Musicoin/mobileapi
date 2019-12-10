@@ -8,9 +8,10 @@ type Query {
 }
 
 type Mutation{
-  increasePlays: Stats
+  increasePlays(releaseId: String): Stats
 }
 
 type Subscription{
-  playsIncreased: Stats
+  playsIncreased: Stats,
+  recentPlaysUpdated: Release
 }
