@@ -1,7 +1,5 @@
-const {PubSub} = require('graphql-subscriptions');
+const pubsub = require('../pubsub');
 const Release = require('../../db/core/release');
-
-let pubsub = new PubSub();
 
 let statscount = {plays: 6781650, tips: 4380785};
 
@@ -25,15 +23,6 @@ const resolvers = {
     playsIncreased: {
       resolve: (obj) => obj,
       subscribe: () => pubsub.asyncIterator('playsIncreased'),
-    },
-    recentPlaysUpdated: {
-      //ToDo: try to move this subscription to the release resolver
-      resolve: async (releaseId) => {
-        let release = await Release.findOne({tx: releaseId}).exec();
-        console.log(release);
-        return release;
-      },
-      subscribe: () => pubsub.asyncIterator('recentPlaysUpdated'),
     },
   },
 };

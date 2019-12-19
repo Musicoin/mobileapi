@@ -1,4 +1,6 @@
 const UserPlayback = require('../../db/core/user-playback');
+const pubsub = require('../pubsub');
+const Release = require('../../db/core/release');
 const MediaProvider = require('../../utils/media-provider-instance');
 
 const resolvers = {
@@ -14,7 +16,42 @@ const resolvers = {
       });
       return releasesArray;
     },
+    async topPlays(parent, args, context, info) {
+      // ToDo: write better query from ReleaseStats like in musicoin.org repo
+      let releases = await Release.find({
+        state: 'published',
+      }).sort({
+        directTipCount: 'desc',
+      }).limit(args.limit).exec();
+
+      let ReleasesArray = [];
+      for (let track of releases) {
+        track.link = 'https://musicion.org/nav/track/' + track.contractAddress;
+        track.authorLink = 'https://musicoin.org/nav/artist/' + track.artistAddress;
+        track.trackImg = track.imageUrl;
+        ReleasesArray.push(track);
+      }
+
+      return ReleasesArray;
+    },
   },
+  Subscription: {
+    recentPlaysUpdated: {
+      resolve: async (releaseId) => {
+        let release = await Release.findOne({tx: releaseId}).exec();
+        return release;
+      },
+      subscribe: () => pubsub.asyncIterator('recentPlaysUpdated'),
+    },
+    topPlaysUpdated: {
+      resolve: async (releaseId) => {
+        //ToDo; return list of the new top played
+        let release = await Release.findOne({tx: releaseId}).exec();
+        return release;
+      },
+      subscribe: () => pubsub.asyncIterator('topPlaysUpdated'),
+    },
+  }
 };
 
 module.exports = resolvers;

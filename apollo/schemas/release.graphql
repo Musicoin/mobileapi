@@ -1,3 +1,9 @@
 type Query {
   recentPlays(limit: Int): [Release]
+  topPlays(limit: Int): [Release]
+}
+
+type Subscription{
+  recentPlaysUpdated: Release
+  topPlaysUpdated:Release
 }

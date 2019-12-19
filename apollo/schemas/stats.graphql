@@ -12,6 +12,5 @@ type Mutation{
 }
 
 type Subscription{
-  playsIncreased: Stats,
-  recentPlaysUpdated: Release
+  playsIncreased: Stats
 }
