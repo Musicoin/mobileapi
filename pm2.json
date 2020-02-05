@@ -1,35 +1,31 @@
 {
-    "apps": {
-        "name": "musicoin-api",
-        "script": "./app.js",
-        "cwd": "./",
-        "args": "",
-        "interpreter": "",
-        "interpreter_args": "",
-        "watch": false,
-        "ignore_watch": [
-            "node_modules",
-            "logs"
-        ],
-        "exec_mode": "cluster_mode",
-        "instances": 4,
-        "max_memory_restart": 8,
-        "error_file": "./logs/app-err.log",
-        "out_file": "./logs/app-out.log",
-        "merge_logs": true,
-        "log_date_format": "YYYY-MM-DD HH:mm:ss",
-        "min_uptime": "60s",
-        "max_restarts": 30,
-        "autorestart": true,
-        "cron_restart": "",
-        "restart_delay": 60,
-        "env": {
-            "NODE_ENV": "production",
-            "MUSICOIN_API_PORT": 8082,
-            "MONGO_ENDPOINT": "mongodb://localhost",
-            "IPFS_READ_ENDPOINT": "http://staging.musicoin.org/ipfs",
-            "SENDGRID_API_KEY": "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",
-            "ITUNES_SHARED_SECRET":""
+    "apps": [
+        {
+            "name": "kickass",
+            "script": "./app.js",
+            "watch": true,
+            "env": {
+                "MUSICOIN_API_PORT": 3000,
+                "NODE_ENV": "development",
+                "IPFS_READ_ENDPOINT": "http://127.0.0.1:8080",
+                "LOG_PATH": "./logs",
+                "IPFS_ADD_ENDPOINT": "http://localhost:5001",
+                "SENDGRID_API_KEY": "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",
+                "WEB3_ENDPOINT": "http://34.67.49.141:8588",
+                "MUSICOIN_API_DOMAIN": "localhost:3000",
+                "MONGO_ENDPOINT": "mongodb://musicoin1:KOxC6HRduwyVcZe4@127.0.0.1",
+                "PUBLISHING_ACCOUNT": "0x6e1d33f195e7fadcc6da8ca9e36d6d4d717cf504",
+                "PUBLISHING_ACCOUNT_PASSWORD": "eH9wTxtZWyQTXvHc",
+                "PAYMENT_ACCOUNT": "0xfef55843244453abc7e183d13139a528bdfbcbed",
+                "PAYMENT_ACCOUNT_PASSWORD": "LZVrKFz7xQ5wj8r2",
+                "CONTRACT_OWNER_ACCOUNT": "0xfef55843244453abc7e183d13139a528bdfbcbed",
+                "TWITTER_SECRET": "AlKsShfviZUvoCU664KK6Nr8R48rLfJ3WyjifL9bil5mUWkdoO",
+                "GOOGLE_CLIENT_ID_IOS": "592660758851-ij08heeibilgtut41o9s4t483dn2klfr.apps.googleusercontent.com",
+                "GOOGLE_CLIENT_ID": "592660758851-37e14es9auhhah8gk66mrsgfaqknhokf.apps.googleusercontent.com",
+                "TWITTER_KEY": "V98znSmBzYuUrwWLsNrfOFYSo",
+                "FACEBOOK_APP_ID": "799133503791089",
+                "CORE_API_URL": "http://34.73.154.241/license/ppp"
+            }
         }
-    }
+    ]
 }
