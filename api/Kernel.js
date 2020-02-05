@@ -17,10 +17,12 @@ const GlobalController = require('./Controllers/GlobalController');
 const packageModule = require('./Controllers/PackageController');
 const authModule = require('./Controllers/AuthController');
 const ReleaseController = require('./Controllers/ReleaseController');
+const Release = require('../apollo/controllers/release')
 
 const publishCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.publishingAccount, config.publishingAccountPassword);
 const paymentAccountCredentialsProvider = Web3Writer.createInMemoryCredentialsProvider(config.paymentAccount, config.paymentAccountPassword);
 const licenseModule = new LicenseController(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
+const apolloReleaseModule = new Release(musicoinCore.getLicenseModule(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider, contractOwnerAccount);
 //const temp = musicoinCore.getCredentials();
 //const artistModule = new ArtistController(musicoinCore.getArtistModule(), musicoinCore.getCredentials1(), accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider);
 const artistModule = new ArtistController(musicoinCore.getArtistModule(), paymentAccountCredentialsProvider, accountManager, publishCredentialsProvider, paymentAccountCredentialsProvider);
@@ -30,6 +32,7 @@ const GlobalModule = new GlobalController(musicoinCore.getArtistModule());
 const ReleaseModule = new ReleaseController(musicoinCore.getArtistModule(), publishCredentialsProvider, paymentAccountCredentialsProvider);
 
 module.exports = {
+  apolloReleaseModule: apolloReleaseModule,
   licenseModule: licenseModule,
   artistModule: artistModule,
   txModule: txModule,

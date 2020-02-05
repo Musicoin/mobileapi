@@ -138,13 +138,15 @@ LicenseModule.prototype.convertDbRecordToLicense = function(record) {
     })
 }
 
-//LicenseModule.prototype.getRecentPlays = function(limit) {
-//  // grab the top 2*n from the db to try to get a distinct list that is long enough.
-//  return UserPlayback.find({}).sort({ playbackDate: 'desc' }).limit(limit).exec()
-//    .then(records => records.map(r => r.contractAddress))
-//    .then(addresses => Array.from(new Set(addresses))) // insertion order is preserved
-//    .then(addresses => addresses.map(address => this.getLicense(address)))
-//}
+LicenseModule.prototype.getRecentPlays = function(limit) {
+ // grab the top 2*n from the db to try to get a distinct list that is long enough.
+ return UserPlayback.find({}, { _id: 0, release: 1 }).sort({ playbackDate: 'desc' }).limit(limit).populate('release').exec();
+//  .then(records => records.map(r => r.contractAddress))
+//  .then(addresses => Array.from(new Set(addresses))) // insertion order is preserved
+//  .then(addresses => addresses.slice(0, Math.min(addresses.length, limit)))
+//  .then(addresses => addresses.map(address => this.getLicense(address)))
+//  .then(promises => Promise.all(promises))
+}
 
 LicenseModule.prototype.getTopPlayed = function(limit, genre) {
   const filter = genre ? {
