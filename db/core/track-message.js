@@ -1,4 +1,4 @@
-const mongoose = require('../connections/core');
+const mongoose = require('mongoose');
 module.exports = mongoose.model('TrackMessage', mongoose.Schema({
   artistAddress: {
     type: String,

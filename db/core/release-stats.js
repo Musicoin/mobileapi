@@ -1,5 +1,6 @@
-const mongoose = require('./../connections/core');
-module.exports = mongoose.model('ReleaseStats', mongoose.Schema({
+const mongoose = require('mongoose');
+
+const ReleaseStatsSchema = mongoose.Schema({
   release: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Release',
@@ -25,4 +26,13 @@ module.exports = mongoose.model('ReleaseStats', mongoose.Schema({
     type: Number,
     default: 0
   }
-}));
+})
+
+ReleaseStatsSchema.virtual('totalTipPlayCount').get(function () {
+  return this.playCount + this.tipCount
+});
+
+module.exports = mongoose.model('ReleaseStats', ReleaseStatsSchema);
+
+
+

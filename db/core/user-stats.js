@@ -1,4 +1,4 @@
-const mongoose = require('../connections/core');
+const mongoose = require('mongoose');
 module.exports = mongoose.model('UserStats', mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,

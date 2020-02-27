@@ -1,4 +1,4 @@
-const mongoose = require('./../connections/core');
+const mongoose = require('mongoose');
 
 module.exports = mongoose.model('Release', mongoose.Schema({
   tx: String,
@@ -34,5 +34,10 @@ module.exports = mongoose.model('Release', mongoose.Schema({
   errorMessage: String,
   markedAsAbuse: Boolean,
   pendingUpdateTxs: Object,
-  votes: Object
+  votes: Object,
+  tipPlays: {
+    type: Number,
+    default: 0,
+    index: true
+  }
 }));
