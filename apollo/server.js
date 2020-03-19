@@ -3,26 +3,23 @@ const {
 } = require('apollo-server-express');
 const typeDefs = require('./schemas');
 const resolvers = require('./resolver');
+const { models } = require('../db/connections/core')
 
-const Release = require('../db/core/release');
-
-function config(app) {
-  const server = new ApolloServer({
+function createApolloServer() {
+  return new ApolloServer({
     typeDefs,
     resolvers,
     uploads: false,
-    context: ({ req }) => ({
-      release: Release
-    }),
-    playground: {
-      subscriptionEndpoint: `/subscriptions`,
-    }
-  });
-  server.applyMiddleware({
-    app
+    context: async ({ req }) => {
+      if (req) {
+        return {
+          models
+        };
+      }
+    },
   });
 }
 
 module.exports = {
-  config
+  createApolloServer
 }
