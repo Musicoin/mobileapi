@@ -1,10 +1,7 @@
 type Query {
-  recentPlays(limit: Int): [Release]
-  topPlays(limit: Int): [Release]
   trendingList(limit: Int): [Release]
 }
 
 type Subscription{
-  recentPlaysUpdated: Release
-  topPlaysUpdated:Release
+  trendingListUpdated: [Release]
 }

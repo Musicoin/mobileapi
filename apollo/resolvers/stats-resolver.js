@@ -1,22 +1,21 @@
 const pubsub = require('../pubsub');
-const Release = require('../../db/core/release');
-
-let statscount = {plays: 6781650, tips: 4380785};
-
+const { getTrending, getStats } = require('../common')
 const resolvers = {
   Query: {
     async stats(parent, args, context, info) {
-      return statscount;
+      return getStats(context)
     },
   },
   Mutation: {
     async increasePlays(parent, args, context, info) {
-      statscount.plays = statscount.plays + 1;
+      await context.models.Release.update({ _id: args.releaseId }, { $inc: { directPlayCount: 1, directTipCount: 1 } })
+      let statscount = await getStats(context)
       await pubsub.publish('playsIncreased', statscount);
-      if(args.releaseId) {
-        await pubsub.publish('recentPlaysUpdated', args.releaseId);
-      }
-      return statscount;
+      let trendingList = await getTrending(context, { limit: 20 }, {
+        tipPlays: 'desc'
+      }) //parent.trendingList(parent, args, context, info)
+      await pubsub.publish('trendingListUpdated', trendingList);
+      return statscount
     },
   },
   Subscription: {
@@ -26,5 +25,7 @@ const resolvers = {
     },
   },
 };
+
+
 
 module.exports = resolvers;
