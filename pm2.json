@@ -3,7 +3,7 @@
         {
             "name": "kickass",
             "script": "./app.js",
-            "watch": true,
+            "watch": false,
             "env": {
                 "MUSICOIN_API_PORT": 3000,
                 "NODE_ENV": "development",
@@ -24,7 +24,7 @@
                 "GOOGLE_CLIENT_ID": "592660758851-37e14es9auhhah8gk66mrsgfaqknhokf.apps.googleusercontent.com",
                 "TWITTER_KEY": "V98znSmBzYuUrwWLsNrfOFYSo",
                 "FACEBOOK_APP_ID": "799133503791089",
-                "CORE_API_URL": "http://34.73.154.241/license/ppp"
+                "CORE_API_URL": "http://10.142.0.44/license/ppp"
             }
         }
     ]
