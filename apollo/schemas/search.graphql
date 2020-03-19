@@ -10,6 +10,7 @@ type Release {
   tx: String,
   title: String,
   link: String,
+  trackUrl: String,
   pppLink: String,
   genres: [String],
   artistName: String,
