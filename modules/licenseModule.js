@@ -134,6 +134,7 @@ LicenseModule.prototype.convertDbRecordToLicense = function(record) {
       license.tx = record.tx;
       license.markedAsAbuse = record.markedAsAbuse;
       license.pendingUpdateTxs = record.pendingUpdateTxs;
+      license.contractAddress = record.contractAddress;
       return license;
     })
 }

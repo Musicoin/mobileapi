@@ -8,20 +8,21 @@ const ConfigUtils = require('./config/config');
 const RateLimit = require('express-rate-limit');
 const AuthMiddleware = require('./api/Middleware/AuthMiddleware');
 const config = ConfigUtils.loadConfig(process.argv);
-const {execute, subscribe} = require('graphql');
-const {makeExecutableSchema} = require('graphql-tools');
-const {createServer} = require('http');
-const {SubscriptionServer} = require('subscriptions-transport-ws');
+const { execute, subscribe } = require('graphql');
+const { makeExecutableSchema } = require('graphql-tools');
+const { createServer } = require('http');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
 const typeDefs = require('./apollo/schemas');
 const resolvers = require('./apollo/resolver')
 const apollo = require('./apollo/server');
 const Logger = require('./utils/Logger');
-const {gql} = require('apollo-server-express');
+const { createApolloServer } = require('./apollo/server')
+const { connectDb } = require('./db/connections/core')
 
 
 global.fetch = require('node-fetch');
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', '*');
@@ -64,8 +65,8 @@ app.use('/test', require('./api/routes/v1/global'));
 
 app.use('/manage', require('./api/routes/v1/global'));
 
-const unless = function(paths, middleware) {
-  return function(req, res, next) {
+const unless = function (paths, middleware) {
+  return function (req, res, next) {
     if (paths.includes(req.path)) {
       return next();
     } else {
@@ -74,7 +75,7 @@ const unless = function(paths, middleware) {
   };
 };
 
-app.use(unless(['/graphql', '/subscriptions'], AuthMiddleware.authenticate));
+// app.use(unless(['/graphql', '/subscriptions'], AuthMiddleware.authenticate));
 
 app.use('/v1', require('./api/routes/v1/global'));
 app.use('/v1/artist', require('./api/routes/v1/artist'));
@@ -84,8 +85,6 @@ app.use('/v1/release', require('./api/routes/v1/release'));
 app.use('/v2', require('./api/routes/v2/global'));
 app.use('/v2/release', require('./api/routes/v2/release'));
 
-apollo.config(app);
-
 app.use('/', require('./api/routes/global'));
 app.use('/user', require('./api/routes/user'));
 app.use('/package', require('./api/routes/package'));
@@ -94,22 +93,13 @@ app.use('/license', require('./api/routes/license'));
 app.use('/artist', require('./api/routes/artist'));
 app.use('/tx', require('./api/routes/tx'));
 
-// app.listen(config.port,()=>{
-//   Logger.info(`server listening on port ${config.port}`);
-// });
-
+let apolloServer = createApolloServer();
+apolloServer.applyMiddleware({ app, path: '/graphql' });
 
 const ws = createServer(app);
-const schema = makeExecutableSchema({typeDefs, resolvers});
-ws.listen(config.port, () => {
-  console.log(`Apollo Server is now running on http://localhost:${config.port}`);
-  // Set up the WebSocket for handling GraphQL subscriptions
-  new SubscriptionServer({
-    execute,
-    subscribe,
-    schema,
-  }, {
-    server: ws,
-    path: '/subscriptions',
+apolloServer.installSubscriptionHandlers(ws)
+connectDb().then(() => {
+  ws.listen(config.port, () => {
+    console.log(`Apollo Server is now running on http://localhost:${config.port}`);
   });
 });
