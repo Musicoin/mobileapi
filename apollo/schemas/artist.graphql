@@ -1,0 +1,21 @@
+type Query {
+  getArtistOfTheWeek(limit: Int): ArtistOfTheWeekResult
+  getNewArtists(limit: Int): [Artist]
+  getArtist(id: String): Artist
+}
+
+type Artist {
+    artistAddress: String,
+    description: String,
+    name: String,
+    imageUrl: String,
+    verified: String,
+    followers: String,
+    tipCount: String,
+    artistTracks: [Release]
+}
+
+type ArtistOfTheWeekResult {
+  release: Release,
+  artist: Artist
+}

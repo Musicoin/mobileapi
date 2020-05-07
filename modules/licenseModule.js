@@ -44,16 +44,16 @@ function LicenseModule(web3Reader, web3Writer) {
  * @param {string} address
  * @returns {*|Promise.<TResult>}
  */
-LicenseModule.prototype.getLicense = function(address) {
+LicenseModule.prototype.getLicense = function (address) {
   return this.web3Reader.loadLicense(address)
 };
 
-LicenseModule.prototype.getAudioLicense = function(contractAddress) {
+LicenseModule.prototype.getAudioLicense = function (contractAddress) {
   console.log("Getting license: " + contractAddress);
   return Release.findOne({
-      contractAddress: contractAddress,
-      state: 'published'
-    }).exec()
+    contractAddress: contractAddress,
+    state: 'published'
+  }).exec()
     .then(record => {
       if (record)
         return this.convertDbRecordToLicense(record);
@@ -61,23 +61,23 @@ LicenseModule.prototype.getAudioLicense = function(contractAddress) {
     });
 }
 
-LicenseModule.prototype.releaseLicense = function(releaseRequest, credentialsProvider) {
+LicenseModule.prototype.releaseLicense = function (releaseRequest, credentialsProvider) {
   return this.web3Writer.releaseLicense(releaseRequest, credentialsProvider);
 };
 
-LicenseModule.prototype.ppp = function(licenseAddress, credentialsProvider) {
+LicenseModule.prototype.ppp = function (licenseAddress, credentialsProvider) {
   return this.web3Writer.ppp(licenseAddress, credentialsProvider);
 };
 
-LicenseModule.prototype.distributeBalance = function(licenseAddress, credentialsProvider) {
+LicenseModule.prototype.distributeBalance = function (licenseAddress, credentialsProvider) {
   return this.web3Writer.distributeLicenseBalance(licenseAddress, credentialsProvider);
 };
 
-LicenseModule.prototype.updatePPPLicense = function(licenseAddress, credentialsProvider) {
+LicenseModule.prototype.updatePPPLicense = function (licenseAddress, credentialsProvider) {
   return this.web3Writer.updatePPPLicense(licenseAddress, credentialsProvider);
 };
 
-LicenseModule.prototype.getNewReleases = function(limit, genre) {
+LicenseModule.prototype.getNewReleases = function (limit, genre) {
   const filter = genre ? {
     state: 'published',
     genres: genre,
@@ -85,22 +85,22 @@ LicenseModule.prototype.getNewReleases = function(limit, genre) {
       $ne: true
     }
   } : {
-    state: 'published',
-    markedAsAbuse: {
-      $ne: true
-    }
-  };
+      state: 'published',
+      markedAsAbuse: {
+        $ne: true
+      }
+    };
   return this.getLicensesForEntries(filter, limit);
 }
 
-LicenseModule.prototype.getLicensesForEntries = function(condition, limit, sort) {
+LicenseModule.prototype.getLicensesForEntries = function (condition, limit, sort) {
 
   return this.getReleaseEntries(condition, limit, sort)
     .then(items => items.map(item => this.convertDbRecordToLicense(item)))
     .then(promises => Promise.all(promises));
 }
 
-LicenseModule.prototype.getReleaseEntries = function(condition, limit, _sort) {
+LicenseModule.prototype.getReleaseEntries = function (condition, limit, _sort) {
   let sort = _sort ? _sort : {
     releaseDate: 'desc'
   };
@@ -112,13 +112,13 @@ LicenseModule.prototype.getReleaseEntries = function(condition, limit, _sort) {
   return query.exec()
 }
 
-LicenseModule.prototype.convertDbRecordToLicense = function(record) {
+LicenseModule.prototype.convertDbRecordToLicense = function (record) {
   if (typeof record.contractAddress == 'undefined') {
     return
   }
   return this.getLicense(record.contractAddress)
     .bind(this)
-    .then(function(license) {
+    .then(function (license) {
       if (!license.artistName)
         license.artistName = record.artistName || 'Musicoin';
 
@@ -135,31 +135,32 @@ LicenseModule.prototype.convertDbRecordToLicense = function(record) {
       license.markedAsAbuse = record.markedAsAbuse;
       license.pendingUpdateTxs = record.pendingUpdateTxs;
       license.contractAddress = record.contractAddress;
+      license.id = record._id
       return license;
     })
 }
 
-LicenseModule.prototype.getRecentPlays = function(limit) {
- // grab the top 2*n from the db to try to get a distinct list that is long enough.
- return UserPlayback.find({}, { _id: 0, release: 1 }).sort({ playbackDate: 'desc' }).limit(limit).populate('release').exec();
-//  .then(records => records.map(r => r.contractAddress))
-//  .then(addresses => Array.from(new Set(addresses))) // insertion order is preserved
-//  .then(addresses => addresses.slice(0, Math.min(addresses.length, limit)))
-//  .then(addresses => addresses.map(address => this.getLicense(address)))
-//  .then(promises => Promise.all(promises))
+LicenseModule.prototype.getRecentPlays = function (limit) {
+  // grab the top 2*n from the db to try to get a distinct list that is long enough.
+  return UserPlayback.find({}, { _id: 0, release: 1 }).sort({ playbackDate: 'desc' }).limit(limit).populate('release').exec();
+  //  .then(records => records.map(r => r.contractAddress))
+  //  .then(addresses => Array.from(new Set(addresses))) // insertion order is preserved
+  //  .then(addresses => addresses.slice(0, Math.min(addresses.length, limit)))
+  //  .then(addresses => addresses.map(address => this.getLicense(address)))
+  //  .then(promises => Promise.all(promises))
 }
 
-LicenseModule.prototype.getTopPlayed = function(limit, genre) {
+LicenseModule.prototype.getTopPlayed = function (limit, genre) {
   const filter = genre ? {
     state: 'published',
     genres: genre
   } : {
-    state: 'published'
-  };
+      state: 'published'
+    };
   return this.getLicensesForEntries(filter, limit, {
-      directPlayCount: 'desc'
-    })
-    .then(function(licenses) {
+    directPlayCount: 'desc'
+  })
+    .then(function (licenses) {
       // secondary sort based on plays recorded in the blockchain.  This is the number that will
       // show on the screen, but it's too slow to pull all licenses and sort.  So, sort fast with
       // our local db, then resort top results to it doesn't look stupid on the page.
@@ -171,13 +172,13 @@ LicenseModule.prototype.getTopPlayed = function(limit, genre) {
     });
 }
 
-LicenseModule.prototype.getLicensesForEntries = function(condition, limit, sort) {
+LicenseModule.prototype.getLicensesForEntries = function (condition, limit, sort) {
   return this.getReleaseEntries(condition, limit, sort)
     .then(items => items.map(item => this.convertDbRecordToLicense(item)))
     .then(promises => bluebird_1.Promise.all(promises));
 }
 
-LicenseModule.prototype.getSampleOfVerifiedTracks = function(limit, genre) {
+LicenseModule.prototype.getSampleOfVerifiedTracks = function (limit, genre) {
   // short of upgrading the DB, random selection is a bit difficult.
   // However, we don't really need it to be truly random
   const condition = {
@@ -205,11 +206,11 @@ LicenseModule.prototype.getSampleOfVerifiedTracks = function(limit, genre) {
           $ne: true
         }
       } : {
-        state: 'published',
-        markedAsAbuse: {
-          $ne: true
-        }
-      };
+          state: 'published',
+          markedAsAbuse: {
+            $ne: true
+          }
+        };
       let query = Release.find(filter)
         .where({
           artist: {
@@ -238,7 +239,7 @@ LicenseModule.prototype.getSampleOfVerifiedTracks = function(limit, genre) {
 }
 
 
-LicenseModule.prototype.doGetRandomReleases = function({
+LicenseModule.prototype.doGetRandomReleases = function ({
   limit = 1,
   genre,
   artist
@@ -269,12 +270,12 @@ LicenseModule.prototype.doGetRandomReleases = function({
     .then(items => bluebird_1.Promise.all(items.map(item => this.convertDbRecordToLicense(item))));
 }
 
-LicenseModule.prototype.getTrackDetailsByIds = function(addresses, limit) {
+LicenseModule.prototype.getTrackDetailsByIds = function (addresses, limit) {
   return Release.find({
-      contractAddress: {
-        $in: addresses
-      }
-    })
+    contractAddress: {
+      $in: addresses
+    }
+  })
     .populate('artist')
     .limit(limit)
     .then(releases => {
@@ -282,7 +283,7 @@ LicenseModule.prototype.getTrackDetailsByIds = function(addresses, limit) {
     })
 }
 
-LicenseModule.prototype.convertDbRecordToLicenseLite = function(record) {
+LicenseModule.prototype.convertDbRecordToLicenseLite = function (record) {
   const draftProfile = record.artist && record.artist.draftProfile ? record.artist.draftProfile : null;
   return {
     artistName: record.artistName,
@@ -304,7 +305,7 @@ LicenseModule.prototype.convertDbRecordToLicenseLite = function(record) {
   };
 }
 
-LicenseModule.prototype.shuffle = function(a) {
+LicenseModule.prototype.shuffle = function (a) {
   for (let i = a.length; i; i--) {
     let j = Math.floor(Math.random() * i);
     [a[i - 1], a[j]] = [a[j], a[i - 1]];
@@ -317,24 +318,24 @@ function sanitize(s) {
   return s1 ? s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&").trim() : s1;
 }
 
-LicenseModule.prototype.getNewReleasesByGenre = function(limit, maxGroupSize, _search, _genre, _sort) {
+LicenseModule.prototype.getNewReleasesByGenre = function (limit, maxGroupSize, _search, _genre, _sort) {
   const search = sanitize(_search);
   const genre = _genre;
   const flatten = arr => arr.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
   const sort = _sort == "plays" ? [
-      ["directPlayCount", 'desc'],
-      ["directTipCount", 'desc'],
-      ["releaseDate", 'desc']
-    ] :
+    ["directPlayCount", 'desc'],
+    ["directTipCount", 'desc'],
+    ["releaseDate", 'desc']
+  ] :
     _sort == "date" ? [
       ["releaseDate", 'desc'],
       ["directTipCount", 'desc'],
       ["directPlayCount", 'desc']
     ] : [
-      ["directTipCount", 'desc'],
-      ["directPlayCount", 'desc'],
-      ["releaseDate", 'desc']
-    ];
+        ["directTipCount", 'desc'],
+        ["directPlayCount", 'desc'],
+        ["releaseDate", 'desc']
+      ];
   const artistList = search ?
     User.find({
       "draftProfile.artistName": {
@@ -342,13 +343,13 @@ LicenseModule.prototype.getNewReleasesByGenre = function(limit, maxGroupSize, _s
         "$options": "i"
       }
     })
-    .where({
-      mostRecentReleaseDate: {
-        $ne: null
-      }
-    })
-    .exec()
-    .then(records => records.map(r => r.profileAddress)) :
+      .where({
+        mostRecentReleaseDate: {
+          $ne: null
+        }
+      })
+      .exec()
+      .then(records => records.map(r => r.profileAddress)) :
     bluebird_1.Promise.resolve([]);
   return artistList
     .then(profiles => {
@@ -361,40 +362,40 @@ LicenseModule.prototype.getNewReleasesByGenre = function(limit, maxGroupSize, _s
       if (search) {
         releaseQuery = releaseQuery.where({
           $or: [{
-              artistAddress: {
-                $in: profiles
-              }
-            },
-            {
-              title: {
-                "$regex": search,
-                "$options": "i"
-              }
-            },
-            {
-              genres: {
-                "$regex": search,
-                "$options": "i"
-              }
-            },
-            {
-              languages: {
-                "$regex": search,
-                "$options": "i"
-              }
-            },
-            {
-              moods: {
-                "$regex": search,
-                "$options": "i"
-              }
-            },
-            {
-              regions: {
-                "$regex": search,
-                "$options": "i"
-              }
+            artistAddress: {
+              $in: profiles
             }
+          },
+          {
+            title: {
+              "$regex": search,
+              "$options": "i"
+            }
+          },
+          {
+            genres: {
+              "$regex": search,
+              "$options": "i"
+            }
+          },
+          {
+            languages: {
+              "$regex": search,
+              "$options": "i"
+            }
+          },
+          {
+            moods: {
+              "$regex": search,
+              "$options": "i"
+            }
+          },
+          {
+            regions: {
+              "$regex": search,
+              "$options": "i"
+            }
+          }
           ]
         });
       }
@@ -438,7 +439,7 @@ LicenseModule.prototype.getNewReleasesByGenre = function(limit, maxGroupSize, _s
 }
 
 
-LicenseModule.prototype.getWeb3Reader = function() {
+LicenseModule.prototype.getWeb3Reader = function () {
   return this.web3Reader;
 };
 

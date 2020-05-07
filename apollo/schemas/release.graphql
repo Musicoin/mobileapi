@@ -1,7 +1,26 @@
 type Query {
   trendingList(limit: Int): [Release]
+  getDebuts(limit: Int): [Release]
+  getReleaseById(id: String): Release
 }
 
 type Subscription{
   trendingListUpdated: [Release]
+}
+
+type Release {
+  id: String,
+  tx: String,
+  title: String,
+  link: String,
+  trackUrl: String,
+  pppLink: String,
+  genres: [String],
+  artistName: String,
+  artistLink: String,
+  artistId: String,
+  trackImg: String,
+  trackDescription: String,
+  directTipCount: Int,
+  directPlayCount: Int
 }
