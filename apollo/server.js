@@ -9,6 +9,14 @@ function createApolloServer() {
   return new ApolloServer({
     typeDefs,
     resolvers,
+    subscriptions: {
+      onConnect: (connectionParams, webSocket, context) => {
+        // ...
+      },
+      onDisconnect: (webSocket, context) => {
+        // ...
+      },
+    },
     uploads: false,
     context: async ({ req }) => {
       if (req) {

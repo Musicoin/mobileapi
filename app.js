@@ -100,6 +100,7 @@ const ws = createServer(app);
 apolloServer.installSubscriptionHandlers(ws)
 connectDb().then(() => {
   ws.listen(config.port, () => {
-    console.log(`Apollo Server is now running on http://localhost:${config.port}`);
+    console.log(`Apollo Server is now running on http://localhost:${config.port}${apolloServer.graphqlPath}`);
+    console.log(`Subscriptions ready at ws://localhost:${config.port}${apolloServer.subscriptionsPath}`)
   });
 });

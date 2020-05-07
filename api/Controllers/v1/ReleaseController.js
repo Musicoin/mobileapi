@@ -18,6 +18,7 @@ class ReleaseController extends BaseController {
     this.getTracksByArtist = this.getTracksByArtist.bind(this);
     this.getTracksByGenre = this.getTracksByGenre.bind(this);
     this.tipTrack = this.tipTrack.bind(this);
+    this.apolloGetTrackDetail = this.apolloGetTrackDetail.bind(this);
 
     // private functions
     this.isLiked = this.isLiked.bind(this);
@@ -47,6 +48,22 @@ class ReleaseController extends BaseController {
       this.success(Request, Response, next, data);
     } catch (error) {
       this.error(Request, Response, error);
+    }
+  }
+
+  async apolloGetTrackDetail(parent, args, context, info) {
+    try {
+      const id = args.id;
+
+      let trackLoad = await this.ReleaseDelegator._loadReleaseById(id);
+
+      if (trackLoad.error) {
+        return Error('Error loading track') //this.reject(Request, Response, trackLoad.error);
+      }
+
+      return trackLoad.data //this.success(Request, Response, next, data);
+    } catch (error) {
+      return error //this.error(Request, Response, error);
     }
   }
 
@@ -142,7 +159,7 @@ class ReleaseController extends BaseController {
 
       // insert a track message to db
       await this.ReleaseDelegator.createTrackMessage(trackAddress, release.artistAddress, release._id,
-          artist._id, sender._id, message, threadId);
+        artist._id, sender._id, message, threadId);
 
       this.logger.debug('record track message complete');
 

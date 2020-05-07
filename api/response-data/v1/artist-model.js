@@ -4,7 +4,7 @@ function responseData(artist) {
   return {
     artistAddress: artist.profileAddress,
     description: artist.draftProfile.description,
-    artistName: artist.draftProfile.artistName,
+    name: artist.draftProfile.artistName,
     imageUrl: MediaProvider.resolveIpfsUrl(artist.draftProfile.ipfsImageUrl),
     social: artist.draftProfile.social,
     verified: artist.verified,
@@ -17,7 +17,7 @@ function responseMore(contractInfo, artist) {
   return {
     artistAddress: artist.profileAddress,
     description: contractInfo.description,
-    artistName: contractInfo.artistName,
+    name: contractInfo.artistName,
     imageUrl: MediaProvider.resolveIpfsUrl(contractInfo.imageUrl),
     social: contractInfo.social,
     followers: artist.followerCount || 0,
@@ -26,7 +26,7 @@ function responseMore(contractInfo, artist) {
 }
 
 function responseList(artists) {
-  return artists.map(artist=>responseData(artist));
+  return artists.map(artist => responseData(artist));
 }
 
 module.exports = {

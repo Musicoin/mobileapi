@@ -4,6 +4,7 @@ const Web3Reader = require('../modules/blockchain/web3-reader');
 const Web3Writer = require('../modules/blockchain/web3-writer');
 const LicenseModule = require('../modules/licenseModule');
 const ConfigUtils = require('../config/config');
+const { responseList } = require('../api/response-data/v1/release-model')
 const config = ConfigUtils.loadConfig(process.argv);
 const Web3 = require('web3');
 const web3 = new Web3();
@@ -35,29 +36,97 @@ async function getStats(context) {
 async function getTrending(context, args, sort) {
     let query = context.models.Release.find({
         state: 'published'
-    }).sort(sort);
+    }).populate('artist', '_id').sort(sort);
     if (args.limit) {
         query = query.limit(args.limit);
     }
-    let releases = await query.exec()
-        .then(items => items.map(item => licenseModule.convertDbRecordToLicense(item)))
-        .then(promises => Promise.all(promises))
-        .then(function (licenses) {
-            return licenses;
-        });
-    let ReleasesArray = [];
-    for (let track of releases) {
-        track.link = 'https://musicion.org/nav/track/' + track.contractAddress;
-        track.authorLink = 'https://musicoin.org/nav/artist/' + track.artistAddress;
-        track.trackImg = MediaProvider.resolveIpfsUrl(track.imageUrl);
-        track.trackUrl = `https://${API_DOMAIN}/api/test/track/download/${track.contractAddress}`
-        ReleasesArray.push(track);
-    }
+    let releases = await query.exec();
+    let releasesData = responseList(releases)
 
-    return ReleasesArray;
+    return releasesData;
+}
+
+function resolveIpfsUrl(url) {
+    return MediaProvider.resolveIpfsUrl(url)
+}
+
+async function loadLatestHero(context) {
+    return await context.models.Hero.find().sort({
+        startDate: -1
+    }).limit(1).exec();
+}
+
+async function loadTrack(context, address) {
+    return await context.models.Release.findOne({
+        contractAddress: address
+    }).exec();
+}
+
+async function loadUserByEmail(context, email) {
+    return context.models.User.findOne({ 'apiEmail': email }).exec();
+}
+
+
+async function isLiking(context, userId, trackAddress) {
+    const release = await context.models.Release.findOne({ "contractAddress": trackAddress }).exec();
+    //ToDO: Add logging 
+    // this.logger.debug("isLiking", JSON.stringify([trackAddress, release]));
+
+    if (release && release.id) {
+        const liked = await context.models.Like.findOne({ liker: userId, liking: release.id }).exec();
+        // this.logger.debug("isLiking", JSON.stringify(liked));
+        if (liked) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+async function loadArtist(context, address) {
+    return await context.models.User.findOne({
+        profileAddress: address
+    }).exec();
+
+    //this.logger.debug("loadArtist:",user);
+}
+
+async function filterFollowing(context, user, artist) {
+    if (user) {
+        artist.followed = await isUserFollowing(context, user.id, artist.artistAddress);
+    } else {
+        artist.followed = false;
+    }
+    return artist;
+}
+
+async function isUserFollowing(context, userId, toFollow) {
+    const follower = await context.models.User.findOne({ "profileAddress": toFollow }).exec();
+    //this.logger.debug("isUserFollowing", JSON.stringify([toFollow, follower]));
+
+    if (follower && follower.id) {
+        const followed = await context.models.Follow.findOne({ follower: userId, following: follower.id }).exec();
+        //  this.logger.debug("isUserFollowing", JSON.stringify(followed));
+        if (followed) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 module.exports = {
     getTrending,
-    getStats
+    getStats,
+    resolveIpfsUrl,
+    loadArtist,
+    loadUserByEmail,
+    loadLatestHero,
+    loadTrack,
+    isLiking,
+    filterFollowing
 }
