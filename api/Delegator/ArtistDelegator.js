@@ -2,9 +2,9 @@ const ControllerDelegator = require('./ControllerDelegator');
 
 const emailUtil = require("../../utils/email");
 
-class ArtistDelegator extends ControllerDelegator{
+class ArtistDelegator extends ControllerDelegator {
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.updateArtistStats = this.updateArtistStats.bind(this);
@@ -44,7 +44,7 @@ class ArtistDelegator extends ControllerDelegator{
    *   data: obj
    * }
    */
-  async loadArtist(address){
+  async loadArtist(address) {
     const user = await this.db.User.findOne({
       profileAddress: address
     }).exec();
@@ -52,15 +52,15 @@ class ArtistDelegator extends ControllerDelegator{
     //this.logger.debug("loadArtist:",user);
     if (!user) {
       return {
-        error: "user not found: "+address
+        error: "user not found: " + address
       };
     }
     let response;
     if (user.draftProfile) {
       response = this.response.ArtistResponse.responseData(user);
-    }else{
+    } else {
       const artist = await this.MusicoinCore.getArtistModule().getArtistByProfile(address);
-      this.logger.debug("artist social: ",artist.socialUrl);
+      this.logger.debug("artist social: ", artist.socialUrl);
       const description = await this.MediaProvider.fetchTextFromIpfs(artist.descriptionUrl);
       const social = await this.MediaProvider.fetchTextFromIpfs(artist.socialUrl);
       artist.description = description;
@@ -78,7 +78,7 @@ class ArtistDelegator extends ControllerDelegator{
    * @param {*} message 
    * @param {*} senderName 
    */
-  notifyTip(email, message, senderName, threadId){
+  notifyTip(email, message, senderName, threadId) {
     const notification = {
       trackName: null,
       actionUrl: `https://musicoin.org/nav/thread-page?thread=${threadId}`,
@@ -87,9 +87,9 @@ class ArtistDelegator extends ControllerDelegator{
     };
     const logger = this.logger;
     this.renderMessage(notification, (err, html) => {
-      if(err){
-        logger.debug("tip notify error: ",err.message);
-      }else{
+      if (err) {
+        logger.debug("tip notify error: ", err.message);
+      } else {
         const emailContent = {
           from: "musicoin@musicoin.org",
           to: email,
@@ -98,14 +98,14 @@ class ArtistDelegator extends ControllerDelegator{
         }
         emailUtil.send(emailContent).then(result => {
           logger.debug("email send complete: ", result);
-        }).catch(err=>{
-          logger.debug("tip notify error: ",err.message);
+        }).catch(err => {
+          logger.debug("tip notify error: ", err.message);
         });
       }
     })
   }
 
-  async createTrackMessage(artistAddress, artistId, senderId, message, threadId){
+  async createTrackMessage(artistAddress, artistId, senderId, message, threadId) {
     return this.db.TrackMessage.create({
       artistAddress: artistAddress,
       contractAddress: null,
@@ -121,35 +121,36 @@ class ArtistDelegator extends ControllerDelegator{
     });
   }
 
-  async loadLatestHero(){
+  async loadLatestHero() {
     const heros = await this.db.Hero.find().sort({
       startDate: -1
     }).limit(1).exec();
     const hero = heros ? heros[0] : null;
-    if(hero){
+    if (hero) {
       return {
         data: hero
       }
-    }else{
+    } else {
       return {
         error: "hero not found"
       }
     }
   }
 
-  async loadTrack(address){
+  async loadTrack(address) {
     const release = await this.db.Release.findOne({
       contractAddress: address
     }).exec();
+    console.log(release)
 
     if (release) {
       const data = this.response.ReleaseResponse.responseData(release);
       return {
         data
       }
-    }else{
-      return{
-        error: "release not found: "+address
+    } else {
+      return {
+        error: "release not found: " + address
       }
     }
   }

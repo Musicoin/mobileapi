@@ -10,7 +10,7 @@ class ReleaseDelegator extends ControllerDelegator {
     this.updateTrackStats = this.updateTrackStats.bind(this);
     this.loadTrack = this.loadTrack.bind(this);
     this._loadTracks = this._loadTracks.bind(this);
-    this._loadReleaseById= this._loadReleaseById.bind(this);
+    this._loadReleaseById = this._loadReleaseById.bind(this);
     this.loadRecentTracks = this.loadRecentTracks.bind(this);
     this.notifyTip = this.notifyTip.bind(this);
     this.createTrackMessage = this.createTrackMessage.bind(this);
@@ -42,6 +42,7 @@ class ReleaseDelegator extends ControllerDelegator {
     const release = await this._loadTrack(address);
 
     if (release) {
+      console.log(release)
       const data = this.response.ReleaseResponse.responseData(release);
       return {
         data
@@ -53,19 +54,19 @@ class ReleaseDelegator extends ControllerDelegator {
     }
   }
 
-  _loadTrack(address){
+  _loadTrack(address) {
     return this.db.Release.findOne({
       contractAddress: address
     }).exec();
   }
 
-  async loadRecentTracks(skip, limit){
-    const releases = await this._loadTracks({},{releaseDate: 'desc'},skip,limit);
+  async loadRecentTracks(skip, limit) {
+    const releases = await this._loadTracks({}, { releaseDate: 'desc' }, skip, limit);
     if (releases) {
       return {
         data: this.response.ReleaseResponse.responseList(releases)
       }
-    }else{
+    } else {
       return {
         error: "tracks not found"
       }
@@ -93,7 +94,7 @@ class ReleaseDelegator extends ControllerDelegator {
    * @param {*} message 
    * @param {*} senderName 
    */
-  notifyTip(email, message, senderName, trackName, threadId){
+  notifyTip(email, message, senderName, trackName, threadId) {
     const notification = {
       trackName: trackName,
       actionUrl: `https://musicoin.org/nav/thread-page?thread=${threadId}`,
@@ -101,9 +102,9 @@ class ReleaseDelegator extends ControllerDelegator {
       senderName: senderName
     };
     this.renderMessage(notification, (err, html) => {
-      if(err){
-        this.logger.debug("tip notify error: ",err.message);
-      }else{
+      if (err) {
+        this.logger.debug("tip notify error: ", err.message);
+      } else {
         const emailContent = {
           from: "musicoin@musicoin.org",
           to: email,
@@ -112,14 +113,14 @@ class ReleaseDelegator extends ControllerDelegator {
         }
         emailUtil.send(emailContent).then(result => {
           this.logger.debug("email send complete: ", result);
-        }).catch(err=>{
-          this.logger.debug("tip notify error: ",err.message);
+        }).catch(err => {
+          this.logger.debug("tip notify error: ", err.message);
         });
       }
     })
   }
 
-  async createTrackMessage(trackAddress,artistAddress,trackId,artistId, senderId, message, threadId){
+  async createTrackMessage(trackAddress, artistAddress, trackId, artistId, senderId, message, threadId) {
     return this.db.TrackMessage.create({
       artistAddress: artistAddress,
       contractAddress: trackAddress,
@@ -135,33 +136,33 @@ class ReleaseDelegator extends ControllerDelegator {
     });
   }
 
-  async loadTracksByGenre(genre,skip,limit){
+  async loadTracksByGenre(genre, skip, limit) {
     const releases = await this._loadTracks({
       genres: genre
-    },{},skip,limit);
+    }, {}, skip, limit);
     if (releases) {
       return {
         data: this.response.ReleaseResponse.responseList(releases)
       }
-    }else{
+    } else {
       return {
         error: "tracks not found"
       }
     }
   }
 
-  async loadTracksByArtist(artistAddress,skip,limit){
+  async loadTracksByArtist(artistAddress, skip, limit) {
     const releases = await this._loadTracks({
       artistAddress: artistAddress
-    },{
+    }, {
       releaseDate: 'desc'
-    },skip,limit);
+    }, skip, limit);
     if (releases) {
       this.logger.debug(`load tracks by artist: ${artistAddress}, total: ${releases.length}`);
       return {
         data: this.response.ReleaseResponse.responseList(releases)
       }
-    }else{
+    } else {
       return {
         error: "tracks not found"
       }
@@ -169,14 +170,18 @@ class ReleaseDelegator extends ControllerDelegator {
   }
 
   async _loadReleaseById(id) {
-    const release = await this.db.Release.findOne({ "_id": id}).exec();
-
+    const release = await this.db.Release.findOne({ "_id": id }).populate('artist', '_id').exec();
     if (release) {
       const data = this.response.ReleaseResponse.responseData(release);
       return {
         data
       }
-    } 
+    }
+    else {
+      return {
+        error: "release not found: " + id
+      }
+    }
   }
 
 }

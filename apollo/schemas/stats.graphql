@@ -9,6 +9,7 @@ type Query {
 
 type Mutation{
   increasePlays(releaseId: String): Stats
+  tip(musicoins: Int, trackAddress:String, email:String): Release
 }
 
 type Subscription{
