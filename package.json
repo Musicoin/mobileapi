@@ -60,7 +60,7 @@
     "tunnel-ssh": "^4.1.4",
     "uuid": "^3.3.2",
     "in-array": "",
-    "web3": "^0.17.0-beta",
+    "web3": "1.5.2",
     "winston": "^2.4.2",
     "winston-daily-rotate-file": "^3.3.3"
   }

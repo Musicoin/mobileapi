@@ -40,7 +40,7 @@ function getComputedKeyValuePairs(config) {
 function getDefaultKeyValueConfig() {
   const env = process.env;
   return {
-    web3Endpoint: env.WEB3_ENDPOINT || 'http://localhost:8545',
+    web3Endpoint: env.WEB3_ENDPOINT || 'https://dappnet-api.skalenodes.com/v1/elegant-ancha',
     ipfsReadEndpoint: env.IPFS_READ_ENDPOINT || 'http://localhost:8080',
     ipfsAddEndpoint: env.IPFS_ADD_ENDPOINT || 'http://localhost:5001',
     mongoEndpoint: env.MONGO_ENDPOINT || "mongodb://localhost",
@@ -59,7 +59,8 @@ function getDefaultKeyValueConfig() {
     forwardingAddress: env.FORWARDING_ADDRESS || '0x0',
     debug: env.DEBUG || 0,   // should be change to false by default
     itunesSharedSecret: env.ITUNES_SHARED_SECRET || '',
-    googlePubKey: env.GOOGLE_PUB_KEY || ''
+    googlePubKey: env.GOOGLE_PUB_KEY || '',
+    tokenAddress: env.TOKEN_ADDRESS || "0x26B7981176e21e251668Db685F871c3Ecb57D6C7",
   };
 }
 
