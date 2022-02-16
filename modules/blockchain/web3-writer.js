@@ -40,7 +40,8 @@ Web3Writer.prototype.unlockAccount = function (provider) {
 
 Web3Writer.prototype.unlockAccountWithCredentials = function (credentials) {
   return new Promise(function (resolve, reject) {
-    this.web3.personal.unlockAccount(credentials.account, credentials.password, 10, function (err, result) {
+    this.web3.eth.personal.unlockAccount(credentials.account, credentials.password, 10, function (err, result) {
+      //ToDo: result is undefined resulting in error "METHOD_NOT_FOUND: The method being requested is not available on this server"
       if (result) {
         resolve(credentials.account);
       }
@@ -76,9 +77,8 @@ Web3Writer.prototype.tipLicense = function (licenseAddress, weiTipAmount, creden
 Web3Writer.prototype.sendFromProfile = function (profileAddress, recipientAddress, musicoins, credentialsProvider) {
   const weiAmount = this.toIndivisibleUnits(musicoins);
   return this.web3Reader.getBalanceInMusicoins(profileAddress)
-      .bind(this)
       .then(balance => {
-        if (balance.greaterThanOrEqualTo(musicoins)) {
+        if (balance >= musicoins) {
           return this.unlockAccount(credentialsProvider);
         }
         throw new Error(`Tip failed, account does not have enough funds to send ${musicoins} musicoins, balance: ${balance}, account: ${profileAddress}`);
@@ -327,7 +327,7 @@ Web3Writer.prototype.createAccount = function (pwd) {
 };
 
 Web3Writer.prototype.toIndivisibleUnits = function (musicCoins) {
-  return this.web3.toWei(musicCoins, 'ether');
+  return this.web3.utils.toWei(musicCoins, 'ether');
 };
 
 const _extractRequiredProperties = function (sourceObject, names) {
