@@ -262,7 +262,7 @@ class UserController {
       }
 
       try {
-        const tipCount = await Release.aggregate({
+        const tipCount = await Release.aggregate([{
           $match: {
             artist: mongoose.Types.ObjectId(user._id)
           }
@@ -273,7 +273,7 @@ class UserController {
               $sum: '$directTipCount'
             },
           }
-        });
+        }]);
         if (tipCount.length > 0) {
           ResponseInstance.tipCount = tipCount[0].total;
         }
